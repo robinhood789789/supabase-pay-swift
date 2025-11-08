@@ -11,8 +11,8 @@ export default function ShareholderSettings() {
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">ตั้งค่า</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">การตั้งค่าบัญชีและความปลอดภัย Shareholder</p>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">ตั้งค่า</h1>
+        <p className="text-sm sm:text-base text-white/80">การตั้งค่าบัญชีและความปลอดภัย Shareholder</p>
       </div>
 
       {/* Account Information */}

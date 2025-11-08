@@ -230,10 +230,10 @@ export default function ShareholderTeam() {
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent animate-gradient">
+          <h1 className="text-3xl font-bold text-white">
             👥 ทีมงาน
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-white/80 mt-2">
             จัดการบัญชี Owner ในทีมของคุณ
           </p>
           {shareholder && (
