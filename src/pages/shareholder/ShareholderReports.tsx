@@ -102,43 +102,43 @@ export default function ShareholderReports() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">รายงานธุรกรรม</h1>
+        <h1 className="text-3xl font-bold text-foreground">รายงานธุรกรรม</h1>
         <p className="text-muted-foreground">สรุปยอดธุรกรรมรายวันของ Owner ทั้งหมด</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Owner ทั้งหมด</p>
-            <p className="text-3xl font-bold">{stats.totalOwners}</p>
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.totalOwners}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-green-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-green-50/50 to-white dark:from-green-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Active</p>
-            <p className="text-3xl font-bold text-green-600">{stats.activeOwners}</p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.activeOwners}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-purple-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">ยอดวันนี้</p>
-            <p className="text-3xl font-bold">฿{stats.todayTotal.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">฿{stats.todayTotal.toLocaleString()}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-amber-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">เฉลี่ยต่อ Owner</p>
-            <p className="text-3xl font-bold">฿{Math.round(stats.dailyAverage).toLocaleString()}</p>
+            <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">฿{Math.round(stats.dailyAverage).toLocaleString()}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Chart */}
-      <Card>
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>แนวโน้มธุรกรรม</CardTitle>
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
@@ -168,7 +168,7 @@ export default function ShareholderReports() {
       </Card>
 
       {/* Owners Table */}
-      <Card>
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-emerald-500">
         <CardHeader>
           <CardTitle>รายงานรายละเอียด</CardTitle>
         </CardHeader>

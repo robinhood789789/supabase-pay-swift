@@ -102,7 +102,7 @@ export default function ShareholderClients() {
         </Badge>
       </div>
 
-      <Card className="shadow-lg hover:shadow-xl transition-all">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-blue-500">
         <CardHeader>
           <CardTitle className="text-xl">📋 รายชื่อลูกค้าทั้งหมด</CardTitle>
         </CardHeader>

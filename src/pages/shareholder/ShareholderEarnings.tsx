@@ -83,33 +83,33 @@ export default function ShareholderEarnings() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-950/20 dark:to-background">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">รายได้ทั้งหมด</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-400">รายได้ทั้งหมด</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summary?.total || 0)}</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(summary?.total || 0)}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-amber-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-950/20 dark:to-background">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">รายได้รอจ่าย</CardTitle>
+            <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-400">รายได้รอจ่าย</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(summary?.pending || 0)}</div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(summary?.pending || 0)}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-green-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-green-50/50 to-white dark:from-green-950/20 dark:to-background">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">รายได้ที่จ่ายแล้ว</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">รายได้ที่จ่ายแล้ว</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(summary?.paid || 0)}</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(summary?.paid || 0)}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-purple-500">
         <CardHeader>
           <CardTitle>ประวัติรายได้</CardTitle>
         </CardHeader>

@@ -48,31 +48,31 @@ function ShareholderSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarHeader className="border-b border-border/50 px-4 py-4 bg-gradient-to-br from-primary/5 to-accent/5">
+      <SidebarHeader className="border-b border-border/50 px-4 py-4 bg-gradient-to-br from-purple-600 to-indigo-600">
         {open && (
           <div className="flex flex-col gap-2 animate-in">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-accent to-pink-500 flex items-center justify-center shadow-lg hover:shadow-glow transition-all duration-300 hover:scale-105">
-                <span className="text-base font-bold text-white">SH</span>
+              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg hover:shadow-glow transition-all duration-300 hover:scale-105">
+                <Wallet className="h-5 w-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-lg bg-gradient-to-r from-primary via-accent to-pink-500 bg-clip-text text-transparent animate-gradient">
+                <span className="font-bold text-lg text-white">
                   Shareholder
                 </span>
-                <span className="text-xs text-muted-foreground">ระบบผู้ถือหุ้น</span>
+                <span className="text-xs text-white/80">ระบบผู้ถือหุ้น</span>
               </div>
             </div>
             {shareholder?.public_id && (
               <div className="pl-1">
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Public ID</div>
-                <div className="text-xs font-mono font-semibold text-primary mt-0.5">{shareholder.public_id}</div>
+                <div className="text-[10px] text-white/70 uppercase tracking-wider">Public ID</div>
+                <div className="text-xs font-mono font-semibold text-white mt-0.5">{shareholder.public_id}</div>
               </div>
             )}
           </div>
         )}
         {!open && (
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-accent to-pink-500 flex items-center justify-center shadow-lg mx-auto hover:shadow-glow transition-all duration-300 hover:scale-105">
-            <span className="text-base font-bold text-white">SH</span>
+          <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg mx-auto hover:shadow-glow transition-all duration-300 hover:scale-105">
+            <Wallet className="h-5 w-5 text-white" />
           </div>
         )}
       </SidebarHeader>
@@ -153,10 +153,10 @@ function ShareholderSidebar() {
 export default function ShareholderLayout() {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-primary/[0.02] to-accent/[0.02] overflow-x-hidden">
+      <div className="flex min-h-screen w-full overflow-x-hidden">
         <ShareholderSidebar />
-        <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out overflow-x-hidden">
-          <div className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-sm px-4 shadow-sm transition-all duration-300">
+        <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out overflow-x-hidden bg-gradient-to-br from-purple-50/30 via-background to-indigo-50/30 dark:from-purple-950/10 dark:via-background dark:to-indigo-950/10">
+          <div className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-border/50 bg-card/80 backdrop-blur-sm px-4 shadow-sm transition-all duration-300">
             <SidebarTrigger className="hover:bg-primary/10 hover:text-primary transition-all duration-300" />
           </div>
           <div className="p-6 transition-all duration-300">

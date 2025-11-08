@@ -16,10 +16,10 @@ export default function ShareholderSettings() {
       </div>
 
       {/* Account Information */}
-      <Card>
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-blue-500">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             ข้อมูลบัญชี
           </CardTitle>
           <CardDescription>ข้อมูลพื้นฐานของบัญชี Shareholder</CardDescription>
@@ -40,16 +40,18 @@ export default function ShareholderSettings() {
       </Card>
 
       {/* Two-Factor Authentication */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          <h2 className="text-xl font-semibold">ความปลอดภัย</h2>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <h2 className="text-xl font-semibold">ความปลอดภัย</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            จัดการการยืนยันตัวตนแบบสองขั้นตอนเพื่อความปลอดภัยที่มากขึ้น
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          จัดการการยืนยันตัวตนแบบสองขั้นตอนเพื่อความปลอดภัยที่มากขึ้น
-        </p>
+        <TwoFactorSetup />
       </div>
-      <TwoFactorSetup />
     </div>
   );
 }

@@ -83,7 +83,7 @@ async function fetchCommissionSeries(range: "3M" | "6M" | "12M"): Promise<Commis
 // UI Components
 function StatCard({ icon: Icon, title, value, help, gradient }: { icon: any; title: string; value: string; help?: string; gradient: string }) {
   return (
-    <Card className={`border-l-4 ${gradient} shadow-glow hover:shadow-xl transition-all`}>
+    <Card className={`border-l-4 ${gradient} shadow-md hover:shadow-glow transition-all duration-300`}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="text-sm font-medium text-white">{title}</div>
@@ -100,7 +100,7 @@ function StatCard({ icon: Icon, title, value, help, gradient }: { icon: any; tit
 
 function StatMini({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-xl border p-3">
+    <div className="rounded-xl border p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
       <div className="text-xs text-muted-foreground">{title}</div>
       <div className="text-base font-semibold">{value}</div>
     </div>
@@ -317,7 +317,7 @@ export default function ShareholderDashboard() {
       </div>
 
       {/* Chart - ลบ Referral Tools ออกแล้ว */}
-      <Card className="shadow-lg hover:shadow-xl transition-all">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-purple-500">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-xl">
             <span>📈 แนวโน้มคอมมิชชัน</span>
@@ -349,7 +349,7 @@ export default function ShareholderDashboard() {
       </Card>
 
       {/* Owners Table with Commission Details */}
-      <Card className="shadow-lg hover:shadow-xl transition-all">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-xl">
             <span>👥 Owner ที่มาจากคุณ (พร้อมสัดส่วน Commission)</span>
@@ -432,7 +432,7 @@ export default function ShareholderDashboard() {
       </Card>
 
       {/* Payouts */}
-      <Card className="shadow-lg hover:shadow-xl transition-all">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-emerald-500">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-xl">
             <Clock className="h-5 w-5" /> 💰 คอมมิชชัน & Payouts
