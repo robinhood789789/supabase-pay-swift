@@ -156,10 +156,10 @@ export default function ShareholderLayout() {
       <div className="flex min-h-screen w-full overflow-x-hidden">
         <ShareholderSidebar />
         <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out overflow-x-hidden bg-gradient-to-br from-purple-50/30 via-background to-indigo-50/30 dark:from-purple-950/10 dark:via-background dark:to-indigo-950/10">
-          <div className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-border/50 bg-card/80 backdrop-blur-sm px-4 shadow-sm transition-all duration-300">
-            <SidebarTrigger className="hover:bg-primary/10 hover:text-primary transition-all duration-300" />
+          <div className="sticky top-0 z-10 flex h-12 sm:h-14 items-center gap-4 border-b border-border/50 bg-card/80 backdrop-blur-sm px-3 sm:px-4 shadow-sm transition-all duration-300">
+            <SidebarTrigger className="hover:bg-primary/10 hover:text-primary transition-all duration-300 h-8 w-8 sm:h-10 sm:w-10" />
           </div>
-          <div className="p-6 transition-all duration-300">
+          <div className="p-3 sm:p-4 md:p-6 transition-all duration-300">
             <Outlet />
           </div>
         </main>

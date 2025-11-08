@@ -9,31 +9,31 @@ export default function ShareholderSettings() {
   const { user } = useAuth();
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">ตั้งค่า</h1>
-        <p className="text-muted-foreground">การตั้งค่าบัญชีและความปลอดภัย Shareholder</p>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">ตั้งค่า</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">การตั้งค่าบัญชีและความปลอดภัย Shareholder</p>
       </div>
 
       {/* Account Information */}
       <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-blue-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+            <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
             ข้อมูลบัญชี
           </CardTitle>
-          <CardDescription>ข้อมูลพื้นฐานของบัญชี Shareholder</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">ข้อมูลพื้นฐานของบัญชี Shareholder</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">อีเมล</span>
-              <span className="text-sm text-muted-foreground">{user?.email}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs sm:text-sm font-medium">อีเมล</span>
+              <span className="text-xs sm:text-sm text-muted-foreground break-all">{user?.email}</span>
             </div>
             <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">ประเภทบัญชี</span>
-              <Badge variant="secondary">Shareholder</Badge>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+              <span className="text-xs sm:text-sm font-medium">ประเภทบัญชี</span>
+              <Badge variant="secondary" className="text-xs w-fit">Shareholder</Badge>
             </div>
           </div>
         </CardContent>
@@ -43,10 +43,10 @@ export default function ShareholderSettings() {
       <div className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            <h2 className="text-xl font-semibold">ความปลอดภัย</h2>
+            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400" />
+            <h2 className="text-lg sm:text-xl font-semibold">ความปลอดภัย</h2>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             จัดการการยืนยันตัวตนแบบสองขั้นตอนเพื่อความปลอดภัยที่มากขึ้น
           </p>
         </div>

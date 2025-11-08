@@ -84,15 +84,15 @@ async function fetchCommissionSeries(range: "3M" | "6M" | "12M"): Promise<Commis
 function StatCard({ icon: Icon, title, value, help, gradient }: { icon: any; title: string; value: string; help?: string; gradient: string }) {
   return (
     <Card className={`border-l-4 ${gradient} shadow-md hover:shadow-glow transition-all duration-300`}>
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-sm font-medium text-white">{title}</div>
-          <div className="p-2 rounded-full bg-white/20">
-            <Icon className="h-5 w-5 text-white" />
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="text-xs sm:text-sm font-medium text-white line-clamp-2">{title}</div>
+          <div className="p-1.5 sm:p-2 rounded-full bg-white/20 shrink-0">
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
           </div>
         </div>
-        <div className="text-3xl font-bold text-white">{value}</div>
-        {help && <div className="text-xs text-white/80 mt-2">{help}</div>}
+        <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white break-words">{value}</div>
+        {help && <div className="text-xs text-white/80 mt-1 sm:mt-2">{help}</div>}
       </CardContent>
     </Card>
   );
@@ -262,24 +262,24 @@ export default function ShareholderDashboard() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    <div className="w-full max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div className="flex flex-col gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">💰 แดชบอร์ด</h1>
-          <div className="flex flex-col md:flex-row md:items-center gap-2 mt-1">
-            <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">💰 แดชบอร์ด</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-2">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {shareholder.full_name}
             </p>
             {shareholder.public_id && (
-              <Badge variant="secondary" className="font-mono text-sm w-fit">
+              <Badge variant="secondary" className="font-mono text-xs sm:text-sm w-fit">
                 ID: {shareholder.public_id}
               </Badge>
             )}
           </div>
           {shareholderDetails?.referral_code && (
             <div className="mt-2">
-              <Badge variant="outline" className="font-mono text-base px-3 py-1">
+              <Badge variant="outline" className="font-mono text-sm sm:text-base px-2 sm:px-3 py-1">
                 🏷️ {shareholderDetails.referral_code}
               </Badge>
             </div>
@@ -288,7 +288,7 @@ export default function ShareholderDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard 
           icon={Users} 
           title="Owner ทั้งหมด" 
@@ -318,11 +318,11 @@ export default function ShareholderDashboard() {
 
       {/* Chart - ลบ Referral Tools ออกแล้ว */}
       <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-purple-500">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-xl">
+        <CardHeader className="pb-2 px-4 sm:px-6">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base sm:text-lg md:text-xl">
             <span>📈 แนวโน้มคอมมิชชัน</span>
             <Select value={range} onValueChange={(v: any) => setRange(v)}>
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -333,13 +333,13 @@ export default function ShareholderDashboard() {
             </Select>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-64">
+        <CardContent className="px-2 sm:px-6">
+          <div className="h-48 sm:h-56 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={series} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <LineChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v: number) => `${v.toLocaleString()} THB`} />
                 <Line type="monotone" dataKey="commissionTHB" strokeWidth={2} dot={false} />
               </LineChart>
@@ -350,12 +350,12 @@ export default function ShareholderDashboard() {
 
       {/* Owners Table with Commission Details */}
       <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-xl">
-            <span>👥 Owner ที่มาจากคุณ (พร้อมสัดส่วน Commission)</span>
-            <div className="flex items-center gap-2">
+        <CardHeader className="pb-2 px-4 sm:px-6">
+          <CardTitle className="flex flex-col gap-3 text-base sm:text-lg md:text-xl">
+            <span className="line-clamp-2">👥 Owner ที่มาจากคุณ (พร้อมสัดส่วน Commission)</span>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-full sm:w-[140px]">
                   <SelectValue placeholder="สถานะ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -365,25 +365,25 @@ export default function ShareholderDashboard() {
                   <SelectItem value="Churned">Churned</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={downloadCSV}>
+              <Button variant="outline" onClick={downloadCSV} className="w-full sm:w-auto">
                 <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                <span className="sm:inline">Export CSV</span>
               </Button>
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+        <CardContent className="px-2 sm:px-6">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <table className="min-w-full text-xs sm:text-sm">
               <thead>
                 <tr className="text-left text-muted-foreground">
-                  <th className="py-2 pr-4 font-medium">Owner ID</th>
-                  <th className="py-2 pr-4 font-medium">Business</th>
-                  <th className="py-2 pr-4 font-medium">Email</th>
-                  <th className="py-2 pr-4 font-medium">Created</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 pr-4 font-medium text-right">Commission %</th>
-                  <th className="py-2 pr-0 font-medium text-right">MRR (THB)</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Owner ID</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Business</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap hidden md:table-cell">Email</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap hidden lg:table-cell">Created</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Status</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium text-right whitespace-nowrap">Commission %</th>
+                  <th className="py-2 px-2 sm:pr-0 font-medium text-right whitespace-nowrap">MRR (THB)</th>
                 </tr>
               </thead>
               <tbody>
@@ -396,31 +396,34 @@ export default function ShareholderDashboard() {
                 ) : (
                   owners.map((o) => (
                     <tr key={o.ownerId} className="border-t hover:bg-accent/50 transition-colors">
-                      <td className="py-2 pr-4 font-mono text-xs">{o.ownerId}</td>
-                      <td className="py-2 pr-4 font-medium">{o.businessName}</td>
-                      <td className="py-2 pr-4 text-muted-foreground">{o.email}</td>
-                      <td className="py-2 pr-4">{new Date(o.createdAt).toLocaleDateString('th-TH')}</td>
-                      <td className="py-2 pr-4">
+                      <td className="py-2 px-2 sm:pr-4 font-mono text-[10px] sm:text-xs">{o.ownerId.slice(0, 8)}</td>
+                      <td className="py-2 px-2 sm:pr-4 font-medium text-xs sm:text-sm">{o.businessName}</td>
+                      <td className="py-2 px-2 sm:pr-4 text-muted-foreground text-xs sm:text-sm hidden md:table-cell">{o.email}</td>
+                      <td className="py-2 px-2 sm:pr-4 text-xs sm:text-sm hidden lg:table-cell">{new Date(o.createdAt).toLocaleDateString('th-TH')}</td>
+                      <td className="py-2 px-2 sm:pr-4">
                         <Badge 
                           variant={
                             o.status === "Active" ? "default" : 
                             o.status === "Trial" ? "secondary" : 
                             "outline"
                           }
+                          className="text-[10px] sm:text-xs"
                         >
                           {o.status}
                         </Badge>
                       </td>
-                      <td className="py-2 pr-4 text-right">
-                        <Badge variant="outline" className="font-semibold text-primary">
+                      <td className="py-2 px-2 sm:pr-4 text-right">
+                        <Badge variant="outline" className="font-semibold text-primary text-[10px] sm:text-xs">
                           {o.commission_rate ? `${o.commission_rate}%` : '5%'}
                         </Badge>
                       </td>
-                      <td className="py-2 pr-0 text-right font-semibold">
-                        {o.mrr.toLocaleString()} 
-                        <span className="text-xs text-muted-foreground ml-1">
+                      <td className="py-2 px-2 sm:pr-0 text-right">
+                        <div className="font-semibold text-xs sm:text-sm">
+                          {o.mrr.toLocaleString()}
+                        </div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground">
                           (คุณได้ {((o.mrr * (o.commission_rate || 5)) / 100).toLocaleString()})
-                        </span>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -433,13 +436,13 @@ export default function ShareholderDashboard() {
 
       {/* Payouts */}
       <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-emerald-500">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Clock className="h-5 w-5" /> 💰 คอมมิชชัน & Payouts
+        <CardHeader className="pb-2 px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" /> 💰 คอมมิชชัน & Payouts
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <CardContent className="space-y-3 px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="col-span-2">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold">สรุปคอมมิชชันล่าสุด</h3>

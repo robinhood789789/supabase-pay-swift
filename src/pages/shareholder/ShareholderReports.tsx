@@ -100,10 +100,10 @@ export default function ShareholderReports() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">รายงานธุรกรรม</h1>
-        <p className="text-muted-foreground">สรุปยอดธุรกรรมรายวันของ Owner ทั้งหมด</p>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">รายงานธุรกรรม</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">สรุปยอดธุรกรรมรายวันของ Owner ทั้งหมด</p>
       </div>
 
       {/* Summary Cards */}
@@ -139,10 +139,10 @@ export default function ShareholderReports() {
 
       {/* Chart */}
       <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>แนวโน้มธุรกรรม</CardTitle>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg md:text-xl">แนวโน้มธุรกรรม</CardTitle>
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-full sm:w-[120px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -152,13 +152,13 @@ export default function ShareholderReports() {
             </SelectContent>
           </Select>
         </CardHeader>
-        <CardContent>
-          <div className="h-80">
+        <CardContent className="px-2 sm:px-6">
+          <div className="h-56 sm:h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v: number) => `฿${v.toLocaleString()}`} />
                 <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} />
               </LineChart>
@@ -169,20 +169,20 @@ export default function ShareholderReports() {
 
       {/* Owners Table */}
       <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-emerald-500">
-        <CardHeader>
-          <CardTitle>รายงานรายละเอียด</CardTitle>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg md:text-xl">รายงานรายละเอียด</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <CardContent className="px-2 sm:px-6">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <table className="w-full text-xs sm:text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3">Owner ID</th>
-                  <th className="text-left p-3">ธุรกิจ</th>
-                  <th className="text-right p-3">ยอดวันนี้</th>
-                  <th className="text-right p-3">ยอดสะสม</th>
-                  <th className="text-right p-3">รายการ</th>
-                  <th className="text-right p-3"></th>
+                  <th className="text-left p-2 sm:p-3 whitespace-nowrap">Owner ID</th>
+                  <th className="text-left p-2 sm:p-3 whitespace-nowrap">ธุรกิจ</th>
+                  <th className="text-right p-2 sm:p-3 whitespace-nowrap">ยอดวันนี้</th>
+                  <th className="text-right p-2 sm:p-3 whitespace-nowrap hidden md:table-cell">ยอดสะสม</th>
+                  <th className="text-right p-2 sm:p-3 whitespace-nowrap hidden lg:table-cell">รายการ</th>
+                  <th className="text-right p-2 sm:p-3"></th>
                 </tr>
               </thead>
               <tbody>
@@ -195,23 +195,28 @@ export default function ShareholderReports() {
                 ) : (
                   owners.map((owner) => (
                     <tr key={owner.ownerId} className="border-b hover:bg-muted/50">
-                      <td className="p-3 font-mono text-sm">{owner.ownerId.slice(0, 8)}</td>
-                      <td className="p-3 font-medium">{owner.businessName}</td>
-                      <td className="p-3 text-right">฿{owner.todayTotal.toLocaleString()}</td>
-                      <td className="p-3 text-right text-muted-foreground">
+                      <td className="p-2 sm:p-3 font-mono text-[10px] sm:text-xs">{owner.ownerId.slice(0, 8)}</td>
+                      <td className="p-2 sm:p-3 font-medium">
+                        <div className="max-w-[120px] sm:max-w-none truncate">
+                          {owner.businessName}
+                        </div>
+                      </td>
+                      <td className="p-2 sm:p-3 text-right whitespace-nowrap">฿{owner.todayTotal.toLocaleString()}</td>
+                      <td className="p-2 sm:p-3 text-right text-muted-foreground whitespace-nowrap hidden md:table-cell">
                         ฿{owner.cumulativeTotal.toLocaleString()}
                       </td>
-                      <td className="p-3 text-right text-muted-foreground">
+                      <td className="p-2 sm:p-3 text-right text-muted-foreground hidden lg:table-cell">
                         {owner.transactionCount}
                       </td>
-                      <td className="p-3 text-right">
+                      <td className="p-2 sm:p-3 text-right">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => navigate(`/shareholder/reports/${owner.ownerId}`)}
+                          className="text-xs px-2"
                         >
-                          <FileText className="h-4 w-4 mr-2" />
-                          ดูรายงาน
+                          <FileText className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">ดูรายงาน</span>
                         </Button>
                       </td>
                     </tr>
