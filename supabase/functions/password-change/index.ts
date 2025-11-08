@@ -82,7 +82,7 @@ serve(async (req) => {
       .from('profiles')
       .update({
         requires_password_change: false,
-        password_changed_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', user.id);
 
