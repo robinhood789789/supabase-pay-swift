@@ -1930,12 +1930,48 @@ export type Database = {
         Args: { _email: string }
         Returns: undefined
       }
+      cleanup_expired_codes: { Args: never; Returns: undefined }
+      cleanup_replay_cache: { Args: never; Returns: undefined }
+      generate_public_id: { Args: { prefix_code: string }; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
+      get_shareholder_id: { Args: { user_uuid: string }; Returns: string }
+      get_user_tenant_id: { Args: { user_uuid: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      is_member_of_tenant: { Args: { tenant_uuid: string }; Returns: boolean }
+      is_shareholder: { Args: { user_uuid: string }; Returns: boolean }
+      is_super_admin: { Args: { user_uuid: string }; Returns: boolean }
+      request_tenant: { Args: never; Returns: string }
+      user_has_role_in_tenant: {
+        Args: { role_name: string; tenant_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
+      validate_api_key_access: {
+        Args: { _endpoint: string; _ip: unknown; _prefix: string }
+        Returns: Json
+      }
+      wallet_apply_delta: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_direction: Database["public"]["Enums"]["tx_direction"]
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
+      wallet_reverse_delta: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_direction: Database["public"]["Enums"]["tx_direction"]
+          p_tenant_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
