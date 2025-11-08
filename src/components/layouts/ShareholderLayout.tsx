@@ -106,7 +106,7 @@ function ShareholderSidebar() {
 
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-white uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="text-sm font-semibold text-white uppercase tracking-wider mb-2">
             เมนูหลัก
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -134,7 +134,7 @@ function ShareholderSidebar() {
         <Separator className="my-4 bg-border/50" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-white uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="text-sm font-semibold text-white uppercase tracking-wider mb-2">
             จัดการ
           </SidebarGroupLabel>
           <SidebarGroupContent>
