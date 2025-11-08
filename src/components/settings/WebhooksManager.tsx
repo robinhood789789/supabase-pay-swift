@@ -1,0 +1,348 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Webhook, Plus, Trash2, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
+import { use2FAChallenge } from "@/hooks/use2FAChallenge";
+import { TwoFactorChallenge } from "../security/TwoFactorChallenge";
+
+export const WebhooksManager = () => {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const queryClient = useQueryClient();
+  const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
+  const { hasPermission } = usePermissions();
+
+  const { data: webhooks, isLoading } = useQuery({
+    queryKey: ["webhooks"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("webhooks")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const createWebhookMutation = useMutation({
+    mutationFn: async (url: string) => {
+      // Generate webhook secret using browser crypto
+      const secret = crypto.randomUUID();
+      
+      const { data, error } = await supabase
+        .from("webhooks")
+        .insert({
+          url: url.trim(),
+          secret: secret,
+          enabled: true,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["webhooks"] });
+      setCreateDialogOpen(false);
+      setWebhookUrl("");
+      toast.success("Webhook created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to create webhook", {
+        description: error.message,
+      });
+    },
+  });
+
+  const deleteWebhookMutation = useMutation({
+    mutationFn: async (webhookId: string) => {
+      const { error } = await supabase
+        .from("webhooks")
+        .delete()
+        .eq("id", webhookId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["webhooks"] });
+      toast.success("Webhook deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete webhook", {
+        description: error.message,
+      });
+    },
+  });
+
+  const toggleWebhookMutation = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      const { error } = await supabase
+        .from("webhooks")
+        .update({ enabled })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["webhooks"] });
+      toast.success("Webhook updated");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to update webhook", {
+        description: error.message,
+      });
+    },
+  });
+
+  const testWebhookMutation = useMutation({
+    mutationFn: async (webhookId: string) => {
+      const { data, error } = await supabase.functions.invoke('webhooks-send-test', {
+        body: { webhook_id: webhookId },
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data.success) throw new Error(data.message || 'Test failed');
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || 'Test webhook sent successfully', {
+        description: `Status: ${data.status}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to send test webhook', {
+        description: error.message,
+      });
+    },
+  });
+
+  const handleCreateWebhook = () => {
+    if (!webhookUrl.trim()) {
+      toast.error("Please enter a webhook URL");
+      return;
+    }
+
+    try {
+      new URL(webhookUrl);
+    } catch {
+      toast.error("Please enter a valid URL");
+      return;
+    }
+
+    checkAndChallenge(() => createWebhookMutation.mutate(webhookUrl));
+  };
+
+  const handleTestWebhook = (webhookId: string) => {
+    checkAndChallenge(() => testWebhookMutation.mutate(webhookId));
+  };
+
+  const handleDeleteWebhook = (webhookId: string) => {
+    checkAndChallenge(() => deleteWebhookMutation.mutate(webhookId));
+  };
+
+  const canManage = hasPermission("webhooks.manage");
+  const canView = hasPermission("webhooks.view");
+  const canTest = hasPermission("webhooks.test");
+  
+  if (!canView && !canManage) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Webhooks</CardTitle>
+          <CardDescription>
+            คุณไม่มีสิทธิ์เข้าถึงส่วนนี้
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Webhook className="w-5 h-5" />
+                Webhook Endpoints
+              </CardTitle>
+              <CardDescription>
+                จัดการ webhook endpoints สำหรับรับ payment events แบบ real-time
+              </CardDescription>
+            </div>
+            {canManage && (
+              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add Webhook
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Webhook Endpoint</DialogTitle>
+                  <DialogDescription>
+                    Enter the URL where you want to receive webhook notifications
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="webhookUrl">Webhook URL</Label>
+                    <Input
+                      id="webhookUrl"
+                      type="url"
+                      placeholder="https://example.com/webhooks"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      disabled={createWebhookMutation.isPending}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Must be a valid HTTPS URL
+                    </p>
+                  </div>
+                  
+                  <Button
+                    onClick={handleCreateWebhook}
+                    disabled={createWebhookMutation.isPending}
+                    className="w-full"
+                  >
+                    {createWebhookMutation.isPending ? "Creating..." : "Create Webhook"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-muted-foreground text-center py-8">Loading...</p>
+          ) : webhooks && webhooks.length > 0 ? (
+            <div className="space-y-3">
+              {webhooks.map((webhook) => (
+                <div
+                  key={webhook.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium break-all">{webhook.url}</p>
+                      <Badge variant={webhook.enabled ? "default" : "secondary"}>
+                        {webhook.enabled ? "Enabled" : "Disabled"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Created {new Date(webhook.created_at).toLocaleDateString()}
+                    </p>
+                    <p className="text-xs font-mono text-muted-foreground mt-1">
+                      Secret: {webhook.secret.substring(0, 8)}...
+                    </p>
+                  </div>
+                  
+                   <div className="flex items-center gap-2 ml-4">
+                    {canManage && (
+                      <Switch
+                        checked={webhook.enabled}
+                        onCheckedChange={(enabled) =>
+                          toggleWebhookMutation.mutate({ id: webhook.id, enabled })
+                        }
+                      />
+                    )}
+                    
+                    {(canTest || canManage) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleTestWebhook(webhook.id)}
+                        disabled={!webhook.enabled || testWebhookMutation.isPending}
+                        className="gap-2"
+                      >
+                        {testWebhookMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        ทดสอบ
+                      </Button>
+                    )}
+                    
+                    {canManage && (
+                      <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Webhook?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete this webhook endpoint. You will no longer receive notifications at this URL.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteWebhook(webhook.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Webhook className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>ยังไม่มี webhook endpoints</p>
+              {canManage && (
+                <p className="text-sm mt-1">เพิ่ม webhook endpoint เพื่อรับการแจ้งเตือน events</p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
+    </>
+  );
+};

@@ -1,0 +1,82 @@
+project_id = "xbbxgzccxudmnrmqkwzg"
+
+[functions.health]
+verify_jwt = false
+
+[functions.password-change]
+verify_jwt = true
+
+[functions.bootstrap-admin]
+verify_jwt = false
+
+[functions.create-tenant-on-signup]
+verify_jwt = false
+
+[functions.api-keys-create]
+verify_jwt = false
+
+[functions.api-keys-revoke]
+verify_jwt = false
+
+[functions.webhooks-test]
+verify_jwt = false
+
+[functions.checkout-sessions-create]
+verify_jwt = false
+
+[functions.checkout-sessions-get]
+verify_jwt = false
+
+[functions.webhooks-stripe]
+verify_jwt = false
+
+[functions.webhooks-opn]
+verify_jwt = false
+
+[functions.webhooks-twoc2p]
+verify_jwt = false
+
+[functions.webhooks-kbank]
+verify_jwt = false
+
+[functions.payments-export]
+verify_jwt = false
+
+[functions.payment-links-create]
+verify_jwt = true
+
+[functions.payment-links-get]
+verify_jwt = false
+
+[functions.payment-links-checkout]
+verify_jwt = false
+
+[functions.payment-links-disable]
+verify_jwt = true
+
+[functions.refunds-create]
+verify_jwt = false
+
+[functions.create-super-admin]
+verify_jwt = false
+
+[functions.reset-super-admin-password]
+verify_jwt = false
+
+[functions.create-owner-user]
+verify_jwt = true
+
+[functions.create-admin-user]
+verify_jwt = true
+
+[functions.temporary-code-generate]
+verify_jwt = true
+
+[functions.temporary-code-claim]
+verify_jwt = true
+
+[functions.temporary-code-revoke]
+verify_jwt = true
+
+[functions.platform-partners-create]
+verify_jwt = false
