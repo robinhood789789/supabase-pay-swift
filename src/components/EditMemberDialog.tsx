@@ -28,23 +28,19 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const [selectedRole, setSelectedRole] = useState<string>(member?.role || "");
   const queryClient = useQueryClient();
 
-  // Fetch available roles (all system roles except owner)
+  // Fetch available roles
   const { data: roles = [] } = useQuery<any[]>({
-    queryKey: ["roles", member?.tenant_id],
+    queryKey: ["roles-all"],
     queryFn: async () => {
-      if (!member?.tenant_id) return [];
       const { data, error } = await supabase
         .from("roles")
-        .select("id, name, description")
-        .eq("tenant_id", member.tenant_id)
-        .eq("is_system", true)
-        .neq("name", "owner")
+        .select("*")
         .order("name");
       
       if (error) throw error;
       return data as any[];
     },
-    enabled: !!member?.tenant_id && open,
+    enabled: open,
   });
 
   // Update status and role whenever member changes
@@ -59,39 +55,31 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     mutationFn: async ({ 
       userId, 
       tenantId, 
-      newStatus, 
       newRole 
     }: { 
       userId: string; 
       tenantId: string; 
-      newStatus: string;
       newRole?: string;
     }) => {
-      // Update status
-      const updateData: any = { status: newStatus };
-      
-      // If role changed, find the role_id and update
+      // If role changed, update the membership
       if (newRole && newRole !== member?.role) {
         const { data: roleData, error: roleError } = await supabase
           .from("roles")
           .select("id")
           .eq("name", newRole)
-          .eq("tenant_id", tenantId)
           .single();
 
         if (roleError) throw roleError;
         if (!roleData) throw new Error(`Role ${newRole} not found`);
         
-        updateData.role_id = roleData.id;
+        const { error } = await supabase
+          .from("memberships")
+          .update({ role_id: roleData.id })
+          .eq("user_id", userId)
+          .eq("tenant_id", tenantId);
+
+        if (error) throw error;
       }
-
-      const { error } = await supabase
-        .from("memberships")
-        .update(updateData)
-        .eq("user_id", userId)
-        .eq("tenant_id", tenantId);
-
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -111,7 +99,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     updateMemberMutation.mutate({
       userId: member.id,
       tenantId: member.tenant_id,
-      newStatus: status,
       newRole: selectedRole,
     });
   };

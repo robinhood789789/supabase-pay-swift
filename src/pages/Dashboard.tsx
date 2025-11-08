@@ -162,7 +162,7 @@ const Dashboard = () => {
         .from("alerts")
         .select("*")
         .eq("tenant_id", activeTenantId)
-        .eq("resolved", false)
+        .eq("is_active", true)
         .order("created_at", { ascending: false })
         .limit(5);
       return data || [];

@@ -11,12 +11,9 @@ import { PlatformLayout } from "@/components/PlatformLayout";
 import { PermissionGate } from "@/components/PermissionGate";
 import { SecurityGuard } from "@/components/SecurityGuard";
 import Index from "./pages/Index";
-import SuperAdminDashboard from "./pages/admin/SuperAdminDashboard";
-import TenantManagement from "./pages/admin/TenantManagement";
 import PlatformSecurity from "./pages/admin/PlatformSecurity";
 import PlatformProviders from "./pages/admin/PlatformProviders";
 import PlatformEvents from "./pages/admin/PlatformEvents";
-import PlatformWebhooks from "./pages/admin/PlatformWebhooks";
 import PlatformDisputes from "./pages/admin/PlatformDisputes";
 import PlatformRefunds from "./pages/admin/PlatformRefunds";
 import PlatformSettings from "./pages/admin/PlatformSettings";
@@ -24,7 +21,6 @@ import PlatformImpersonate from "./pages/admin/PlatformImpersonate";
 import PlatformStatus from "./pages/admin/PlatformStatus";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import TwoFactorVerification from "./pages/TwoFactorVerification";
 import MfaChallenge from "./pages/MfaChallenge";
 import MfaEnroll from "./pages/auth/MfaEnroll";
 import PasswordChange from "./pages/auth/PasswordChange";
@@ -77,12 +73,10 @@ import ShareholderSettings from "./pages/shareholder/ShareholderSettings";
 import ShareholderDashboard from "./pages/shareholder/ShareholderDashboard";
 import ShareholderClients from "./pages/shareholder/ShareholderClients";
 import ShareholderEarnings from "./pages/shareholder/ShareholderEarnings";
-import ShareholderWithdrawals from "./pages/shareholder/ShareholderWithdrawals";
 import FirstLogin2FASetup from "./pages/auth/FirstLogin2FASetup";
 import FirstLoginPasswordChange from "./pages/auth/FirstLoginPasswordChange";
 import PlatformPartners from "./pages/admin/PlatformPartners";
 import PlatformPartnerDetail from "./pages/admin/PlatformPartnerDetail";
-import PlatformPartnerPayouts from "./pages/admin/PlatformPartnerPayouts";
 import PlatformPartnerReports from "./pages/admin/PlatformPartnerReports";
 import PlatformPartnerSettings from "./pages/admin/PlatformPartnerSettings";
 import PlatformShareholderEarnings from "./pages/admin/PlatformShareholderEarnings";
@@ -98,7 +92,6 @@ function AppContent() {
       <Route path="/" element={<Index />} />
       <Route path="/auth/sign-in" element={<SignIn />} />
       <Route path="/auth/sign-up" element={<SignUp />} />
-      <Route path="/auth/two-factor" element={<TwoFactorVerification />} />
       <Route path="/auth/mfa-challenge" element={<MfaChallenge />} />
       <Route path="/auth/mfa-enroll" element={<MfaEnroll />} />
       <Route path="/auth/password-change" element={<PasswordChange />} />
@@ -326,12 +319,13 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
       <Route
-        path="/admin"
+        path="/admin/dashboard"
         element={
           <SuperAdminRoute>
             <PlatformLayout>
-              <SuperAdminDashboard />
+              <Dashboard />
             </PlatformLayout>
           </SuperAdminRoute>
         }
@@ -341,7 +335,7 @@ function AppContent() {
         element={
           <SuperAdminRoute>
             <PlatformLayout>
-              <TenantManagement />
+              <AdminUsers />
             </PlatformLayout>
           </SuperAdminRoute>
         }
@@ -372,16 +366,6 @@ function AppContent() {
           <SuperAdminRoute>
             <PlatformLayout>
               <PlatformPartnerDetail />
-            </PlatformLayout>
-          </SuperAdminRoute>
-        }
-      />
-      <Route
-        path="/platform/partner-payouts"
-        element={
-          <SuperAdminRoute>
-            <PlatformLayout>
-              <PlatformPartnerPayouts />
             </PlatformLayout>
           </SuperAdminRoute>
         }
@@ -428,7 +412,6 @@ function AppContent() {
       />
       <Route path="/platform/providers" element={<SuperAdminRoute><PlatformLayout><PlatformProviders /></PlatformLayout></SuperAdminRoute>} />
       <Route path="/platform/events" element={<SuperAdminRoute><PlatformLayout><PlatformEvents /></PlatformLayout></SuperAdminRoute>} />
-      <Route path="/platform/webhooks" element={<SuperAdminRoute><PlatformLayout><PlatformWebhooks /></PlatformLayout></SuperAdminRoute>} />
       <Route path="/platform/disputes" element={<SuperAdminRoute><PlatformLayout><PlatformDisputes /></PlatformLayout></SuperAdminRoute>} />
       <Route path="/platform/refunds" element={<SuperAdminRoute><PlatformLayout><PlatformRefunds /></PlatformLayout></SuperAdminRoute>} />
       <Route path="/platform/settings" element={<SuperAdminRoute><PlatformLayout><PlatformSettings /></PlatformLayout></SuperAdminRoute>} />
@@ -461,7 +444,6 @@ function AppContent() {
         <Route path="dashboard" element={<ShareholderDashboard />} />
         <Route path="clients" element={<ShareholderClients />} />
         <Route path="earnings" element={<ShareholderEarnings />} />
-        <Route path="withdrawals" element={<ShareholderWithdrawals />} />
         <Route path="team" element={<ShareholderTeam />} />
         <Route path="settings" element={<ShareholderSettings />} />
       </Route>

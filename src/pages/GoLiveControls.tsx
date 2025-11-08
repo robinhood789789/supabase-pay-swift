@@ -127,64 +127,42 @@ const GoLiveControls = () => {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (!data) {
-        const { data: newChecklist, error: insertError } = await supabase
+        // Initialize default checklist items
+        const defaultItems = [
+          'Invite Admin Users',
+          'Create Payment Links',
+          'Configure Approval Flow',
+          'Test Large Export',
+          'Trigger Alert',
+          'Change User Role',
+          'Rotate API Keys'
+        ];
+        
+        const { error: insertError } = await supabase
           .from('go_live_checklist')
-          .insert({
-            tenant_id: tenantId,
-            notes: {
-              controls: {
-                step1_invite_admins: false,
-                step2_admin_create_links: false,
-                step3_approval_flow: false,
-                step4_large_export: false,
-                step5_alert_trigger: false,
-                step6_role_change: false,
-                step7_secret_rotation: false,
-              }
-            },
-          })
-          .select()
-          .single();
+          .insert(defaultItems.map(item => ({
+            item,
+            completed: false,
+          })));
 
         if (insertError) throw insertError;
-        const newChecklistNotes = newChecklist?.notes as any;
-        return {
-          tenant_id: tenantId,
-          ...(newChecklistNotes?.controls || {}),
-          notes: newChecklist?.notes || {},
-        } as ControlsChecklist;
+        return [] as any;
       }
 
-      const notesData = data.notes as any;
-      const controls = notesData?.controls || {};
-      setNotes(notesData?.controlNotes || {});
-      return {
-        tenant_id: tenantId,
-        ...controls,
-        notes: data.notes || {},
-      } as ControlsChecklist;
+      return data;
     },
     enabled: !!tenantId,
   });
 
   const updateMutation = useMutation({
     mutationFn: async (updates: { stepId: string, value: boolean }) => {
-      const currentNotes = checklist?.notes as any || {};
-      const currentControls = currentNotes.controls || {};
-      
-      const updatedNotes = {
-        ...currentNotes,
-        controls: {
-          ...currentControls,
-          [updates.stepId]: updates.value,
-        },
-        controlNotes: notes,
-      };
-
       const { error } = await supabase
         .from('go_live_checklist')
-        .update({ notes: updatedNotes })
-        .eq('tenant_id', tenantId);
+        .update({
+          completed: updates.value,
+          completed_at: updates.value ? new Date().toISOString() : null,
+        })
+        .eq('id', updates.stepId);
 
       if (error) throw error;
     },
