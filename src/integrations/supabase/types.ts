@@ -1941,6 +1941,10 @@ export type Database = {
       cleanup_replay_cache: { Args: never; Returns: undefined }
       generate_public_id: { Args: { prefix_code: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_email_by_public_id: {
+        Args: { input_public_id: string }
+        Returns: string
+      }
       get_shareholder_id: { Args: { user_uuid: string }; Returns: string }
       get_user_tenant_id: { Args: { user_uuid: string }; Returns: string }
       has_role: {

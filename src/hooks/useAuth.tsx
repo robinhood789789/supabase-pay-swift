@@ -153,26 +153,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (lookupError) {
           console.error('Error looking up public_id:', lookupError);
-          toast({
-            title: "เกิดข้อผิดพลาด",
-            description: "ไม่สามารถค้นหา Public ID ได้",
-            variant: "destructive",
-          });
-          return { error: { message: 'Failed to lookup Public ID' } };
+          // Fallback: try using {user_id}@system.local format for bootstrap test accounts
+          email = `${publicIdOrEmail}@system.local`;
+          console.log('Fallback to system email format:', email);
+        } else if (!emailData) {
+          console.log('Public ID not found in database, using fallback email');
+          // Fallback: try using {user_id}@system.local format for bootstrap test accounts
+          email = `${publicIdOrEmail}@system.local`;
+        } else {
+          console.log('Found email for public_id:', emailData);
+          email = emailData as string;
         }
-        
-        if (!emailData) {
-          console.error('Public ID not found:', publicIdOrEmail);
-          toast({
-            title: "Public ID ไม่ถูกต้อง",
-            description: "ไม่พบ Public ID นี้ในระบบ กรุณาตรวจสอบอีกครั้ง",
-            variant: "destructive",
-          });
-          return { error: { message: 'Public ID not found' } };
-        }
-        
-        console.log('Found email for public_id:', emailData);
-        email = emailData as string;
       }
 
       console.log('Attempting sign in with email:', email);

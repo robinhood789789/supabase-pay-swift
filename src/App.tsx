@@ -105,6 +105,7 @@ function AppContent() {
       <Route path="/auth/claim-code" element={<ClaimCode />} />
       <Route path="/auth/create-super-admin" element={<CreateSuperAdmin />} />
       <Route path="/auth/reset-super-admin" element={<ResetSuperAdminPassword />} />
+      <Route path="/auth/bootstrap-test" element={<BootstrapTest />} />
       <Route path="/first-login/2fa-setup" element={<FirstLogin2FASetup />} />
       <Route path="/first-login/change-password" element={<FirstLoginPasswordChange />} />
       <Route path="/auth" element={<Navigate to="/auth/sign-in" replace />} />
