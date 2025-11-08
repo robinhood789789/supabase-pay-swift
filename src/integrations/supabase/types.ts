@@ -679,33 +679,6 @@ export type Database = {
           },
         ]
       }
-      merchants: {
-        Row: {
-          created_at: string | null
-          id: string
-          merchant_code: string
-          merchant_name: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          merchant_code: string
-          merchant_name: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          merchant_code?: string
-          merchant_name?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       payment_links: {
         Row: {
           amount: number
@@ -1569,34 +1542,76 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
-          created_at: string | null
+          counterparty: string | null
+          created_at: string
+          created_by_id: string | null
+          currency: string
+          direction: Database["public"]["Enums"]["tx_direction"]
+          fee: number
           id: string
-          merchant_id: string
-          transaction_date: string
-          transaction_type: string
+          metadata: Json | null
+          method: Database["public"]["Enums"]["tx_method"]
+          net_amount: number
+          note: string | null
+          owner_tenant_id: string | null
+          owner_user_id: string | null
+          processed_at: string | null
+          reference: string | null
+          shareholder_id: string | null
+          status: Database["public"]["Enums"]["tx_status"]
+          tenant_id: string | null
+          type: Database["public"]["Enums"]["tx_type"]
         }
         Insert: {
           amount: number
-          created_at?: string | null
+          counterparty?: string | null
+          created_at?: string
+          created_by_id?: string | null
+          currency?: string
+          direction: Database["public"]["Enums"]["tx_direction"]
+          fee?: number
           id?: string
-          merchant_id: string
-          transaction_date?: string
-          transaction_type: string
+          metadata?: Json | null
+          method: Database["public"]["Enums"]["tx_method"]
+          net_amount: number
+          note?: string | null
+          owner_tenant_id?: string | null
+          owner_user_id?: string | null
+          processed_at?: string | null
+          reference?: string | null
+          shareholder_id?: string | null
+          status?: Database["public"]["Enums"]["tx_status"]
+          tenant_id?: string | null
+          type: Database["public"]["Enums"]["tx_type"]
         }
         Update: {
           amount?: number
-          created_at?: string | null
+          counterparty?: string | null
+          created_at?: string
+          created_by_id?: string | null
+          currency?: string
+          direction?: Database["public"]["Enums"]["tx_direction"]
+          fee?: number
           id?: string
-          merchant_id?: string
-          transaction_date?: string
-          transaction_type?: string
+          metadata?: Json | null
+          method?: Database["public"]["Enums"]["tx_method"]
+          net_amount?: number
+          note?: string | null
+          owner_tenant_id?: string | null
+          owner_user_id?: string | null
+          processed_at?: string | null
+          reference?: string | null
+          shareholder_id?: string | null
+          status?: Database["public"]["Enums"]["tx_status"]
+          tenant_id?: string | null
+          type?: Database["public"]["Enums"]["tx_type"]
         }
         Relationships: [
           {
-            foreignKeyName: "transactions_merchant_id_fkey"
-            columns: ["merchant_id"]
+            foreignKeyName: "transactions_shareholder_id_fkey"
+            columns: ["shareholder_id"]
             isOneToOne: false
-            referencedRelation: "merchants"
+            referencedRelation: "shareholders"
             referencedColumns: ["id"]
           },
         ]
