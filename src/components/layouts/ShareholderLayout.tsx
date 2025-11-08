@@ -34,7 +34,7 @@ const secondaryMenuItems = [
 ];
 
 function ShareholderSidebar() {
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { open } = useSidebar();
@@ -63,11 +63,11 @@ function ShareholderSidebar() {
                 <span className="text-xs text-white/80">ระบบผู้ถือหุ้น</span>
               </div>
             </div>
-            {user?.id && (
+            {shareholder?.public_id && (
               <div className="pl-1 space-y-1 animate-fade-in">
-                <div className="text-[10px] text-white/70 uppercase tracking-wider font-medium">User ID</div>
-                <div className="text-xs font-mono font-semibold text-white bg-white/10 px-2 py-1 rounded backdrop-blur-sm hover:bg-white/20 transition-all duration-300 cursor-default truncate">
-                  {user.id.slice(0, 8)}...{user.id.slice(-4)}
+                <div className="text-[10px] text-white/70 uppercase tracking-wider font-medium">Shareholder ID</div>
+                <div className="text-sm font-mono font-bold text-white bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm hover:bg-white/20 transition-all duration-300 cursor-default shadow-md">
+                  {shareholder.public_id}
                 </div>
               </div>
             )}
