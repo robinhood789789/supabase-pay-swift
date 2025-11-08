@@ -49,15 +49,15 @@ function ShareholderSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarHeader className="border-b border-border/50 px-4 py-4 bg-gradient-to-br from-purple-600 to-indigo-600">
+      <SidebarHeader className="border-b border-border/50 px-4 py-4 bg-gradient-to-br from-purple-600 to-indigo-600 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000">
         {open && (
-          <div className="flex flex-col gap-2 animate-in">
+          <div className="flex flex-col gap-2 animate-fade-in relative z-10">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg hover:shadow-glow transition-all duration-300 hover:scale-105">
-                <Wallet className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg hover:shadow-glow transition-all duration-500 hover:scale-110 hover:rotate-6 cursor-pointer group">
+                <Wallet className="h-5 w-5 text-white group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-lg text-white">
+                <span className="font-bold text-lg text-white transition-all duration-300 hover:scale-105 cursor-default">
                   Shareholder
                 </span>
                 <span className="text-xs text-white/80">ระบบผู้ถือหุ้น</span>
@@ -66,8 +66,8 @@ function ShareholderSidebar() {
           </div>
         )}
         {!open && (
-          <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg mx-auto hover:shadow-glow transition-all duration-300 hover:scale-105">
-            <Wallet className="h-5 w-5 text-white" />
+          <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg mx-auto hover:shadow-glow transition-all duration-500 hover:scale-110 hover:rotate-12 cursor-pointer animate-fade-in group relative z-10">
+            <Wallet className="h-5 w-5 text-white group-hover:scale-110 transition-transform duration-300" />
           </div>
         )}
       </SidebarHeader>
@@ -84,11 +84,11 @@ function ShareholderSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
-                    className="group relative overflow-hidden transition-all duration-300 hover:shadow-md data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-accent/10 data-[active=true]:border-l-4 data-[active=true]:border-primary data-[active=true]:shadow-glow"
+                    className="group relative overflow-hidden transition-all duration-500 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/20 data-[active=true]:to-accent/20 data-[active=true]:border-l-4 data-[active=true]:border-primary data-[active=true]:shadow-glow data-[active=true]:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] before:transition-transform before:duration-700 hover:before:translate-x-[200%]"
                   >
                     <NavLink to={item.path}>
-                      <item.icon className={`h-5 w-5 transition-all duration-300 ${isActive(item.path) ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
-                      <span className={`font-medium transition-all duration-300 ${isActive(item.path) ? 'text-primary' : 'group-hover:text-foreground'}`}>
+                      <item.icon className={`h-5 w-5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${isActive(item.path) ? 'text-primary animate-pulse' : 'text-muted-foreground group-hover:text-primary'}`} />
+                      <span className={`font-medium transition-all duration-300 group-hover:translate-x-1 ${isActive(item.path) ? 'text-primary font-semibold' : 'group-hover:text-foreground'}`}>
                         {item.label}
                       </span>
                     </NavLink>
@@ -112,11 +112,11 @@ function ShareholderSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
-                    className="group relative overflow-hidden transition-all duration-300 hover:shadow-md data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-accent/10 data-[active=true]:border-l-4 data-[active=true]:border-primary data-[active=true]:shadow-glow"
+                    className="group relative overflow-hidden transition-all duration-500 hover:shadow-lg hover:shadow-accent/20 hover:scale-[1.02] data-[active=true]:bg-gradient-to-r data-[active=true]:from-accent/20 data-[active=true]:to-primary/20 data-[active=true]:border-l-4 data-[active=true]:border-accent data-[active=true]:shadow-glow data-[active=true]:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] before:transition-transform before:duration-700 hover:before:translate-x-[200%]"
                   >
                     <NavLink to={item.path}>
-                      <item.icon className={`h-5 w-5 transition-all duration-300 ${isActive(item.path) ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
-                      <span className={`font-medium transition-all duration-300 ${isActive(item.path) ? 'text-primary' : 'group-hover:text-foreground'}`}>
+                      <item.icon className={`h-5 w-5 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 ${isActive(item.path) ? 'text-accent animate-pulse' : 'text-muted-foreground group-hover:text-accent'}`} />
+                      <span className={`font-medium transition-all duration-300 group-hover:translate-x-1 ${isActive(item.path) ? 'text-accent font-semibold' : 'group-hover:text-foreground'}`}>
                         {item.label}
                       </span>
                     </NavLink>
@@ -133,10 +133,10 @@ function ShareholderSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleSignOut}
-              className="group hover:bg-destructive/10 hover:text-destructive transition-all duration-300 hover:shadow-md"
+              className="group relative overflow-hidden hover:bg-destructive/20 hover:text-destructive transition-all duration-500 hover:shadow-lg hover:shadow-destructive/30 hover:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-destructive/20 before:to-transparent before:translate-x-[-200%] before:transition-transform before:duration-700 hover:before:translate-x-[200%]"
             >
-              <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
-              <span className="font-medium">ออกจากระบบ</span>
+              <LogOut className="h-5 w-5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+              <span className="font-medium group-hover:translate-x-1 transition-transform duration-300">ออกจากระบบ</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
