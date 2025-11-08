@@ -305,7 +305,7 @@ async function createUser(
     .update({
       public_id: params.userId,
       is_super_admin: params.isSuperAdmin || false,
-      requires_password_change: true,
+      requires_password_change: false, // Skip password change for test accounts
       totp_enabled: false, // Force MFA setup
     })
     .eq('id', newUser.user.id);
