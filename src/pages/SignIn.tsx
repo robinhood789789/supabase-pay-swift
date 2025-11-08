@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const signInSchema = z.object({
-  publicId: z.string().min(1, { message: "Public ID is required" }).regex(/^[A-Z0-9]{2,6}-\d{6}$/, { message: "Invalid Public ID format (e.g., OWN-123456)" }),
+  publicId: z.string().min(1, { message: "User ID is required" }).regex(/^[A-Z0-9]{2,6}-\d{6}$/, { message: "Invalid User ID format (e.g., OWNR-000001)" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
@@ -106,12 +106,12 @@ const SignIn = () => {
                 name="publicId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-cyan-200 font-semibold">Public ID</FormLabel>
+                    <FormLabel className="text-cyan-200 font-semibold">User ID</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
                         <Input 
-                          placeholder="OWN-123456" 
+                          placeholder="OWNR-000001" 
                           className="pl-10 uppercase bg-black/20 backdrop-blur-sm border-2 border-primary/40 text-cyan-100 placeholder:text-cyan-300/40 focus:border-primary focus:shadow-glow-info transition-all duration-300" 
                           {...field} 
                           onChange={(e) => field.onChange(e.target.value.toUpperCase())} 
