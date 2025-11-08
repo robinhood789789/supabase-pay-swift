@@ -17,8 +17,10 @@ import {
   CheckCircle,
   Clock,
   Wallet,
+  Trophy,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 export default function PlatformOverview() {
   // Fetch shareholders count
@@ -83,6 +85,57 @@ export default function PlatformOverview() {
       return data || [];
     },
   });
+
+  // Fetch Top 5 Tenants by Transaction Volume (current month)
+  const { data: topTenants, isLoading: loadingTopTenants } = useQuery({
+    queryKey: ["top-tenants-volume"],
+    queryFn: async () => {
+      const startDate = startOfMonth(new Date());
+      
+      // Get payments for current month grouped by tenant
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("tenant_id, amount, tenants(name)")
+        .gte("created_at", startDate.toISOString())
+        .eq("status", "succeeded");
+
+      if (!payments) return [];
+
+      // Group by tenant and sum amounts
+      const tenantVolumes = payments.reduce((acc: any, payment: any) => {
+        const tenantId = payment.tenant_id;
+        const tenantName = payment.tenants?.name || "Unknown";
+        
+        if (!acc[tenantId]) {
+          acc[tenantId] = {
+            tenant_id: tenantId,
+            tenant_name: tenantName,
+            total_volume: 0,
+            transaction_count: 0,
+          };
+        }
+        
+        acc[tenantId].total_volume += payment.amount;
+        acc[tenantId].transaction_count += 1;
+        
+        return acc;
+      }, {});
+
+      // Convert to array, sort, and take top 5
+      const sorted = Object.values(tenantVolumes)
+        .sort((a: any, b: any) => b.total_volume - a.total_volume)
+        .slice(0, 5)
+        .map((t: any, index) => ({
+          ...t,
+          rank: index + 1,
+          total_volume_thb: (t.total_volume / 100).toFixed(2),
+        }));
+
+      return sorted;
+    },
+  });
+
+  const chartColors = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
 
   const quickLinks = [
     { title: "จัดการพาร์ทเนอร์", url: "/platform/partners", icon: Users, color: "text-blue-600", bgColor: "bg-blue-50 dark:bg-blue-950/30" },
@@ -185,6 +238,108 @@ export default function PlatformOverview() {
             </Button>
           ))}
         </div>
+      </section>
+
+      {/* Top Tenants by Volume */}
+      <section className="px-6 pb-4">
+        <Card className="border-t-4 border-t-amber-500">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              Top 5 Tenants (This Month)
+            </CardTitle>
+            <CardDescription>Tenants with highest transaction volume</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingTopTenants ? (
+              <div className="space-y-4">
+                <Skeleton className="h-[200px] w-full" />
+                <Skeleton className="h-[150px] w-full" />
+              </div>
+            ) : topTenants && topTenants.length > 0 ? (
+              <div className="space-y-6">
+                {/* Bar Chart */}
+                <div className="h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topTenants} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="tenant_name" 
+                        angle={-15}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 11 }}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 11 }}
+                        tickFormatter={(value) => `฿${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value: any) => [`฿${(value / 100).toLocaleString()}`, "Volume"]}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px',
+                        }}
+                      />
+                      <Bar dataKey="total_volume" radius={[8, 8, 0, 0]}>
+                        {topTenants.map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={chartColors[index]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left p-3 font-semibold">Rank</th>
+                        <th className="text-left p-3 font-semibold">Tenant</th>
+                        <th className="text-right p-3 font-semibold">Transactions</th>
+                        <th className="text-right p-3 font-semibold">Volume (THB)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topTenants.map((tenant: any, index: number) => (
+                        <tr 
+                          key={tenant.tenant_id} 
+                          className="border-t hover:bg-muted/50 transition-colors"
+                        >
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                                style={{ backgroundColor: chartColors[index] }}
+                              >
+                                {tenant.rank}
+                              </div>
+                              {tenant.rank === 1 && <Trophy className="h-4 w-4 text-amber-500" />}
+                            </div>
+                          </td>
+                          <td className="p-3 font-medium">{tenant.tenant_name}</td>
+                          <td className="p-3 text-right">
+                            <Badge variant="secondary">{tenant.transaction_count}</Badge>
+                          </td>
+                          <td className="p-3 text-right font-semibold">
+                            ฿{Number(tenant.total_volume_thb).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-sm text-muted-foreground">No transaction data for this month</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
       {/* Recent Activities & Audit Logs */}
