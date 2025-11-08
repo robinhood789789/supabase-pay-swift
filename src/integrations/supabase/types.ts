@@ -1253,6 +1253,185 @@ export type Database = {
         }
         Relationships: []
       }
+      shareholder_clients: {
+        Row: {
+          bounty_amount: number | null
+          commission_rate: number
+          commission_type: string | null
+          created_at: string
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          notes: string | null
+          referral_source: string | null
+          referred_at: string
+          shareholder_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          bounty_amount?: number | null
+          commission_rate?: number
+          commission_type?: string | null
+          created_at?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          notes?: string | null
+          referral_source?: string | null
+          referred_at?: string
+          shareholder_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          bounty_amount?: number | null
+          commission_rate?: number
+          commission_type?: string | null
+          created_at?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          notes?: string | null
+          referral_source?: string | null
+          referred_at?: string
+          shareholder_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shareholder_clients_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shareholder_clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shareholder_earnings: {
+        Row: {
+          amount: number
+          base_amount: number
+          commission_rate: number
+          created_at: string
+          id: string
+          payment_id: string | null
+          period_end: string
+          period_start: string
+          shareholder_id: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          base_amount: number
+          commission_rate: number
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          period_end: string
+          period_start: string
+          shareholder_id: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          base_amount?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          period_end?: string
+          period_start?: string
+          shareholder_id?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shareholder_earnings_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shareholder_earnings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shareholder_invitations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          invalidated_at: string | null
+          invalidation_reason: string | null
+          last_resent_at: string | null
+          magic_token: string
+          resent_count: number
+          shareholder_id: string
+          temp_password_hash: string | null
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invalidated_at?: string | null
+          invalidation_reason?: string | null
+          last_resent_at?: string | null
+          magic_token: string
+          resent_count?: number
+          shareholder_id: string
+          temp_password_hash?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invalidated_at?: string | null
+          invalidation_reason?: string | null
+          last_resent_at?: string | null
+          magic_token?: string
+          resent_count?: number
+          shareholder_id?: string
+          temp_password_hash?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shareholder_invitations_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shareholders: {
         Row: {
           active_clients_count: number
@@ -1678,7 +1857,69 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_tx_daily_by_shareholder: {
+        Row: {
+          deposit_net: number | null
+          failed_count: number | null
+          net_in: number | null
+          net_out: number | null
+          pending_count: number | null
+          shareholder_id: string | null
+          success_count: number | null
+          transfer_net: number | null
+          tx_count: number | null
+          tx_date: string | null
+          withdrawal_net: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_tx_daily_by_tenant: {
+        Row: {
+          deposit_net: number | null
+          failed_count: number | null
+          net_in: number | null
+          net_out: number | null
+          pending_count: number | null
+          success_count: number | null
+          tenant_id: string | null
+          transfer_net: number | null
+          tx_count: number | null
+          tx_date: string | null
+          withdrawal_net: number | null
+        }
+        Relationships: []
+      }
+      v_tx_monthly_by_shareholder: {
+        Row: {
+          deposit_net: number | null
+          net_in: number | null
+          net_out: number | null
+          shareholder_id: string | null
+          success_count: number | null
+          total_fees: number | null
+          transfer_net: number | null
+          tx_count: number | null
+          tx_month: string | null
+          withdrawal_net: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       assign_owner_role_by_email: {
