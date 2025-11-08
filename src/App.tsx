@@ -60,6 +60,7 @@ import Disputes from "./pages/Disputes";
 import KYCVerification from "./pages/KYCVerification";
 import CreateSuperAdmin from "./pages/CreateSuperAdmin";
 import ResetSuperAdminPassword from "./pages/ResetSuperAdminPassword";
+import BootstrapTest from "./pages/BootstrapTest";
 import TwoFactorChecklist from "./pages/TwoFactorChecklist";
 import Approvals from "./pages/Approvals";
 import PlatformAudit from "./pages/admin/PlatformAudit";
