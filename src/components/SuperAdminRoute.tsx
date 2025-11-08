@@ -10,10 +10,6 @@ interface SuperAdminRouteProps {
 const SuperAdminRoute = ({ children }: SuperAdminRouteProps) => {
   const { user, loading, isSuperAdmin } = useAuth();
 
-  console.log("SuperAdminRoute - User:", user?.email);
-  console.log("SuperAdminRoute - Loading:", loading);
-  console.log("SuperAdminRoute - isSuperAdmin:", isSuperAdmin);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -23,12 +19,10 @@ const SuperAdminRoute = ({ children }: SuperAdminRouteProps) => {
   }
 
   if (!user) {
-    console.log("No user, redirecting to sign-in");
     return <Navigate to="/auth/sign-in" replace />;
   }
 
   if (!isSuperAdmin) {
-    console.log("Not super admin, redirecting to dashboard");
     return <Navigate to="/dashboard" replace />;
   }
 
