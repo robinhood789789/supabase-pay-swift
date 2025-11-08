@@ -1663,6 +1663,7 @@ export type Database = {
           payout_bank_account: string | null
           payout_bank_name: string | null
           payout_schedule: string | null
+          public_id: string
           referral_accepted_at: string | null
           referred_by_code: string | null
           referred_by_shareholder_id: string | null
@@ -1689,6 +1690,7 @@ export type Database = {
           payout_bank_account?: string | null
           payout_bank_name?: string | null
           payout_schedule?: string | null
+          public_id: string
           referral_accepted_at?: string | null
           referred_by_code?: string | null
           referred_by_shareholder_id?: string | null
@@ -1715,6 +1717,7 @@ export type Database = {
           payout_bank_account?: string | null
           payout_bank_name?: string | null
           payout_schedule?: string | null
+          public_id?: string
           referral_accepted_at?: string | null
           referred_by_code?: string | null
           referred_by_shareholder_id?: string | null
