@@ -16,7 +16,7 @@ export default function ShareholderSettings() {
       </div>
 
       {/* Account Information */}
-      <Card className="shadow-xl hover:shadow-2xl transition-all duration-300 border-t-4 border-t-blue-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-blue-500">
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
             <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />

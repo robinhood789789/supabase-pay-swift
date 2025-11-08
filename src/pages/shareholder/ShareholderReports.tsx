@@ -108,28 +108,28 @@ export default function ShareholderReports() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-blue-500 shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+        <Card className="border-l-4 border-l-blue-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Owner ทั้งหมด</p>
             <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.totalOwners}</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500 shadow-xl hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+        <Card className="border-l-4 border-l-green-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-green-50/50 to-white dark:from-green-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Active</p>
             <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.activeOwners}</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+        <Card className="border-l-4 border-l-purple-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">ยอดวันนี้</p>
             <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">฿{stats.todayTotal.toLocaleString()}</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500 shadow-xl hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+        <Card className="border-l-4 border-l-amber-500 shadow-md hover:shadow-glow transition-all duration-300 bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-950/20 dark:to-background">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">เฉลี่ยต่อ Owner</p>
             <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">฿{Math.round(stats.dailyAverage).toLocaleString()}</p>
@@ -138,7 +138,7 @@ export default function ShareholderReports() {
       </div>
 
       {/* Chart */}
-      <Card className="shadow-xl hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 border-t-4 border-t-indigo-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6">
           <CardTitle className="text-base sm:text-lg md:text-xl">แนวโน้มธุรกรรม</CardTitle>
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
@@ -168,7 +168,7 @@ export default function ShareholderReports() {
       </Card>
 
       {/* Owners Table */}
-      <Card className="shadow-xl hover:shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 border-t-4 border-t-emerald-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
+      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-emerald-500">
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-base sm:text-lg md:text-xl">รายงานรายละเอียด</CardTitle>
         </CardHeader>

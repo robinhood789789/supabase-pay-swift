@@ -160,15 +160,15 @@ function ShareholderSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-red-500/50 p-3 bg-gradient-to-br from-red-900/40 via-red-800/30 to-red-900/40 backdrop-blur-md shadow-inner">
+      <SidebarFooter className="border-t border-purple-500/30 p-3 bg-gradient-to-br from-red-950/30 via-purple-950/20 to-red-950/30 backdrop-blur-sm">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleSignOut}
-              className="group relative overflow-hidden bg-red-950/30 hover:bg-red-600/90 text-white hover:text-white border border-red-500/40 hover:border-red-400 transition-all duration-500 shadow-lg hover:shadow-2xl hover:shadow-red-500/50 hover:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-red-400/30 before:to-transparent before:translate-x-[-200%] before:transition-transform before:duration-700 hover:before:translate-x-[200%] font-semibold"
+              className="group relative overflow-hidden hover:bg-destructive/20 hover:text-destructive transition-all duration-500 hover:shadow-lg hover:shadow-destructive/30 hover:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-destructive/20 before:to-transparent before:translate-x-[-200%] before:transition-transform before:duration-700 hover:before:translate-x-[200%]"
             >
-              <LogOut className="h-5 w-5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 text-red-300 group-hover:text-white" />
-              <span className="group-hover:translate-x-1 transition-transform duration-300">ออกจากระบบ</span>
+              <LogOut className="h-5 w-5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+              <span className="font-medium group-hover:translate-x-1 transition-transform duration-300">ออกจากระบบ</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
