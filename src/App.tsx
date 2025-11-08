@@ -18,6 +18,7 @@ import PlatformRefunds from "./pages/admin/PlatformRefunds";
 import PlatformSettings from "./pages/admin/PlatformSettings";
 import PlatformImpersonate from "./pages/admin/PlatformImpersonate";
 import PlatformStatus from "./pages/admin/PlatformStatus";
+import PlatformOverview from "./pages/admin/PlatformOverview";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import MfaChallenge from "./pages/MfaChallenge";
@@ -323,7 +324,7 @@ function AppContent() {
         element={
           <SuperAdminRoute>
             <PlatformLayout>
-              <Dashboard />
+              <PlatformOverview />
             </PlatformLayout>
           </SuperAdminRoute>
         }
