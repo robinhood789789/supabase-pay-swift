@@ -272,7 +272,7 @@ export default function ShareholderDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border-l-4 border-l-blue-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10 shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Owners ทั้งหมด</CardTitle>
             <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
@@ -284,7 +284,7 @@ export default function ShareholderDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border-l-4 border-l-purple-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-400">Active Owners</CardTitle>
             <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400" />
@@ -299,7 +299,7 @@ export default function ShareholderDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border-l-4 border-l-green-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10 shadow-xl hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">รายได้/เดือน</CardTitle>
             <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
@@ -311,7 +311,7 @@ export default function ShareholderDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border-l-4 border-l-amber-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10 shadow-xl hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">คอมมิชชันรอจ่าย</CardTitle>
             <Percent className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
@@ -325,7 +325,7 @@ export default function ShareholderDashboard() {
       </div>
 
       {/* Chart - ลบ Referral Tools ออกแล้ว */}
-      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-purple-500">
+      <Card className="shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 border-t-4 border-t-purple-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
         <CardHeader className="pb-2 px-4 sm:px-6">
           <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base sm:text-lg md:text-xl">
             <span>📈 แนวโน้มคอมมิชชัน</span>
@@ -357,7 +357,7 @@ export default function ShareholderDashboard() {
       </Card>
 
       {/* Owners Table with Commission Details */}
-      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
+      <Card className="shadow-xl hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 border-t-4 border-t-indigo-500 bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
         <CardHeader className="pb-2 px-4 sm:px-6">
           <CardTitle className="flex flex-col gap-3 text-base sm:text-lg md:text-xl">
             <span className="line-clamp-2">👥 Owner ที่มาจากคุณ (พร้อมสัดส่วน Commission)</span>

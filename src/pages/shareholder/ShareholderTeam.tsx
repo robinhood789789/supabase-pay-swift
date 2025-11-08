@@ -427,7 +427,7 @@ export default function ShareholderTeam() {
       </div>
 
       {/* Search and Filter */}
-      <Card className="border-purple-100 shadow-md hover:shadow-lg transition-all bg-gradient-to-br from-background to-purple-50/30 dark:from-card dark:to-purple-950/10">
+      <Card className="border-purple-100 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -454,7 +454,7 @@ export default function ShareholderTeam() {
         </CardContent>
       </Card>
 
-      <Card className="border-purple-100 shadow-md hover:shadow-xl transition-all bg-gradient-to-br from-background to-purple-50/20 dark:from-card dark:to-purple-950/10">
+      <Card className="border-purple-100 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all bg-white/5 dark:bg-white/5 backdrop-blur-xl border-white/10">
         <CardHeader className="border-b border-purple-100">
           <CardTitle className="text-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
