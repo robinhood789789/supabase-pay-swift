@@ -65,16 +65,17 @@ serve(async (req) => {
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     
     const { data: monthlyCommissions, error: monthlyError } = await supabaseClient
-      .from('shareholder_commission_events')
-      .select('commission_amount')
+      .from('shareholder_earnings')
+      .select('amount')
       .eq('shareholder_id', shareholder.id)
-      .gte('occurred_at', firstDayOfMonth);
+      .gte('created_at', firstDayOfMonth);
 
     if (monthlyError) throw monthlyError;
 
-    const monthlyRefRevenue = monthlyCommissions?.reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
+    // Amount is in satang, convert to baht by dividing by 100
+    const monthlyRefRevenue = monthlyCommissions?.reduce((sum, c) => sum + (Number(c.amount) / 100), 0) || 0;
 
-    // Get pending commission (from shareholder balance or withdrawals)
+    // Get pending commission (from shareholder balance)
     const { data: shareholderData, error: balanceError } = await supabaseClient
       .from('shareholders')
       .select('balance')
@@ -83,7 +84,8 @@ serve(async (req) => {
 
     if (balanceError) throw balanceError;
 
-    const pendingCommission = Number(shareholderData?.balance || 0);
+    // Balance is in satang, convert to baht by dividing by 100
+    const pendingCommission = Number(shareholderData?.balance || 0) / 100;
 
     // Calculate approval rate (active / total)
     const approvalRate = totalOwners > 0 ? Math.round((activeOwners / totalOwners) * 100) : 0;

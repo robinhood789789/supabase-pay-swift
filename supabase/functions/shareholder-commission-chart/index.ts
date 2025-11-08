@@ -71,13 +71,13 @@ serve(async (req) => {
         startDate.setMonth(now.getMonth() - 6);
     }
 
-    // Get commission events in the date range
+    // Get commission earnings in the date range
     const { data: commissions, error: commissionsError } = await supabaseClient
-      .from('shareholder_commission_events')
-      .select('occurred_at, commission_amount')
+      .from('shareholder_earnings')
+      .select('created_at, amount')
       .eq('shareholder_id', shareholder.id)
-      .gte('occurred_at', startDate.toISOString())
-      .order('occurred_at', { ascending: true });
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', { ascending: true });
 
     if (commissionsError) throw commissionsError;
 
@@ -85,9 +85,10 @@ serve(async (req) => {
     const groupedData = new Map<string, number>();
     
     commissions?.forEach(c => {
-      const date = new Date(c.occurred_at).toISOString().split('T')[0];
+      const date = new Date(c.created_at).toISOString().split('T')[0];
       const current = groupedData.get(date) || 0;
-      groupedData.set(date, current + Number(c.commission_amount));
+      // Convert satang to baht by dividing by 100
+      groupedData.set(date, current + (Number(c.amount) / 100));
     });
 
     // Convert to array format for chart
