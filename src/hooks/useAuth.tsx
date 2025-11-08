@@ -403,11 +403,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Show nothing while signing out to prevent any component from trying to use auth context
-  if (signingOut) {
-    return null;
-  }
-
   // Keep CSRF token in sync with auth state
   useEffect(() => {
     if (user?.id) {
@@ -416,6 +411,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearCSRFToken();
     }
   }, [user?.id]);
+
+  // Show nothing while signing out to prevent any component from trying to use auth context
+  if (signingOut) {
+    return null;
+  }
 
   return (
     <AuthContext.Provider
