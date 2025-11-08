@@ -122,15 +122,16 @@ serve(async (req) => {
     const recoveryCodes = generateBackupCodes(10);
     const hashedCodes = await Promise.all(recoveryCodes.map(c => hashCode(c.replace(/-/g, ''))));
 
-    // Enable 2FA and store recovery codes
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ 
-        totp_enabled: true,
-        totp_backup_codes: hashedCodes,
-        mfa_last_verified_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
+    // Enable 2FA and store recovery codes using RPC to bypass cache
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { error: updateError } = await supabaseAdmin.rpc('enable_totp_with_codes', {
+      user_id: user.id,
+      backup_codes: hashedCodes
+    });
 
     if (updateError) {
       console.error('[MFA Verify] Error enabling 2FA:', updateError);

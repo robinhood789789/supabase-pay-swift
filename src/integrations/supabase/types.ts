@@ -1948,6 +1948,10 @@ export type Database = {
       }
       cleanup_expired_codes: { Args: never; Returns: undefined }
       cleanup_replay_cache: { Args: never; Returns: undefined }
+      enable_totp_with_codes: {
+        Args: { backup_codes: string[]; user_id: string }
+        Returns: undefined
+      }
       generate_public_id: { Args: { prefix_code: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_email_by_public_id: {
@@ -1967,6 +1971,10 @@ export type Database = {
       is_shareholder: { Args: { user_uuid: string }; Returns: boolean }
       is_super_admin: { Args: { user_uuid: string }; Returns: boolean }
       request_tenant: { Args: never; Returns: string }
+      update_totp_secret: {
+        Args: { new_secret: string; user_id: string }
+        Returns: undefined
+      }
       user_has_role_in_tenant: {
         Args: { role_name: string; tenant_uuid: string; user_uuid: string }
         Returns: boolean
