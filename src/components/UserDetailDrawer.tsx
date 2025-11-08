@@ -156,13 +156,13 @@ export const UserDetailDrawer = ({ userId, open, onOpenChange }: UserDetailDrawe
                       </p>
                     </div>
                   </div>
-                  {profile?.mfa_last_verified_at && (
+                  {(profile as any)?.mfa_last_verified_at && (
                     <div className="flex items-center gap-2">
                       <Shield className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Last 2FA Verification</p>
                         <p className="font-medium">
-                          {format(new Date(profile.mfa_last_verified_at), "PPp")}
+                          {format(new Date((profile as any).mfa_last_verified_at), "PPp")}
                         </p>
                       </div>
                     </div>

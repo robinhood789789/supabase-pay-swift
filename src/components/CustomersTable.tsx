@@ -38,6 +38,12 @@ export const CustomersTable = () => {
     return phone.slice(0, 3) + "*".repeat(phone.length - 6) + phone.slice(-3);
   };
 
+  // Derive phone from optional column or metadata JSON
+  const getPhone = (customer: any): string => {
+    const meta = (customer?.metadata as any) || {};
+    const phone = (customer as any)?.phone ?? meta?.phone ?? "";
+    return typeof phone === "string" ? phone : "";
+  };
   const { data: customers, isLoading } = useQuery({
     queryKey: ["customers", activeTenantId],
     queryFn: async () => {
@@ -73,7 +79,7 @@ export const CustomersTable = () => {
     return (
       customer.name?.toLowerCase().includes(term) ||
       customer.email?.toLowerCase().includes(term) ||
-      customer.phone?.toLowerCase().includes(term)
+      getPhone(customer).toLowerCase().includes(term)
     );
   });
 
@@ -92,7 +98,7 @@ export const CustomersTable = () => {
           ...customers.map(c => [
             c.name || '',
             c.email || '',
-            c.phone || '',
+            getPhone(c) || '',
             (c.payments as any)?.[0]?.count || 0,
             format(new Date(c.created_at), 'yyyy-MM-dd')
           ].join(','))
@@ -175,10 +181,10 @@ export const CustomersTable = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {customer.phone ? (
+                    {getPhone(customer) ? (
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{maskPhone(customer.phone)}</span>
+                        <span>{maskPhone(getPhone(customer))}</span>
                       </div>
                     ) : (
                       "-"

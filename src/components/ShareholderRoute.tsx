@@ -26,7 +26,7 @@ export const ShareholderRoute = ({ children }: ShareholderRouteProps) => {
       try {
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("requires_password_change, totp_enabled, first_login_completed_at")
+          .select("requires_password_change, totp_enabled")
           .eq("id", user.id)
           .single();
 
@@ -40,7 +40,7 @@ export const ShareholderRoute = ({ children }: ShareholderRouteProps) => {
         }
 
         // Check if MFA is required but not enabled
-        if (!profile?.totp_enabled && !profile?.first_login_completed_at) {
+        if (!profile?.totp_enabled) {
           setRequiresMFA(true);
           setCheckingFirstLogin(false);
           return;

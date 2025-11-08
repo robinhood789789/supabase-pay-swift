@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       // Try to find and delete the user
       try {
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = existingUsers.users.find(u => u.email === email);
+        const existingUser = existingUsers.users.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
         
         if (existingUser) {
           console.log(`Deleting existing user: ${userId}`);
@@ -279,6 +279,20 @@ async function createUser(
   });
 
   if (createUserError) {
+    const code = (createUserError as any)?.code || (createUserError as any)?.status;
+    if (code === 'email_exists' || (createUserError as any)?.status === 422) {
+      const emailLower = email.toLowerCase();
+      try {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+        const existing = list?.users?.find((u: any) => (u.email || '').toLowerCase() === emailLower);
+        if (existing) {
+          console.log(`User exists, reusing: ${params.userId} (${existing.id})`);
+          return existing;
+        }
+      } catch (e) {
+        console.log('Lookup existing user failed:', e);
+      }
+    }
     console.error(`Error creating user ${params.userId}:`, createUserError);
     throw new Error(`Failed to create user ${params.userId}: ${createUserError.message}`);
   }
