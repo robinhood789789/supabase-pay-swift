@@ -34,7 +34,7 @@ const secondaryMenuItems = [
 ];
 
 function ShareholderSidebar() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { open } = useSidebar();
@@ -51,7 +51,7 @@ function ShareholderSidebar() {
     <Sidebar collapsible="icon" className="border-r border-border/50">
       <SidebarHeader className="border-b border-border/50 px-4 py-4 bg-gradient-to-br from-purple-600 to-indigo-600 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000">
         {open && (
-          <div className="flex flex-col gap-2 animate-fade-in relative z-10">
+          <div className="flex flex-col gap-3 animate-fade-in relative z-10">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shadow-lg hover:shadow-glow transition-all duration-500 hover:scale-110 hover:rotate-6 cursor-pointer group">
                 <Wallet className="h-5 w-5 text-white group-hover:scale-110 transition-transform duration-300" />
@@ -63,6 +63,14 @@ function ShareholderSidebar() {
                 <span className="text-xs text-white/80">ระบบผู้ถือหุ้น</span>
               </div>
             </div>
+            {user?.id && (
+              <div className="pl-1 space-y-1 animate-fade-in">
+                <div className="text-[10px] text-white/70 uppercase tracking-wider font-medium">User ID</div>
+                <div className="text-xs font-mono font-semibold text-white bg-white/10 px-2 py-1 rounded backdrop-blur-sm hover:bg-white/20 transition-all duration-300 cursor-default truncate">
+                  {user.id.slice(0, 8)}...{user.id.slice(-4)}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {!open && (
