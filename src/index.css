@@ -86,11 +86,11 @@ All colors MUST be HSL.
     --background: 220 40% 3%;
     --foreground: 220 15% 95%;
 
-    --card: 220 35% 6%;
-    --card-foreground: 220 15% 95%;
+    --card: 220 30% 10%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 220 35% 6%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 220 30% 10%;
+    --popover-foreground: 0 0% 100%;
 
     --primary: 189 100% 50%;
     --primary-foreground: 0 0% 100%;
