@@ -82,6 +82,7 @@ import PlatformPartnerReports from "./pages/admin/PlatformPartnerReports";
 import PlatformPartnerSettings from "./pages/admin/PlatformPartnerSettings";
 import PlatformShareholderEarnings from "./pages/admin/PlatformShareholderEarnings";
 import TransactionDashboard from "./pages/TransactionDashboard";
+import StyleGuide from "./pages/StyleGuide";
 
 const queryClient = new QueryClient();
 
@@ -201,6 +202,12 @@ function AppContent() {
           <ProtectedRoute>
             <TestingGuide />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/style-guide"
+        element={
+          <StyleGuide />
         }
       />
       <Route
