@@ -50,14 +50,16 @@ serve(async (req) => {
     const secret = generateTOTPSecret();
     const otpauthUrl = getTOTPQRCodeUrl(secret, user.email!, 'Payment Platform');
 
-    // Store temporary secret (not yet verified)
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ 
-        totp_secret: secret,
-        // Don't enable yet, wait for verification
-      })
-      .eq('id', user.id);
+    // Store temporary secret (not yet verified) using RPC to bypass cache issues
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { error: updateError } = await supabaseAdmin.rpc('update_totp_secret', {
+      user_id: user.id,
+      new_secret: secret
+    });
 
     if (updateError) {
       console.error('[MFA Enroll] Error storing secret:', updateError);
