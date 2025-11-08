@@ -13,7 +13,6 @@ import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
 import { toast } from "sonner";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
-import DashboardLayout from "@/components/DashboardLayout";
 
 export default function PlatformPartnerSettings() {
   const queryClient = useQueryClient();
@@ -61,16 +60,14 @@ export default function PlatformPartnerSettings() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -281,6 +278,6 @@ export default function PlatformPartnerSettings() {
       </div>
 
       <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
-    </DashboardLayout>
+    </>
   );
 }

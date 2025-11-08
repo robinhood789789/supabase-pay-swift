@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -145,11 +144,9 @@ export default function PlatformSecurity() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">Loading...</div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">Loading...</div>
+      </div>
     );
   }
 
@@ -164,7 +161,6 @@ export default function PlatformSecurity() {
         onOpenChange={setMfaOpen}
         onSuccess={onSuccess}
       />
-      <DashboardLayout>
       <div className="container mx-auto py-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -304,7 +300,6 @@ export default function PlatformSecurity() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
     </>
   );
 }

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -176,8 +175,7 @@ const PlatformProviders = () => {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">จัดการ Payment Providers</h1>
           <p className="text-muted-foreground">จัดการ API credentials และ webhook secrets ของ payment providers</p>
@@ -304,7 +302,6 @@ const PlatformProviders = () => {
           onSuccess={onSuccess}
         />
       </div>
-    </DashboardLayout>
   );
 };
 

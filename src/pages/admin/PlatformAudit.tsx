@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -209,7 +208,6 @@ export default function PlatformAudit() {
         onOpenChange={setMfaOpen}
         onSuccess={onSuccess}
       />
-      <DashboardLayout>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
@@ -475,7 +473,6 @@ export default function PlatformAudit() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
     </>
   );
 }

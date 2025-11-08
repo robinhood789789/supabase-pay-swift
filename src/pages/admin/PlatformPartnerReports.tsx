@@ -13,7 +13,6 @@ import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
 import { toast } from "sonner";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
-import DashboardLayout from "@/components/DashboardLayout";
 
 export default function PlatformPartnerReports() {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -99,7 +98,7 @@ export default function PlatformPartnerReports() {
   const chartData = reportData?.grouped_data || [];
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">รายงานพาร์ทเนอร์</h1>
@@ -266,6 +265,6 @@ export default function PlatformPartnerReports() {
       </div>
 
       <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
-    </DashboardLayout>
+    </>
   );
 }
