@@ -35,6 +35,46 @@ Deno.serve(async (req) => {
 
     console.log('Starting bootstrap test accounts...');
 
+    // Clean up existing test accounts first
+    console.log('Cleaning up existing test accounts...');
+    const testUserIds = ['SADM-000001', 'SHLD-000001', 'OWNR-000001', 'VIEW-000001', 'MNGR-000001', 'FINC-000001', 'DEVL-000001'];
+    
+    for (const userId of testUserIds) {
+      const email = `${userId}@system.local`;
+      
+      // Try to find and delete the user
+      try {
+        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+        const existingUser = existingUsers.users.find(u => u.email === email);
+        
+        if (existingUser) {
+          console.log(`Deleting existing user: ${userId}`);
+          await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
+        }
+      } catch (cleanupError) {
+        console.log(`Cleanup warning for ${userId}:`, cleanupError);
+        // Continue even if cleanup fails
+      }
+    }
+
+    // Also clean up test tenant and shareholder
+    try {
+      const { data: testTenant } = await supabaseAdmin
+        .from('tenants')
+        .select('id')
+        .eq('name', 'Test Company Ltd.')
+        .maybeSingle();
+      
+      if (testTenant) {
+        console.log('Deleting existing test tenant...');
+        await supabaseAdmin.from('tenants').delete().eq('id', testTenant.id);
+      }
+    } catch (err) {
+      console.log('Cleanup warning for tenant:', err);
+    }
+
+    console.log('Cleanup complete, creating new accounts...');
+
     const accounts: TestAccount[] = [];
     const testPassword = 'TempPass123!'; // Temporary password for all accounts
 
