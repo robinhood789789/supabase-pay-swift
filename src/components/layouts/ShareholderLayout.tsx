@@ -64,8 +64,8 @@ function ShareholderSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarHeader className="border-b border-border/50 px-4 py-4 bg-gradient-to-br from-purple-600 to-indigo-600 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000">
+    <Sidebar collapsible="icon" className="border-r border-purple-500/20 bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900 backdrop-blur-xl">
+      <SidebarHeader className="border-b border-purple-500/30 px-4 py-4 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 relative overflow-hidden shadow-lg before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000">
         {open && (
           <div className="flex flex-col gap-3 animate-fade-in relative z-10">
             <div className="flex items-center gap-3">
@@ -104,9 +104,9 @@ function ShareholderSidebar() {
         )}
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="px-2 py-4 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-semibold text-white uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="text-sm font-semibold text-purple-200 uppercase tracking-wider mb-2 px-2">
             เมนูหลัก
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -131,10 +131,10 @@ function ShareholderSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <Separator className="my-4 bg-border/50" />
+        <Separator className="my-4 bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-semibold text-white uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="text-sm font-semibold text-purple-200 uppercase tracking-wider mb-2 px-2">
             จัดการ
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -160,7 +160,7 @@ function ShareholderSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50 p-3 bg-gradient-to-br from-destructive/5 to-destructive/10">
+      <SidebarFooter className="border-t border-purple-500/30 p-3 bg-gradient-to-br from-red-950/30 via-purple-950/20 to-red-950/30 backdrop-blur-sm">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
