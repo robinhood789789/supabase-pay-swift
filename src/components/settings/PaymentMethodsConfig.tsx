@@ -40,10 +40,10 @@ export default function PaymentMethodsConfig() {
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge(); // H-7: MFA
 
   // Fetch tenant settings
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery<any>({
     queryKey: ["tenant-settings", activeTenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tenant_settings")
         .select("*")
         .eq("tenant_id", activeTenantId!)
@@ -56,17 +56,17 @@ export default function PaymentMethodsConfig() {
   });
 
   // Fetch payment methods
-  const { data: paymentMethods } = useQuery({
+  const { data: paymentMethods } = useQuery<any[]>({
     queryKey: ["payment-methods", activeTenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("payment_methods")
         .select("*")
         .eq("tenant_id", activeTenantId!)
         .order("type");
 
       if (error) throw error;
-      return data;
+      return data as any[];
     },
     enabled: !!activeTenantId,
   });
@@ -76,7 +76,7 @@ export default function PaymentMethodsConfig() {
     mutationFn: async (provider: string) => {
       if (!activeTenantId) throw new Error("No active tenant");
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("tenant_settings")
         .update({ provider })
         .eq("tenant_id", activeTenantId);
@@ -110,14 +110,14 @@ export default function PaymentMethodsConfig() {
       const existing = paymentMethods?.find((m) => m.type === type);
 
       if (existing) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("payment_methods")
           .update({ enabled })
           .eq("id", existing.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("payment_methods")
           .insert({
             tenant_id: activeTenantId,

@@ -29,7 +29,7 @@ export function TwoFactorSetup() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('totp_enabled, totp_secret')
+        .select('totp_enabled')
         .eq('id', user?.id)
         .single();
       if (error) throw error;

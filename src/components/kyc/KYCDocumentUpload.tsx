@@ -64,13 +64,12 @@ export const KYCDocumentUpload = () => {
 
       if (error) throw error;
 
-      // Log the action
-      await supabase.from("kyc_verification_logs").insert({
+      // Log the action to audit_logs
+      await supabase.from("audit_logs").insert({
         tenant_id: activeTenantId,
-        document_id: doc.id,
-        action: "document_uploaded",
-        new_status: "pending",
-        notes: `Uploaded ${data.type}`,
+        action: "kyc_document_uploaded",
+        target: `kyc_documents:${doc.id}`,
+        after: { document_type: data.type, document_id: doc.id }
       });
 
       return doc;

@@ -43,7 +43,7 @@ export const WebhooksManager = () => {
   const { data: webhooks, isLoading } = useQuery({
     queryKey: ["webhooks"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("webhooks")
         .select("*")
         .order("created_at", { ascending: false });
@@ -58,7 +58,7 @@ export const WebhooksManager = () => {
       // Generate webhook secret using browser crypto
       const secret = crypto.randomUUID();
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("webhooks")
         .insert({
           url: url.trim(),
@@ -86,7 +86,7 @@ export const WebhooksManager = () => {
 
   const deleteWebhookMutation = useMutation({
     mutationFn: async (webhookId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("webhooks")
         .delete()
         .eq("id", webhookId);
@@ -106,7 +106,7 @@ export const WebhooksManager = () => {
 
   const toggleWebhookMutation = useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("webhooks")
         .update({ enabled })
         .eq("id", id);

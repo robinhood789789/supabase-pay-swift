@@ -43,58 +43,18 @@ export function TwoFactorChallenge({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('totp_secret, totp_backup_codes')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Delegate verification to Edge Function (handles TOTP or recovery)
+      const { data, error } = await supabase.functions.invoke('mfa-verify', {
+        body: { code }
+      });
+      if (error) throw new Error(error.message || 'Verification failed');
+      if (!data) throw new Error('Verification failed');
 
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile not found');
-
-      // Check if it's a 6-digit TOTP code
-      if (code.length === 6 && /^\d+$/.test(code)) {
-        const isValid = await verifyTOTP(profile.totp_secret || '', code);
-        if (isValid) {
-          // Update last verified timestamp (and ensure error is handled)
-          const { error: updateErr } = await supabase
-            .from('profiles')
-            .update({ mfa_last_verified_at: new Date().toISOString() })
-            .eq('id', user.id);
-          if (updateErr) throw updateErr;
-          
-          toast.success('Verification successful');
-          onSuccess();
-          onOpenChange(false);
-          setCode('');
-          return;
-        }
-      }
-
-      // Check if it's a recovery code
-      const backupCodes = profile.totp_backup_codes || [];
-      const codeIndex = backupCodes.indexOf(code.toUpperCase().replace(/-/g, ''));
-      
-      if (codeIndex !== -1) {
-        // Remove used backup code
-        const newBackupCodes = backupCodes.filter((_: string, i: number) => i !== codeIndex);
-        const { error: updateErr } = await supabase
-          .from('profiles')
-          .update({ 
-            totp_backup_codes: newBackupCodes,
-            mfa_last_verified_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
-        if (updateErr) throw updateErr;
-        
-        toast.success('Recovery code accepted');
-        onSuccess();
-        onOpenChange(false);
-        setCode('');
-        return;
-      }
-
-      setError('Invalid code. Please try again.');
+      toast.success('Verification successful');
+      onSuccess();
+      onOpenChange(false);
+      setCode('');
+      return;
     } catch (err: any) {
       setError(err.message || 'Verification failed');
       toast.error('Verification failed');

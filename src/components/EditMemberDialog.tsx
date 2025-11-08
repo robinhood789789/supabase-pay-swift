@@ -29,7 +29,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const queryClient = useQueryClient();
 
   // Fetch available roles (all system roles except owner)
-  const { data: roles = [] } = useQuery({
+  const { data: roles = [] } = useQuery<any[]>({
     queryKey: ["roles", member?.tenant_id],
     queryFn: async () => {
       if (!member?.tenant_id) return [];
@@ -42,7 +42,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         .order("name");
       
       if (error) throw error;
-      return data as { id: string; name: string; description: string | null }[];
+      return data as any[];
     },
     enabled: !!member?.tenant_id && open,
   });

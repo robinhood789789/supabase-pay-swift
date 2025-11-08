@@ -91,13 +91,12 @@ export const KYCDocumentsList = () => {
       if (error) throw error;
 
       // Log audit
-      await supabase.from("audit_logs").insert({
+      await supabase.from('audit_logs').insert({
         tenant_id: activeTenantId,
-        user_id: user?.id,
+        actor_user_id: user?.id,
         action: `kyc_document_${status}`,
-        resource_type: "kyc_document",
-        resource_id: docId,
-        metadata: { status, reason },
+        target: `kyc_documents:${docId}`,
+        after: { status, reason }
       });
     },
     onSuccess: (_, variables) => {
