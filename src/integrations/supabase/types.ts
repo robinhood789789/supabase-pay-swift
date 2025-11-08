@@ -262,7 +262,33 @@ export type Database = {
       }
     }
     Enums: {
+      api_key_type: "public" | "secret"
       app_role: "owner" | "admin" | "user" | "super_admin"
+      kyc_document_type:
+        | "national_id"
+        | "passport"
+        | "driving_license"
+        | "business_registration"
+        | "bank_statement"
+        | "utility_bill"
+        | "other"
+      kyc_verification_status: "pending" | "approved" | "rejected"
+      tx_direction: "IN" | "OUT"
+      tx_method:
+        | "BANK_TRANSFER"
+        | "CARD"
+        | "PROMPTPAY"
+        | "CASH"
+        | "WALLET"
+        | "OTHER"
+      tx_status: "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED"
+      tx_type:
+        | "DEPOSIT"
+        | "WITHDRAWAL"
+        | "TRANSFER"
+        | "REFUND"
+        | "FEE"
+        | "ADJUSTMENT"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -390,7 +416,36 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      api_key_type: ["public", "secret"],
       app_role: ["owner", "admin", "user", "super_admin"],
+      kyc_document_type: [
+        "national_id",
+        "passport",
+        "driving_license",
+        "business_registration",
+        "bank_statement",
+        "utility_bill",
+        "other",
+      ],
+      kyc_verification_status: ["pending", "approved", "rejected"],
+      tx_direction: ["IN", "OUT"],
+      tx_method: [
+        "BANK_TRANSFER",
+        "CARD",
+        "PROMPTPAY",
+        "CASH",
+        "WALLET",
+        "OTHER",
+      ],
+      tx_status: ["PENDING", "SUCCESS", "FAILED", "CANCELLED"],
+      tx_type: [
+        "DEPOSIT",
+        "WITHDRAWAL",
+        "TRANSFER",
+        "REFUND",
+        "FEE",
+        "ADJUSTMENT",
+      ],
     },
   },
 } as const
