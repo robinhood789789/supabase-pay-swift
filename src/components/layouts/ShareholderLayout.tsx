@@ -63,12 +63,6 @@ function ShareholderSidebar() {
                 <span className="text-xs text-white/80">ระบบผู้ถือหุ้น</span>
               </div>
             </div>
-            {shareholder?.public_id && (
-              <div className="pl-1">
-                <div className="text-[10px] text-white/70 uppercase tracking-wider">Public ID</div>
-                <div className="text-xs font-mono font-semibold text-white mt-0.5">{shareholder.public_id}</div>
-              </div>
-            )}
           </div>
         )}
         {!open && (
@@ -80,7 +74,7 @@ function ShareholderSidebar() {
 
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-white uppercase tracking-wider mb-2">
             เมนูหลัก
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -108,7 +102,7 @@ function ShareholderSidebar() {
         <Separator className="my-4 bg-border/50" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-white uppercase tracking-wider mb-2">
             จัดการ
           </SidebarGroupLabel>
           <SidebarGroupContent>
