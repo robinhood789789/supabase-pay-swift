@@ -65,6 +65,27 @@ export type Database = {
         }
         Relationships: []
       }
+      id_sequences: {
+        Row: {
+          current_value: number
+          id: string
+          prefix: string
+          updated_at: string
+        }
+        Insert: {
+          current_value?: number
+          id?: string
+          prefix: string
+          updated_at?: string
+        }
+        Update: {
+          current_value?: number
+          id?: string
+          prefix?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       merchants: {
         Row: {
           created_at: string | null
@@ -180,6 +201,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      tenants: {
+        Row: {
+          brand_logo_url: string | null
+          brand_primary_color: string | null
+          business_type: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          fee_plan: Json | null
+          id: string
+          kyc_level: number | null
+          kyc_notes: string | null
+          kyc_status: string | null
+          kyc_verified_at: string | null
+          kyc_verified_by: string | null
+          name: string
+          payout_bank_account: string | null
+          payout_bank_name: string | null
+          payout_schedule: string | null
+          referral_accepted_at: string | null
+          referred_by_code: string | null
+          referred_by_shareholder_id: string | null
+          risk_rules: Json | null
+          status: string
+          tax_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          brand_logo_url?: string | null
+          brand_primary_color?: string | null
+          business_type?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          fee_plan?: Json | null
+          id?: string
+          kyc_level?: number | null
+          kyc_notes?: string | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
+          kyc_verified_by?: string | null
+          name: string
+          payout_bank_account?: string | null
+          payout_bank_name?: string | null
+          payout_schedule?: string | null
+          referral_accepted_at?: string | null
+          referred_by_code?: string | null
+          referred_by_shareholder_id?: string | null
+          risk_rules?: Json | null
+          status?: string
+          tax_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          brand_logo_url?: string | null
+          brand_primary_color?: string | null
+          business_type?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          fee_plan?: Json | null
+          id?: string
+          kyc_level?: number | null
+          kyc_notes?: string | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
+          kyc_verified_by?: string | null
+          name?: string
+          payout_bank_account?: string | null
+          payout_bank_name?: string | null
+          payout_schedule?: string | null
+          referral_accepted_at?: string | null
+          referred_by_code?: string | null
+          referred_by_shareholder_id?: string | null
+          risk_rules?: Json | null
+          status?: string
+          tax_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
