@@ -1,7 +1,9 @@
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, TrendingUp, UserPlus, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, TrendingUp, UserPlus, Settings, LogOut, Copy, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShareholder } from "@/hooks/useShareholder";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +41,8 @@ function ShareholderSidebar() {
   const location = useLocation();
   const { open } = useSidebar();
   const { shareholder } = useShareholder();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -46,6 +50,18 @@ function ShareholderSidebar() {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleCopyId = async () => {
+    if (shareholder?.public_id) {
+      await navigator.clipboard.writeText(shareholder.public_id);
+      setCopied(true);
+      toast({
+        title: "คัดลอกสำเร็จ!",
+        description: `ID: ${shareholder.public_id}`,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
@@ -66,9 +82,17 @@ function ShareholderSidebar() {
             {shareholder?.public_id && (
               <div className="pl-1 space-y-1 animate-fade-in">
                 <div className="text-[10px] text-white/70 uppercase tracking-wider font-medium">Shareholder ID</div>
-                <div className="text-sm font-mono font-bold text-white bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm hover:bg-white/20 transition-all duration-300 cursor-default shadow-md">
-                  {shareholder.public_id}
-                </div>
+                <button
+                  onClick={handleCopyId}
+                  className="w-full text-sm font-mono font-bold text-white bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm hover:bg-white/20 transition-all duration-300 cursor-pointer shadow-md hover:shadow-glow hover:scale-[1.02] active:scale-95 flex items-center justify-between group"
+                >
+                  <span>{shareholder.public_id}</span>
+                  {copied ? (
+                    <Check className="h-3.5 w-3.5 text-green-300 animate-scale-in" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  )}
+                </button>
               </div>
             )}
           </div>
