@@ -131,10 +131,10 @@ const PlatformSettings = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Platform Settings</h1>
-          <p className="text-muted-foreground">จัดการการตั้งค่า fees, feature flags, และ maintenance mode</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">Platform Settings</h1>
+        <p className="text-muted-foreground">จัดการการตั้งค่า fees, feature flags, และ maintenance mode</p>
+      </div>
 
       <Alert>
         <AlertCircle className="h-4 w-4" />
@@ -287,7 +287,7 @@ const PlatformSettings = () => {
         onOpenChange={setIsOpen}
         onSuccess={onSuccess}
       />
-      </div>
+    </div>
   );
 };
 
