@@ -81,26 +81,9 @@ async function fetchCommissionSeries(range: "3M" | "6M" | "12M"): Promise<Commis
 }
 
 // UI Components
-function StatCard({ icon: Icon, title, value, help, gradient }: { icon: any; title: string; value: string; help?: string; gradient: string }) {
-  return (
-    <Card className={`border-l-4 ${gradient} shadow-md hover:shadow-glow transition-all duration-300`}>
-      <CardContent className="p-4 sm:p-5">
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
-          <div className="text-xs sm:text-sm font-medium text-white line-clamp-2">{title}</div>
-          <div className="p-1.5 sm:p-2 rounded-full bg-white/20 shrink-0">
-            <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-          </div>
-        </div>
-        <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white break-words">{value}</div>
-        {help && <div className="text-xs text-white/80 mt-1 sm:mt-2">{help}</div>}
-      </CardContent>
-    </Card>
-  );
-}
-
 function StatMini({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-xl border p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
+    <div className="rounded-xl border p-3 bg-card hover:bg-muted/50 transition-colors">
       <div className="text-xs text-muted-foreground">{title}</div>
       <div className="text-base font-semibold">{value}</div>
     </div>
@@ -289,31 +272,56 @@ export default function ShareholderDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <StatCard 
-          icon={Users} 
-          title="Owner ทั้งหมด" 
-          value={summary ? `${summary.totalOwners}` : "-"}
-          gradient="border-l-primary bg-gradient-users"
-        />
-        <StatCard 
-          icon={CheckCircle2} 
-          title="Active Owner" 
-          value={summary ? `${summary.activeOwners}` : "-"} 
-          help={`อัตราอนุมัติ ~${summary?.approvalRate ?? "-"}%`}
-          gradient="border-l-success bg-gradient-success"
-        />
-        <StatCard 
-          icon={Wallet} 
-          title="รายได้จากคอมมิชชัน/เดือน" 
-          value={summary ? `${summary.monthlyRefRevenue.toLocaleString()} THB` : "-"}
-          gradient="border-l-accent bg-gradient-withdrawal"
-        />
-        <StatCard 
-          icon={Percent} 
-          title="คอมมิชชันรอจ่าย" 
-          value={summary ? `${summary.pendingCommission.toLocaleString()} THB` : "-"}
-          gradient="border-l-warning bg-gradient-balance"
-        />
+        <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Owners ทั้งหมด</CardTitle>
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
+          </CardHeader>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {summary ? `${summary.totalOwners}` : "-"}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-400">Active Owners</CardTitle>
+            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400" />
+          </CardHeader>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400">
+              {summary ? `${summary.activeOwners}` : "-"}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              <span className="text-green-600 dark:text-green-400 font-semibold">~{summary?.approvalRate ?? "-"}%</span> อัตราอนุมัติ
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">รายได้/เดือน</CardTitle>
+            <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
+          </CardHeader>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">
+              ฿{summary ? `${summary.monthlyRefRevenue.toLocaleString()}` : "-"}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">คอมมิชชันรอจ่าย</CardTitle>
+            <Percent className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
+          </CardHeader>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-600 dark:text-amber-400">
+              ฿{summary ? `${summary.pendingCommission.toLocaleString()}` : "-"}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Chart - ลบ Referral Tools ออกแล้ว */}
