@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 const mainMenuItems = [
   { icon: LayoutDashboard, label: "แดชบอร์ด", path: "/shareholder/dashboard" },
@@ -153,13 +154,16 @@ function ShareholderSidebar() {
 export default function ShareholderLayout() {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full overflow-x-hidden">
+      <div className="flex min-h-screen w-full overflow-x-hidden relative">
+        {/* Animated Background */}
+        <AnimatedBackground />
+        
         <ShareholderSidebar />
-        <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out overflow-x-hidden bg-gradient-hero">
-          <div className="sticky top-0 z-10 flex h-12 sm:h-14 items-center gap-4 border-b border-border/50 bg-card/80 backdrop-blur-sm px-3 sm:px-4 shadow-sm transition-all duration-300">
+        <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out overflow-x-hidden bg-gradient-hero relative z-10">
+          <div className="sticky top-0 z-20 flex h-12 sm:h-14 items-center gap-4 border-b border-border/50 bg-card/80 backdrop-blur-sm px-3 sm:px-4 shadow-sm transition-all duration-300">
             <SidebarTrigger className="hover:bg-primary/10 hover:text-primary transition-all duration-300 h-8 w-8 sm:h-10 sm:w-10" />
           </div>
-          <div className="p-3 sm:p-4 md:p-6 transition-all duration-300">
+          <div className="p-3 sm:p-4 md:p-6 transition-all duration-300 relative z-10">
             <Outlet />
           </div>
         </main>
