@@ -1148,19 +1148,19 @@ export type Database = {
           created_at: string
           id: string
           permission_id: string
-          role: Database["public"]["Enums"]["app_role"]
+          role_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           permission_id: string
-          role: Database["public"]["Enums"]["app_role"]
+          role_id: string
         }
         Update: {
           created_at?: string
           id?: string
           permission_id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          role_id?: string
         }
         Relationships: [
           {
@@ -1168,6 +1168,13 @@ export type Database = {
             columns: ["permission_id"]
             isOneToOne: false
             referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
             referencedColumns: ["id"]
           },
         ]
