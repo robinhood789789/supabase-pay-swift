@@ -469,16 +469,16 @@ const Dashboard = () => {
                         {activeAlerts.map((alert) => (
                           <div key={alert.id} className="flex items-start gap-3 p-3 border rounded-lg">
                             <AlertCircle className={`h-5 w-5 mt-0.5 ${
-                              alert.severity === 'critical' ? 'text-red-600' :
-                              alert.severity === 'warning' ? 'text-yellow-600' :
+                              alert.type === 'critical' ? 'text-red-600' :
+                              alert.type === 'warning' ? 'text-yellow-600' :
                               'text-blue-600'
                             }`} />
                             <div className="flex-1">
-                              <p className="font-medium text-sm">{alert.title}</p>
-                              <p className="text-xs text-muted-foreground">{alert.message}</p>
+                              <p className="font-medium text-sm">{alert.name}</p>
+                              <p className="text-xs text-muted-foreground">{alert.type}</p>
                             </div>
-                            <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
-                              {alert.severity}
+                            <Badge variant={alert.type === 'critical' ? 'destructive' : 'secondary'}>
+                              {alert.type}
                             </Badge>
                           </div>
                         ))}

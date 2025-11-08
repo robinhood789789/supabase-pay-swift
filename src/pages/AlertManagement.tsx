@@ -135,12 +135,10 @@ export default function AlertManagement() {
 
       const { error } = await supabase.from("alerts").insert({
         tenant_id: activeTenantId,
-        title: alertTitle,
-        alert_type: selectedTemplate,
-        severity: "medium",
-        message: `Alert rule: ${alertTitle}`,
-        metadata,
-        resolved: false,
+        name: alertTitle,
+        type: selectedTemplate,
+        condition: metadata,
+        is_active: true,
       });
 
       if (error) throw error;
@@ -204,8 +202,8 @@ export default function AlertManagement() {
       const { error } = await supabase
         .from("alerts")
         .update({
-          title: alertTitle,
-          metadata,
+          name: alertTitle,
+          condition: metadata,
         })
         .eq("id", editingAlert.id);
 
@@ -289,8 +287,8 @@ export default function AlertManagement() {
   };
 
   const filteredAlerts = alerts?.filter(alert =>
-    alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    alert.alert_type.toLowerCase().includes(searchTerm.toLowerCase())
+    alert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    alert.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -425,23 +423,23 @@ export default function AlertManagement() {
                           className="flex items-center justify-between p-4 border rounded-lg"
                         >
                           <div className="flex items-center gap-4 flex-1">
-                            <div className={`p-2 rounded ${alert.resolved ? 'bg-muted' : 'bg-orange-100 dark:bg-orange-950'}`}>
-                              <AlertTriangle className={`h-5 w-5 ${alert.resolved ? 'text-muted-foreground' : 'text-orange-600'}`} />
+                            <div className={`p-2 rounded ${!alert.is_active ? 'bg-muted' : 'bg-orange-100 dark:bg-orange-950'}`}>
+                              <AlertTriangle className={`h-5 w-5 ${!alert.is_active ? 'text-muted-foreground' : 'text-orange-600'}`} />
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <h4 className="font-semibold">{alert.title}</h4>
-                                <Badge className={getSeverityColor(alert.severity)}>
-                                  {alert.severity}
+                                <h4 className="font-semibold">{alert.name}</h4>
+                                <Badge variant="outline">
+                                  {alert.type}
                                 </Badge>
-                                {alert.resolved && (
+                                {!alert.is_active && (
                                   <Badge variant="outline" className="text-green-600">
-                                    Resolved
+                                    Inactive
                                   </Badge>
                                 )}
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                Type: {alert.alert_type} • Created: {format(new Date(alert.created_at), 'MMM d, yyyy')}
+                                Type: {alert.type} • Created: {format(new Date(alert.created_at), 'MMM d, yyyy')}
                               </p>
                             </div>
                           </div>

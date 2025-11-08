@@ -36,19 +36,6 @@ interface ChecklistItem {
   critical: boolean;
 }
 
-interface Checklist {
-  id?: string;
-  tenant_id: string;
-  domain_tls: boolean;
-  provider_credentials: boolean;
-  webhook_verified: boolean;
-  backup_schedule: boolean;
-  admin_2fa: boolean;
-  logs_alerts: boolean;
-  test_transactions: boolean;
-  notes: any; // Allow any type since it comes from database as Json
-}
-
 const checklistItems: ChecklistItem[] = [
   {
     id: 'domain_tls',
@@ -66,268 +53,222 @@ const checklistItems: ChecklistItem[] = [
   },
   {
     id: 'webhook_verified',
-    label: 'Webhook Endpoints Verified',
-    description: 'All webhook endpoints tested and receiving events',
+    label: 'Webhook Configuration',
+    description: 'Webhook endpoints configured and verified working',
     icon: Webhook,
     critical: true,
   },
   {
     id: 'backup_schedule',
-    label: 'Backup Schedule Configured',
-    description: 'Database backups enabled and scheduled',
+    label: 'Backup & Recovery',
+    description: 'Regular backup schedule configured and tested',
     icon: Database,
     critical: true,
   },
   {
     id: 'admin_2fa',
-    label: 'Admin 2FA Enabled',
-    description: 'Two-factor authentication active for all owner accounts',
+    label: '2FA for All Admins',
+    description: 'All admin users have 2FA enabled',
     icon: Shield,
     critical: true,
   },
   {
     id: 'logs_alerts',
-    label: 'Logging & Alerts Configured',
-    description: 'Error monitoring and alerting system in place',
+    label: 'Monitoring & Alerts',
+    description: 'Logging and alert systems configured',
     icon: Activity,
     critical: false,
   },
   {
     id: 'test_transactions',
-    label: 'Test Transactions Passed',
-    description: 'End-to-end payment flow tested successfully',
-    icon: CheckCircle2,
-    critical: true,
+    label: 'Test Transactions',
+    description: 'End-to-end payment testing completed successfully',
+    icon: CreditCard,
+    critical: false,
   },
 ];
 
-const GoLive = () => {
+export default function GoLive() {
   const { tenantId } = useAuth();
   const queryClient = useQueryClient();
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  const { data: checklist, isLoading } = useQuery<Checklist>({
+  const { data: checklistData, isLoading } = useQuery({
     queryKey: ['go-live-checklist', tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('go_live_checklist')
         .select('*')
-        .eq('tenant_id', tenantId)
-        .single();
+        .eq('tenant_id', tenantId!)
+        .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      if (!data) {
-        // Create initial checklist
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
         const { data: newChecklist, error: insertError } = await supabase
           .from('go_live_checklist')
-          .insert({
-            tenant_id: tenantId,
-            domain_tls: false,
-            provider_credentials: false,
-            webhook_verified: false,
-            backup_schedule: false,
-            admin_2fa: false,
-            logs_alerts: false,
-            test_transactions: false,
-            notes: {},
-          })
-          .select()
-          .single();
+          .insert(
+            checklistItems.map(item => ({
+              tenant_id: tenantId,
+              item: item.id,
+              completed: false,
+            }))
+          )
+          .select();
 
         if (insertError) throw insertError;
-        return newChecklist as Checklist;
+        return newChecklist;
       }
 
-      setNotes((data.notes as Record<string, string>) || {});
-      return data as Checklist;
+      return data;
     },
     enabled: !!tenantId,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (updates: Partial<Checklist>) => {
+  const updateChecklistMutation = useMutation({
+    mutationFn: async ({ itemId, completed }: { itemId: string; completed: boolean }) => {
       const { error } = await supabase
         .from('go_live_checklist')
-        .update(updates)
-        .eq('tenant_id', tenantId);
+        .update({ 
+          completed,
+          completed_at: completed ? new Date().toISOString() : null 
+        })
+        .eq('item', itemId)
+        .eq('tenant_id', tenantId!);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['go-live-checklist'] });
+      toast.success('Checklist updated');
     },
-    onError: (error) => {
-      toast.error('Failed to update checklist', {
-        description: error.message,
-      });
+    onError: () => {
+      toast.error('Failed to update checklist');
     },
   });
 
-  const handleCheckboxChange = (itemId: string, checked: boolean) => {
-    updateMutation.mutate({ [itemId]: checked });
+  const completedCount = checklistData?.filter((item: any) => item.completed).length || 0;
+  const totalCount = checklistData?.length || checklistItems.length;
+  const progress = (completedCount / totalCount) * 100;
+  const criticalItems = checklistItems.filter(item => item.critical);
+  const criticalCompleted = checklistData?.filter((item: any) => 
+    item.completed && criticalItems.some(ci => ci.id === item.item)
+  ).length || 0;
+  const allCriticalComplete = criticalCompleted === criticalItems.length;
+
+  const handleToggle = (itemId: string, completed: boolean) => {
+    updateChecklistMutation.mutate({ itemId, completed });
   };
-
-  const handleNotesUpdate = (itemId: string, value: string) => {
-    const updatedNotes = { ...notes, [itemId]: value };
-    setNotes(updatedNotes);
-    updateMutation.mutate({ notes: updatedNotes });
-  };
-
-  const calculateProgress = () => {
-    if (!checklist) return 0;
-    const completed = checklistItems.filter(item => checklist[item.id as keyof Checklist]).length;
-    return Math.round((completed / checklistItems.length) * 100);
-  };
-
-  const criticalItemsComplete = () => {
-    if (!checklist) return false;
-    return checklistItems
-      .filter(item => item.critical)
-      .every(item => checklist[item.id as keyof Checklist]);
-  };
-
-  const allItemsComplete = () => {
-    if (!checklist) return false;
-    return checklistItems.every(item => checklist[item.id as keyof Checklist]);
-  };
-
-  const progress = calculateProgress();
-  const readyToLaunch = criticalItemsComplete();
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <RequireTenant>
-          <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-muted rounded w-1/4"></div>
-              <div className="h-64 bg-muted rounded"></div>
-            </div>
-          </div>
-        </RequireTenant>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
       <RequireTenant>
-        <div className="p-6 space-y-6 max-w-4xl mx-auto">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Rocket className="w-8 h-8" />
-              Go-Live Readiness
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Complete this checklist before launching to production
-            </p>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <Rocket className="h-8 w-8" />
+                Go-Live Checklist
+              </h1>
+              <p className="text-muted-foreground">
+                Complete all items before going live in production
+              </p>
+            </div>
           </div>
 
-          {/* Progress Overview */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Launch Readiness: {progress}%</CardTitle>
-                {allItemsComplete() ? (
-                  <Badge variant="default" className="gap-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    All Complete
-                  </Badge>
-                ) : readyToLaunch ? (
-                  <Badge variant="secondary" className="gap-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Ready to Launch
-                  </Badge>
-                ) : (
-                  <Badge variant="destructive" className="gap-1">
-                    <AlertTriangle className="w-4 h-4" />
-                    Not Ready
-                  </Badge>
-                )}
-              </div>
-              <Progress value={progress} className="mt-2" />
+              <CardTitle>Readiness Status</CardTitle>
+              <CardDescription>
+                {completedCount} of {totalCount} items completed
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {readyToLaunch ? (
-                <Alert className="border-success">
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                  <AlertDescription>
-                    All critical items are complete! You're ready to launch to production.
-                    {!allItemsComplete() && ' Consider completing optional items for best practices.'}
-                  </AlertDescription>
-                </Alert>
-              ) : (
+            <CardContent className="space-y-4">
+              <Progress value={progress} className="h-2" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{completedCount}/{totalCount}</div>
+                      <div className="text-sm text-muted-foreground">Total Items</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{criticalCompleted}/{criticalItems.length}</div>
+                      <div className="text-sm text-muted-foreground">Critical Items</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <Badge variant={allCriticalComplete ? "default" : "destructive"} className="text-lg py-1">
+                        {allCriticalComplete ? "Ready" : "Not Ready"}
+                      </Badge>
+                      <div className="text-sm text-muted-foreground mt-2">Production Status</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {!allCriticalComplete && (
                 <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Critical items must be completed before launching to production.
-                    Review the checklist below.
+                    All critical items must be completed before going live
                   </AlertDescription>
                 </Alert>
               )}
             </CardContent>
           </Card>
 
-          {/* Checklist Items */}
           <Card>
             <CardHeader>
-              <CardTitle>Pre-Launch Checklist</CardTitle>
-              <CardDescription>
-                Items marked with <Badge variant="destructive" className="text-xs">Critical</Badge> are required
-              </CardDescription>
+              <CardTitle>Checklist Items</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {checklistItems.map((item, index) => {
+                const checklistItem = checklistData?.find((d: any) => d.item === item.id);
+                const completed = checklistItem?.completed || false;
                 const Icon = item.icon;
-                const isChecked = checklist?.[item.id as keyof Checklist] || false;
 
                 return (
                   <div key={item.id}>
                     {index > 0 && <Separator className="my-4" />}
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          id={item.id}
-                          checked={isChecked}
-                          onCheckedChange={(checked) => 
-                            handleCheckboxChange(item.id, checked as boolean)
-                          }
-                          className="mt-1"
-                        />
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Icon className="w-4 h-4 text-muted-foreground" />
+                    <div className="flex items-start gap-4">
+                      <Checkbox
+                        id={item.id}
+                        checked={completed}
+                        onCheckedChange={(checked) => handleToggle(item.id, checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div>
                             <Label
                               htmlFor={item.id}
-                              className="text-base font-medium cursor-pointer"
+                              className="text-base font-medium flex items-center gap-2 cursor-pointer"
                             >
+                              <Icon className="h-4 w-4" />
                               {item.label}
+                              {item.critical && (
+                                <Badge variant="destructive" className="ml-2">Critical</Badge>
+                              )}
                             </Label>
-                            {item.critical && (
-                              <Badge variant="destructive" className="text-xs">
-                                Critical
-                              </Badge>
-                            )}
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {item.description}
+                            </p>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {item.description}
-                          </p>
+                          {completed && (
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          )}
                         </div>
-                      </div>
-
-                      {/* Notes section */}
-                      <div className="ml-9 space-y-2">
-                        <Label htmlFor={`notes-${item.id}`} className="text-xs text-muted-foreground">
-                          Notes (optional)
-                        </Label>
-                        <Textarea
-                          id={`notes-${item.id}`}
-                          placeholder="Add notes, links, or verification details..."
-                          value={notes[item.id] || ''}
-                          onChange={(e) => handleNotesUpdate(item.id, e.target.value)}
-                          className="min-h-[60px] text-sm"
-                        />
                       </div>
                     </div>
                   </div>
@@ -336,49 +277,11 @@ const GoLive = () => {
             </CardContent>
           </Card>
 
-          {/* Deployment Guide */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="w-5 h-5" />
-                Deployment Resources
-              </CardTitle>
-              <CardDescription>
-                Additional resources to help with your launch
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/docs" target="_blank" rel="noopener noreferrer">
-                  <Activity className="w-4 h-4 mr-2" />
-                  API Documentation
-                </a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="https://docs.lovable.dev" target="_blank" rel="noopener noreferrer">
-                  <Globe className="w-4 h-4 mr-2" />
-                  Lovable Documentation
-                </a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/settings" target="_blank" rel="noopener noreferrer">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Security Settings
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Launch Button */}
-          {readyToLaunch && (
-            <Alert className="border-success">
-              <Rocket className="h-4 w-4 text-success" />
-              <AlertDescription className="flex items-center justify-between">
-                <span>You're ready to launch! Review DEPLOY.md for final steps.</span>
-                <Button size="sm" className="gap-2">
-                  <Rocket className="w-4 h-4" />
-                  View Deployment Guide
-                </Button>
+          {allCriticalComplete && (
+            <Alert>
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Ready for Production!</strong> All critical items are complete. You can now safely deploy to production.
               </AlertDescription>
             </Alert>
           )}
@@ -386,6 +289,4 @@ const GoLive = () => {
       </RequireTenant>
     </DashboardLayout>
   );
-};
-
-export default GoLive;
+}

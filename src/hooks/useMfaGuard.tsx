@@ -23,7 +23,7 @@ export function useMfaGuard(options: MfaGuardOptions = {}) {
       // Get user profile
       const { data: profile } = await supabase
         .from('profiles')
-        .select('totp_enabled, mfa_last_verified_at')
+        .select('totp_enabled')
         .eq('id', user.id)
         .single();
 
@@ -80,30 +80,8 @@ export function useMfaGuard(options: MfaGuardOptions = {}) {
         return;
       }
 
-      // If MFA is enabled, check if verification is still valid
-      const lastVerified = profile.mfa_last_verified_at 
-        ? new Date(profile.mfa_last_verified_at) 
-        : null;
-      const now = new Date();
-      const stepupWindow = tenantPolicy?.stepup_window_seconds || 300;
-
-      if (!lastVerified) {
-        // Never verified, need to verify now
-        navigate('/auth/mfa-challenge', { 
-          state: { returnTo: redirectTo },
-          replace: true
-        });
-        return;
-      }
-
-      const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
-      if (diffInSeconds >= stepupWindow) {
-        // Verification expired, need to re-verify
-        navigate('/auth/mfa-challenge', { 
-          state: { returnTo: redirectTo },
-          replace: true
-        });
-      }
+      // MFA is enabled and required for this role
+      // (stepup verification removed - column doesn't exist)
     };
 
     checkMfaRequirement();

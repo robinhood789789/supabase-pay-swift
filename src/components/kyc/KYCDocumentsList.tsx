@@ -186,7 +186,7 @@ export const KYCDocumentsList = () => {
                     {doc.rejection_reason || "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    {doc.status === 'pending' || doc.status === 'under_review' ? (
+                    {doc.status === 'pending' ? (
                       <div className="flex gap-2 justify-end">
                         <Button
                           size="sm"

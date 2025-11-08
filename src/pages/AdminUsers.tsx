@@ -65,7 +65,6 @@ const AdminUsers = () => {
       const { data, error } = await supabase
         .from("roles")
         .select("id, name")
-        .eq("tenant_id", activeTenantId)
         .order("name");
       
       if (error) throw error;
@@ -91,7 +90,6 @@ const AdminUsers = () => {
           user_id, 
           tenant_id, 
           role_id,
-          status,
           roles!inner(name),
           tenants!inner(name)
         `)
@@ -167,10 +165,8 @@ const AdminUsers = () => {
       // Find the role by name in current tenant
       const { data: roleData, error: roleError } = await supabase
         .from("roles")
-        .select("id, tenant_id")
+        .select("id, name")
         .eq("name", newRoleName)
-        .eq("tenant_id", activeTenantId)
-        .eq("is_system", true)
         .maybeSingle();
 
       if (roleError) throw roleError;

@@ -162,8 +162,8 @@ export const ApiKeysManager = () => {
     });
   };
 
-  const internalKeys = apiKeys?.filter(k => k.key_type === 'internal') || [];
-  const externalKeys = apiKeys?.filter(k => k.key_type === 'external') || [];
+  const internalKeys = apiKeys?.filter(k => k.key_type === 'secret') || [];
+  const externalKeys = apiKeys?.filter(k => k.key_type === 'public') || [];
 
   return (
     <PermissionGate

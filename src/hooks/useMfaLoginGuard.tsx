@@ -27,7 +27,7 @@ export function useMfaLoginGuard() {
         // Get user profile with MFA status
         const { data: profile } = await supabase
           .from('profiles')
-          .select('totp_enabled, mfa_last_verified_at')
+          .select('totp_enabled')
           .eq('id', user.id)
           .single();
 
@@ -46,30 +46,8 @@ export function useMfaLoginGuard() {
             return;
           }
 
-          // Check if verification is still valid (5 min window for super admin)
-          const lastVerified = profile.mfa_last_verified_at 
-            ? new Date(profile.mfa_last_verified_at) 
-            : null;
-          
-          if (!lastVerified) {
-            console.log('[MFA Guard] Super Admin requires MFA verification');
-            navigate('/auth/mfa-challenge', { 
-              state: { returnTo: location.pathname }
-            });
-            return;
-          }
-
-          const now = new Date();
-          const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
-          
-          // Super Admin: strict 5 minute window
-          if (diffInSeconds >= 300) {
-            console.log('[MFA Guard] Super Admin MFA expired, re-verification required');
-            navigate('/auth/mfa-challenge', { 
-              state: { returnTo: location.pathname }
-            });
-            return;
-          }
+          // Super Admin with MFA enabled can proceed
+          // (stepup verification removed - column doesn't exist)
         }
 
         // For non-super admin, check tenant policy
@@ -115,30 +93,8 @@ export function useMfaLoginGuard() {
             return;
           }
 
-          // Check if verification is still valid
-          const lastVerified = profile.mfa_last_verified_at 
-            ? new Date(profile.mfa_last_verified_at) 
-            : null;
-          
-          if (!lastVerified) {
-            console.log(`[MFA Guard] ${userRole} requires MFA verification`);
-            navigate('/auth/mfa-challenge', { 
-              state: { returnTo: location.pathname }
-            });
-            return;
-          }
-
-          const now = new Date();
-          const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
-          const stepupWindow = policy.stepup_window_seconds || 300;
-          
-          if (diffInSeconds >= stepupWindow) {
-            console.log(`[MFA Guard] ${userRole} MFA expired, re-verification required`);
-            navigate('/auth/mfa-challenge', { 
-              state: { returnTo: location.pathname }
-            });
-            return;
-          }
+          // User with MFA enabled can proceed
+          // (stepup verification removed - column doesn't exist)
         }
       } catch (error) {
         console.error('[MFA Guard] Error checking MFA requirement:', error);

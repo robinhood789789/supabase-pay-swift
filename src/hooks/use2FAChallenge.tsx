@@ -13,7 +13,7 @@ export function use2FAChallenge() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('totp_enabled, mfa_last_verified_at, is_super_admin')
+        .select('totp_enabled, is_super_admin')
         .eq('id', user.id)
         .single();
 
@@ -30,20 +30,8 @@ export function use2FAChallenge() {
         return true;
       }
 
-      // Check stepup window (default 5 min = 300 sec)
-      const lastVerified = profile.mfa_last_verified_at 
-        ? new Date(profile.mfa_last_verified_at) 
-        : null;
-      const now = new Date();
-      const stepupWindow = 300;
-
-      if (lastVerified) {
-        const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
-        if (diffInSeconds < stepupWindow) {
-          action();
-          return true;
-        }
-      }
+      // MFA enabled users need to verify via challenge
+      // (stepup window tracking removed - always challenge if MFA enabled)
 
       // Need Step-Up MFA challenge
       setPendingAction(() => () => action());
