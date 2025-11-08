@@ -303,31 +303,41 @@ export default function PlatformOverview() {
                       </tr>
                     </thead>
                     <tbody>
-                      {topTenants.map((tenant: any, index: number) => (
-                        <tr 
-                          key={tenant.tenant_id} 
-                          className="border-t hover:bg-muted/50 transition-colors"
+                {topTenants.map((tenant: any, index: number) => (
+                  <tr 
+                    key={tenant.tenant_id} 
+                    className="border-t hover:bg-muted/50 transition-colors"
+                  >
+                    <td className="p-3">
+                      <Link 
+                        to={`/admin/tenants/${tenant.tenant_id}`}
+                        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                      >
+                        <div 
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                          style={{ backgroundColor: chartColors[index] }}
                         >
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs"
-                                style={{ backgroundColor: chartColors[index] }}
-                              >
-                                {tenant.rank}
-                              </div>
-                              {tenant.rank === 1 && <Trophy className="h-4 w-4 text-amber-500" />}
-                            </div>
-                          </td>
-                          <td className="p-3 font-medium">{tenant.tenant_name}</td>
-                          <td className="p-3 text-right">
-                            <Badge variant="secondary">{tenant.transaction_count}</Badge>
-                          </td>
-                          <td className="p-3 text-right font-semibold">
-                            ฿{Number(tenant.total_volume_thb).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
+                          {tenant.rank}
+                        </div>
+                        {tenant.rank === 1 && <Trophy className="h-4 w-4 text-amber-500" />}
+                      </Link>
+                    </td>
+                    <td className="p-3">
+                      <Link 
+                        to={`/admin/tenants/${tenant.tenant_id}`}
+                        className="font-medium hover:text-primary transition-colors"
+                      >
+                        {tenant.tenant_name}
+                      </Link>
+                    </td>
+                    <td className="p-3 text-right">
+                      <Badge variant="secondary">{tenant.transaction_count}</Badge>
+                    </td>
+                    <td className="p-3 text-right font-semibold">
+                      ฿{Number(tenant.total_volume_thb).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
                     </tbody>
                   </table>
                 </div>

@@ -19,6 +19,7 @@ import PlatformSettings from "./pages/admin/PlatformSettings";
 import PlatformImpersonate from "./pages/admin/PlatformImpersonate";
 import PlatformStatus from "./pages/admin/PlatformStatus";
 import PlatformOverview from "./pages/admin/PlatformOverview";
+import PlatformTenantDetail from "./pages/admin/PlatformTenantDetail";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import MfaChallenge from "./pages/MfaChallenge";
@@ -325,6 +326,16 @@ function AppContent() {
           <SuperAdminRoute>
             <PlatformLayout>
               <PlatformOverview />
+            </PlatformLayout>
+          </SuperAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/tenants/:tenantId"
+        element={
+          <SuperAdminRoute>
+            <PlatformLayout>
+              <PlatformTenantDetail />
             </PlatformLayout>
           </SuperAdminRoute>
         }
