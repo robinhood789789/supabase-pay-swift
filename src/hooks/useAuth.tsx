@@ -3,6 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { setCSRFToken, clearCSRFToken } from "@/lib/security/csrf";
 
 interface AuthContextType {
   user: User | null;
@@ -406,6 +407,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   if (signingOut) {
     return null;
   }
+
+  // Keep CSRF token in sync with auth state
+  useEffect(() => {
+    if (user?.id) {
+      setCSRFToken(user.id).catch(() => {});
+    } else {
+      clearCSRFToken();
+    }
+  }, [user?.id]);
 
   return (
     <AuthContext.Provider
