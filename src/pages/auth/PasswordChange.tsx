@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Eye, EyeOff, AlertCircle, CheckCircle, Lock } from "lucide-react";
+import { getCSRFToken } from "@/lib/security/csrf";
 
 export default function PasswordChange() {
   const navigate = useNavigate();
@@ -85,8 +86,16 @@ export default function PasswordChange() {
     setError("");
 
     try {
+      // Get CSRF token and session for authentication
+      const csrfToken = getCSRFToken();
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const { data, error } = await supabase.functions.invoke("password-change", {
-        body: { currentPassword, newPassword }
+        body: { currentPassword, newPassword },
+        headers: {
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        }
       });
 
       if (error) throw error;
