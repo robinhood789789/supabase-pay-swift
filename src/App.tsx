@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useCSRF } from "@/hooks/useCSRF";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminRoute from "@/components/SuperAdminRoute";
 import { PlatformLayout } from "@/components/PlatformLayout";
@@ -87,6 +88,8 @@ import StyleGuide from "./pages/StyleGuide";
 const queryClient = new QueryClient();
 
 function AppContent() {
+  // Initialize CSRF protection
+  useCSRF();
 
   return (
     <Routes>

@@ -34,6 +34,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
+import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
 
 import { CredentialsDialog } from "@/components/admin/CredentialsDialog";
 
@@ -147,10 +148,6 @@ export const CreateUserDialog = () => {
         throw new Error("กรุณาเลือก Workspace ก่อนสร้างผู้ใช้");
       }
 
-      // Get current session for authorization
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("ไม่พบ session");
-
       // Convert selected groups to individual permission IDs
       const selectedPermissionNames = selectedPermissionGroups.flatMap(groupId => {
         const group = permissionGroups.find(g => g.id === groupId);
@@ -165,8 +162,8 @@ export const CreateUserDialog = () => {
       // Generate public_id from prefix and user_number
       const public_id = `${data.prefix}-${data.user_number}`;
       
-      // Call edge function to create user
-      const { data: result, error } = await supabase.functions.invoke("create-admin-user", {
+      // Call edge function to create user (with automatic CSRF token)
+      const { data: result, error } = await invokeFunctionWithTenant("create-admin-user", {
         body: {
           prefix: data.prefix,
           user_number: data.user_number,
@@ -176,9 +173,6 @@ export const CreateUserDialog = () => {
           role: data.role,
           tenant_id: activeTenantId,
           permissions: permissionIds, // Send selected permission IDs
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
         },
       });
 

@@ -1,10 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCSRFToken } from "@/lib/security/csrf";
 
 const ACTIVE_TENANT_KEY = "active_tenant_id";
 
 /**
- * Wrapper for supabase.functions.invoke that automatically adds X-Tenant header
- * and ensures the Authorization bearer token is always sent.
+ * Wrapper for supabase.functions.invoke that automatically adds X-Tenant header,
+ * Authorization bearer token, and CSRF token for security.
  */
 export const invokeFunctionWithTenant = async <T = any>(
   functionName: string,
@@ -35,10 +36,14 @@ export const invokeFunctionWithTenant = async <T = any>(
   // because supabase.functions.invoke doesn't always include it automatically
   const { data: { session } } = await supabase.auth.getSession();
   
+  // Get CSRF token for authenticated requests
+  const csrfToken = getCSRFToken();
+  
   const headers = {
     ...(options?.headers || {}),
     ...(activeTenantId ? { "x-tenant": activeTenantId } : {}),
     ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+    ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
   } as Record<string, string>;
 
   const resp = await supabase.functions.invoke(functionName, {
