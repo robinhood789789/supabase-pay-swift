@@ -48,8 +48,10 @@ export function TransactionDetailDrawer({ transaction, open, onOpenChange }: Tra
     setIsVerifying(true);
     try {
       const { data, error } = await invokeFunctionWithTenant("transaction-verify", {
-        transactionId: transaction.id,
-        note: verificationNote || null,
+        body: {
+          transactionId: transaction.id,
+          note: verificationNote || null,
+        }
       });
 
       if (error) {

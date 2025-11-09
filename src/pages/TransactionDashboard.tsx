@@ -14,16 +14,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2 } from "lucide-react";
+import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle } from "lucide-react";
 import { TransactionDetailDrawer } from "@/components/TransactionDetailDrawer";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function TransactionDashboard() {
   const { activeTenantId } = useTenantSwitcher();
-  const { isViewer } = useRoleVisibility();
+  const { isViewer, currentRole } = useRoleVisibility();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [verifiedFilter, setVerifiedFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -51,7 +52,7 @@ export default function TransactionDashboard() {
 
   // ดึงข้อมูล transactions
   const { data: transactions, isLoading: txLoading } = useQuery({
-    queryKey: ["transactions", activeTenantId, statusFilter, typeFilter, dateRange],
+    queryKey: ["transactions", activeTenantId, statusFilter, typeFilter, verifiedFilter, dateRange],
     queryFn: async () => {
       if (!activeTenantId) return [];
       
@@ -67,6 +68,10 @@ export default function TransactionDashboard() {
       
       if (typeFilter !== "all") {
         query = query.eq("type", typeFilter.toUpperCase() as any);
+      }
+
+      if (verifiedFilter !== "all") {
+        query = query.eq("is_verified", verifiedFilter === "verified");
       }
 
       // Date range filter
@@ -169,56 +174,112 @@ export default function TransactionDashboard() {
     setIsDetailOpen(true);
   };
 
+  const verifiedStats = {
+    total: transactions?.length || 0,
+    verified: transactions?.filter(t => t.is_verified).length || 0,
+    unverified: transactions?.filter(t => !t.is_verified).length || 0,
+  };
+
   return (
     <DashboardLayout>
       <RequireTenant>
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Transaction Dashboard</h1>
-            <p className="text-muted-foreground">
-              ภาพรวมและรายละเอียดธุรกรรมทั้งหมด
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Transaction Verification
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                ตรวจสอบและยืนยันธุรกรรมทางการเงิน
+              </p>
+              <Badge className="mt-2 bg-gradient-deposit text-white border-0">
+                {currentRole?.toUpperCase()} ROLE
+              </Badge>
+            </div>
           </div>
 
           {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card className="border-l-4 border-l-primary bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow transition-all">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Wallet Balance</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-foreground">Wallet Balance</CardTitle>
+                <div className="p-2 rounded-full bg-gradient-deposit">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
               </CardHeader>
               <CardContent>
                 {walletLoading ? (
                   <Skeleton className="h-8 w-full" />
                 ) : (
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold bg-gradient-balance bg-clip-text text-transparent">
                     ฿{wallet?.balance?.toLocaleString() || "0.00"}
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">{wallet?.currency || "THB"}</p>
+                <p className="text-xs text-muted-foreground mt-2">{wallet?.currency || "THB"}</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-4 border-l-success bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow-success transition-all">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-foreground">Total Transactions</CardTitle>
+                <div className="p-2 rounded-full bg-gradient-primary">
+                  <ArrowLeftRight className="h-5 w-5 text-white" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{transactions?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {transactions?.filter(t => t.status === "SUCCESS").length || 0} success
+                <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  {verifiedStats.total}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {transactions?.filter(t => t.status === "SUCCESS").length || 0} สำเร็จ
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-success bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow-success transition-all">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-foreground">Verified</CardTitle>
+                <div className="p-2 rounded-full bg-gradient-success">
+                  <CheckCircle2 className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold bg-gradient-success bg-clip-text text-transparent">
+                  {verifiedStats.verified}
+                </div>
+                <p className="text-xs text-success mt-2">
+                  {verifiedStats.total > 0 ? Math.round((verifiedStats.verified / verifiedStats.total) * 100) : 0}% ยืนยันแล้ว
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-warning bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow-warning transition-all">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-foreground">Pending Verification</CardTitle>
+                <div className="p-2 rounded-full bg-gradient-withdrawal">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold bg-gradient-withdrawal bg-clip-text text-transparent">
+                  {verifiedStats.unverified}
+                </div>
+                <p className="text-xs text-warning mt-2">
+                  รอการตรวจสอบ
                 </p>
               </CardContent>
             </Card>
           </div>
 
           {/* Filters */}
-          <Card>
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant">
             <CardHeader>
-              <CardTitle>ตัวกรอง</CardTitle>
-              <CardDescription>กรองรายการธุรกรรมตามสถานะและประเภท</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-primary" />
+                ตัวกรองการค้นหา
+              </CardTitle>
+              <CardDescription>กรองและค้นหาธุรกรรมตามเงื่อนไขต่างๆ</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Status Filter */}
@@ -248,10 +309,42 @@ export default function TransactionDashboard() {
                       variant={typeFilter === btn.value ? "default" : "outline"}
                       size="sm"
                       onClick={() => setTypeFilter(btn.value)}
+                      className={typeFilter === btn.value ? "bg-gradient-primary text-white border-0" : ""}
                     >
                       {btn.label}
                     </Button>
                   ))}
+                </div>
+              </div>
+
+              {/* Verified Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">สถานะการยืนยัน</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={verifiedFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setVerifiedFilter("all")}
+                    className={verifiedFilter === "all" ? "bg-gradient-primary text-white border-0" : ""}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant={verifiedFilter === "verified" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setVerifiedFilter("verified")}
+                    className={verifiedFilter === "verified" ? "bg-gradient-success text-white border-0" : ""}
+                  >
+                    Verified
+                  </Button>
+                  <Button
+                    variant={verifiedFilter === "unverified" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setVerifiedFilter("unverified")}
+                    className={verifiedFilter === "unverified" ? "bg-gradient-withdrawal text-white border-0" : ""}
+                  >
+                    Unverified
+                  </Button>
                 </div>
               </div>
 
@@ -335,8 +428,7 @@ export default function TransactionDashboard() {
               <div className="pt-2">
                 <Button 
                   onClick={handleExport} 
-                  variant="outline"
-                  className="w-full"
+                  className="w-full bg-gradient-primary text-white border-0 shadow-glow"
                   disabled={!filteredTransactions || filteredTransactions.length === 0}
                 >
                   <Download className="w-4 h-4 mr-2" />
@@ -347,11 +439,14 @@ export default function TransactionDashboard() {
           </Card>
 
           {/* Transactions Table */}
-          <Card>
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant">
             <CardHeader>
-              <CardTitle>รายการธุรกรรม</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <ArrowLeftRight className="w-5 h-5 text-primary" />
+                รายการธุรกรรม
+              </CardTitle>
               <CardDescription>
-                แสดง {filteredTransactions?.length || 0} รายการจาก {transactions?.length || 0} รายการทั้งหมด
+                แสดง <span className="font-semibold text-foreground">{filteredTransactions?.length || 0}</span> รายการจาก <span className="font-semibold text-foreground">{transactions?.length || 0}</span> รายการทั้งหมด
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -403,12 +498,13 @@ export default function TransactionDashboard() {
                           <TableCell>{getStatusBadge(tx.status)}</TableCell>
                           <TableCell>
                             {tx.is_verified ? (
-                              <Badge variant="default" className="bg-green-600">
+                              <Badge className="bg-gradient-success text-white border-0 shadow-glow-success">
                                 <CheckCircle2 className="w-3 h-3 mr-1" />
                                 Verified
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-yellow-600">
+                              <Badge className="bg-gradient-withdrawal text-white border-0 shadow-glow-warning animate-pulse-glow">
+                                <AlertCircle className="w-3 h-3 mr-1" />
                                 Pending
                               </Badge>
                             )}
@@ -418,6 +514,7 @@ export default function TransactionDashboard() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleViewDetail(tx)}
+                              className="hover:bg-primary/10 hover:text-primary transition-all"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
