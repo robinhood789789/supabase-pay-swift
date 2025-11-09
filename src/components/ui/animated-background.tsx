@@ -21,6 +21,11 @@ export function AnimatedBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Get computed primary color from CSS variable
+    const computedStyle = getComputedStyle(document.documentElement);
+    const primaryHSL = computedStyle.getPropertyValue('--primary').trim();
+    const primaryColor = `hsl(${primaryHSL})`;
+
     // Set canvas size
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -54,7 +59,7 @@ export function AnimatedBackground() {
       if (!ctx || !canvas) return;
 
       // Clear canvas with fade effect
-      ctx.fillStyle = "hsla(var(--background) / 0.05)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw and update particles
@@ -62,7 +67,8 @@ export function AnimatedBackground() {
         // Draw particle
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(var(--primary) / ${particle.opacity})`;
+        // Convert HSL to rgba for canvas
+        ctx.fillStyle = primaryColor.replace('hsl', 'hsla').replace(')', `, ${particle.opacity})`);
         ctx.fill();
 
         // Draw glow effect
@@ -74,8 +80,8 @@ export function AnimatedBackground() {
           particle.y,
           particle.size * 3
         );
-        gradient.addColorStop(0, `hsla(var(--primary) / ${particle.opacity * 0.5})`);
-        gradient.addColorStop(1, "hsla(var(--primary) / 0)");
+        gradient.addColorStop(0, primaryColor.replace('hsl', 'hsla').replace(')', `, ${particle.opacity * 0.5})`));
+        gradient.addColorStop(1, primaryColor.replace('hsl', 'hsla').replace(')', `, 0)`));
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size * 3, 0, Math.PI * 2);
@@ -101,7 +107,7 @@ export function AnimatedBackground() {
 
           if (distance < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `hsla(var(--primary) / ${0.15 * (1 - distance / 100)})`;
+            ctx.strokeStyle = primaryColor.replace('hsl', 'hsla').replace(')', `, ${0.15 * (1 - distance / 100)})`);
             ctx.lineWidth = 0.5;
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
