@@ -32,6 +32,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useIdleTimeout } from "@/hooks/useIdleTimeout";
+import { Clock } from "lucide-react";
 
 const mainMenuItems = [
   { icon: LayoutDashboard, label: "แดชบอร์ด", path: "/shareholder/dashboard" },
@@ -54,6 +56,18 @@ function ShareholderSidebar() {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  
+  // Idle timeout with 30 minutes total, 2 minutes warning
+  const { 
+    showWarning: showIdleWarning, 
+    remainingTime, 
+    handleStayActive, 
+    handleLogout: handleIdleLogout 
+  } = useIdleTimeout({
+    timeoutMinutes: 30,
+    warningMinutes: 2,
+    enabled: true,
+  });
 
   const handleSignOut = () => {
     setShowSignOutDialog(true);
@@ -189,6 +203,7 @@ function ShareholderSidebar() {
         </SidebarMenu>
       </SidebarFooter>
 
+      {/* Sign Out Confirmation Dialog */}
       <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
         <AlertDialogContent className="bg-card/95 backdrop-blur-xl border-red-500/30">
           <AlertDialogHeader>
@@ -204,6 +219,39 @@ function ShareholderSidebar() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               ออกจากระบบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Idle Timeout Warning Dialog */}
+      <AlertDialog open={showIdleWarning} onOpenChange={() => {}}>
+        <AlertDialogContent className="bg-card/95 backdrop-blur-xl border-yellow-500/30">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+              <Clock className="w-6 h-6 text-yellow-500 animate-pulse" />
+              แจ้งเตือน: ไม่มีการใช้งาน
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground space-y-2">
+              <p>คุณไม่ได้ใช้งานระบบเป็นเวลานาน</p>
+              <p className="text-lg font-semibold text-yellow-500">
+                ระบบจะออกจากระบบอัตโนมัติใน {remainingTime} นาที
+              </p>
+              <p className="text-sm">กรุณากดปุ่ม "ฉันยังใช้งานอยู่" เพื่อดำเนินการต่อ</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={handleIdleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              ออกจากระบบเลย
+            </AlertDialogAction>
+            <AlertDialogAction 
+              onClick={handleStayActive}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              ฉันยังใช้งานอยู่
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
