@@ -22,6 +22,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AnimatedBackground } from "@/components/ui/animated-background";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const mainMenuItems = [
   { icon: LayoutDashboard, label: "แดชบอร์ด", path: "/shareholder/dashboard" },
@@ -43,8 +53,13 @@ function ShareholderSidebar() {
   const { shareholder } = useShareholder();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
+    setShowSignOutDialog(true);
+  };
+
+  const confirmSignOut = async () => {
     await signOut();
     navigate("/auth");
   };
@@ -173,6 +188,26 @@ function ShareholderSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent className="bg-card/95 backdrop-blur-xl border-red-500/30">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-foreground">ยืนยันการออกจากระบบ</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="hover:bg-muted/80">ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmSignOut}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              ออกจากระบบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   );
 }
