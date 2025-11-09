@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle } from "lucide-react";
 import { TransactionDetailDrawer } from "@/components/TransactionDetailDrawer";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -183,7 +184,8 @@ export default function TransactionDashboard() {
   return (
     <DashboardLayout>
       <RequireTenant>
-        <div className="space-y-6 animate-in">
+        <AnimatedBackground />
+        <div className="relative z-10 space-y-6 animate-in">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -201,7 +203,7 @@ export default function TransactionDashboard() {
 
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-4">
-            <Card className="border-l-4 border-l-primary bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow transition-all">
+            <Card className="border-l-4 border-l-primary bg-card/80 backdrop-blur-xl shadow-glow hover:shadow-neon transition-all animate-in">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-foreground">Wallet Balance</CardTitle>
                 <div className="p-2 rounded-full bg-gradient-deposit">
@@ -220,7 +222,7 @@ export default function TransactionDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-success bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow-success transition-all">
+            <Card className="border-l-4 border-l-success bg-card/80 backdrop-blur-xl shadow-glow hover:shadow-neon transition-all animate-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-foreground">Total Transactions</CardTitle>
                 <div className="p-2 rounded-full bg-gradient-primary">
@@ -237,7 +239,7 @@ export default function TransactionDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-success bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow-success transition-all">
+            <Card className="border-l-4 border-l-success bg-card/80 backdrop-blur-xl shadow-glow hover:shadow-neon transition-all animate-in" style={{ animationDelay: "0.2s" }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-foreground">Verified</CardTitle>
                 <div className="p-2 rounded-full bg-gradient-success">
@@ -254,7 +256,7 @@ export default function TransactionDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-warning bg-gradient-to-br from-card to-background shadow-lg hover:shadow-glow-warning transition-all">
+            <Card className="border-l-4 border-l-warning bg-card/80 backdrop-blur-xl shadow-glow hover:shadow-neon transition-all animate-in" style={{ animationDelay: "0.3s" }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-foreground">Pending Verification</CardTitle>
                 <div className="p-2 rounded-full bg-gradient-withdrawal">
@@ -273,7 +275,7 @@ export default function TransactionDashboard() {
           </div>
 
           {/* Filters */}
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant">
+          <Card className="border border-primary/20 bg-card/70 backdrop-blur-xl shadow-elegant hover:shadow-glow transition-all">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="w-5 h-5 text-primary" />
@@ -439,7 +441,7 @@ export default function TransactionDashboard() {
           </Card>
 
           {/* Transactions Table */}
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant">
+          <Card className="border border-primary/20 bg-card/70 backdrop-blur-xl shadow-elegant hover:shadow-glow transition-all">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ArrowLeftRight className="w-5 h-5 text-primary" />
