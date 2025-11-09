@@ -267,6 +267,46 @@ All colors MUST be HSL.
     text-shadow: 0 0 10px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
   }
 
+  /* 3D Tilt Effect and Glow Pulse for Menu Items */
+  @keyframes glow-pulse-menu {
+    0%, 100% {
+      box-shadow: 0 0 15px hsl(189 100% 50% / 0.3), 0 0 30px hsl(189 100% 50% / 0.2);
+      filter: brightness(1);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(189 100% 50% / 0.6), 0 0 60px hsl(189 100% 50% / 0.4), 0 0 90px hsl(280 100% 60% / 0.3);
+      filter: brightness(1.2);
+    }
+  }
+
+  .menu-item-3d {
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .menu-item-3d:hover {
+    transform: perspective(1000px) rotateY(-8deg) rotateX(4deg) translateZ(10px) scale(1.05);
+    animation: glow-pulse-menu 2s ease-in-out infinite;
+    z-index: 10;
+  }
+
+  .menu-item-3d:hover::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: linear-gradient(135deg, hsl(189 100% 50% / 0.3), hsl(280 100% 60% / 0.3));
+    border-radius: inherit;
+    z-index: -1;
+    filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .menu-item-3d:hover::before {
+    opacity: 1;
+  }
+
   /* Float animation for orbs */
   @keyframes float {
     0%, 100% {

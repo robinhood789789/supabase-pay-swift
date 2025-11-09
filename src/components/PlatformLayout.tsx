@@ -99,8 +99,8 @@ const PlatformSidebar = () => {
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-gradient-primary text-white font-semibold shadow-glow-info text-sm"
-                          : "hover:bg-primary/10 hover:text-primary text-foreground text-sm font-medium transition-all duration-200"
+                          ? "bg-gradient-primary text-white font-semibold shadow-glow-info text-sm menu-item-3d"
+                          : "hover:bg-primary/10 hover:text-primary text-foreground text-sm font-medium transition-all duration-200 menu-item-3d"
                       }
                     >
                       <item.icon className="mr-3 h-5 w-5" />
