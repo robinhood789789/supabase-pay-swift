@@ -1,11 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 import { verifyTOTP, hashCode } from "../_shared/totp.ts";
-import { checkRateLimit, resetRateLimit } from "../_shared/rate-limit.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateString } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -30,46 +32,39 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Rate limiting: Max 5 attempts per 10 minutes
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     req.headers.get('cf-connecting-ip') || 
-                     'unknown';
-    const rateLimitKey = `mfa-disable:${user.id}`;
-    const rateLimit = checkRateLimit(rateLimitKey, 5, 600000, 1800000); // 5 attempts, 10 min, 30 min lockout
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
 
-    if (!rateLimit.allowed) {
-      if (rateLimit.isLocked) {
-        const lockedMinutes = Math.ceil((rateLimit.lockedUntil! - Date.now()) / 60000);
-        
-        await supabase
-          .from('audit_logs')
-          .insert({
-            actor_user_id: user.id,
-            action: 'mfa.disable.locked',
-            target: `user:${user.id}`,
-            tenant_id: null,
-            ip: clientIp,
-            user_agent: req.headers.get('user-agent')?.substring(0, 255) || null,
-          });
-
-        return new Response(
-          JSON.stringify({ 
-            error: `พยายามปิด 2FA หลายครั้ง บัญชีถูกล็อก ${lockedMinutes} นาที`,
-            code: 'MFA_DISABLE_LOCKED'
-          }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
+    // Rate limiting: 5 disable attempts per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 5, 3600000); // 5 attempts, 1 hour window
+    if (!rateLimitResult.allowed) {
       return new Response(
-        JSON.stringify({ error: 'Too many attempts' }),
+        JSON.stringify({ 
+          error: 'Too many MFA disable attempts. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
+
     const { code, type = 'totp' } = await req.json();
-    if (!code) {
-      throw new Error('Verification code required to disable 2FA');
+
+    // Input validation
+    const codeError = validateString('code', code, { 
+      required: true,
+      minLength: 4,
+      maxLength: 12
+    });
+    if (codeError) {
+      return new Response(
+        JSON.stringify({ error: codeError.message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log(`[MFA Disable] User ${user.email} attempting to disable 2FA with ${type}`);
@@ -116,9 +111,6 @@ serve(async (req) => {
 
       throw new Error('Invalid verification code');
     }
-
-    // Success - reset rate limit
-    resetRateLimit(rateLimitKey);
 
     // Disable 2FA
     const { error: updateError } = await supabase

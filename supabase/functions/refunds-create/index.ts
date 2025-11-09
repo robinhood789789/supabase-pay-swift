@@ -2,15 +2,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getPaymentProvider } from "../_shared/providerFactory.ts";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
 import { evaluateGuardrails, createApprovalRequest } from "../_shared/guardrails.ts";
-import { checkRefundConcurrency, checkRateLimit } from "../_shared/concurrency.ts";
+import { checkRefundConcurrency } from "../_shared/concurrency.ts";
 import { createSecureErrorResponse, logSecureAction } from "../_shared/error-handling.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateAmount, validateString } from '../_shared/validation.ts';
 
 // Rate limiting: Critical endpoint - strict rate limits enforced
-// 5 requests per minute per tenant
+// 20 requests per hour per user
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
 };
 
 interface RefundRequest {
@@ -105,22 +108,19 @@ Deno.serve(async (req) => {
       return createMfaError(mfaCheck.code!, mfaCheck.message!);
     }
 
-    // Rate limiting
-    const rateLimit = checkRateLimit(`refund:${tenantId}:${user.id}`, 5, 60000);
-    if (!rateLimit.allowed) {
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 20 refund requests per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 20, 3600000); // 20 attempts, 1 hour window
+    if (!rateLimitResult.allowed) {
       return new Response(
         JSON.stringify({ 
-          error: 'Rate limit exceeded', 
-          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000)
+          error: 'Too many refund requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
         }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json',
-            'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
-          } 
-        }
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -128,9 +128,25 @@ Deno.serve(async (req) => {
     const body: RefundRequest = await req.json();
     const { paymentId, amount, reason } = body;
 
-    if (!paymentId) {
+    // Input validation
+    const validationErrors = [];
+    
+    const paymentIdError = validateString('paymentId', paymentId, { required: true, maxLength: 255 });
+    if (paymentIdError) validationErrors.push(paymentIdError);
+    
+    if (amount !== undefined) {
+      const amountError = validateAmount(amount);
+      if (amountError) validationErrors.push(amountError);
+    }
+    
+    if (reason) {
+      const reasonError = validateString('reason', reason, { maxLength: 1000 });
+      if (reasonError) validationErrors.push(reasonError);
+    }
+
+    if (validationErrors.length > 0) {
       return new Response(
-        JSON.stringify({ error: 'Missing paymentId' }),
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

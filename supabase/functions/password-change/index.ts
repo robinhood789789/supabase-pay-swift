@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validatePassword } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -30,6 +33,22 @@ serve(async (req) => {
       );
     }
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 5 password changes per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 5, 3600000); // 5 attempts, 1 hour window
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many password change attempts. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { currentPassword, newPassword } = await req.json();
 
     if (!currentPassword || !newPassword) {
@@ -39,21 +58,11 @@ serve(async (req) => {
       );
     }
 
-    // Validate password policy
-    if (newPassword.length < 10) {
+    // Input validation
+    const newPasswordError = validatePassword(newPassword);
+    if (newPasswordError) {
       return new Response(
-        JSON.stringify({ error: 'รหัสผ่านต้องมีอย่างน้อย 10 ตัวอักษร' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const hasUpperCase = /[A-Z]/.test(newPassword);
-    const hasLowerCase = /[a-z]/.test(newPassword);
-    const hasNumber = /[0-9]/.test(newPassword);
-
-    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-      return new Response(
-        JSON.stringify({ error: 'รหัสผ่านต้องประกอบด้วยตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข' }),
+        JSON.stringify({ error: newPasswordError.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

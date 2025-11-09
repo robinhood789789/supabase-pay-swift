@@ -1,11 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 import { generateTOTPSecret, getTOTPQRCodeUrl } from "../_shared/totp.ts";
-import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -30,19 +31,25 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Rate limiting: Max 3 enrollments per hour
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     req.headers.get('cf-connecting-ip') || 
-                     'unknown';
-    const rateLimitKey = `mfa-enroll:${user.id}`;
-    const rateLimit = checkRateLimit(rateLimitKey, 3, 3600000); // 3 attempts per hour
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
 
-    if (!rateLimit.allowed) {
+    // Rate limiting: 10 enrollments per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 10, 3600000); // 10 attempts, 1 hour window
+    if (!rateLimitResult.allowed) {
       return new Response(
-        JSON.stringify({ error: 'Too many enrollment attempts. Please try again later.' }),
+        JSON.stringify({ 
+          error: 'Too many MFA enrollment attempts. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
 
     console.log(`[MFA Enroll] User ${user.email} enrolling in 2FA`);
 

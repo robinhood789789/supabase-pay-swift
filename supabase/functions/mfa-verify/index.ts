@@ -1,11 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 import { verifyTOTP, generateBackupCodes, hashCode } from "../_shared/totp.ts";
-import { checkRateLimit, resetRateLimit } from "../_shared/rate-limit.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateString } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -30,57 +32,44 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Rate limiting: Max 5 attempts per 5 minutes, 30-minute lockout
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     req.headers.get('cf-connecting-ip') || 
-                     'unknown';
-    const rateLimitKey = `mfa-verify:${user.id}:${clientIp}`;
-    const rateLimit = checkRateLimit(rateLimitKey, 5, 300000, 1800000); // 5 attempts, 5 min window, 30 min lockout
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
 
-    if (!rateLimit.allowed) {
-      if (rateLimit.isLocked) {
-        const lockedMinutes = Math.ceil((rateLimit.lockedUntil! - Date.now()) / 60000);
-        
-        await supabase
-          .from('audit_logs')
-          .insert({
-            actor_user_id: user.id,
-            action: 'mfa.verify.locked',
-            target: `user:${user.id}`,
-            tenant_id: null,
-            ip: clientIp,
-            user_agent: req.headers.get('user-agent')?.substring(0, 255) || null,
-          });
-
-        return new Response(
-          JSON.stringify({ 
-            error: `พยายามยืนยันรหัสผิดหลายครั้ง บัญชีถูกล็อกชั่วคราว ${lockedMinutes} นาที`,
-            code: 'MFA_VERIFY_LOCKED',
-            locked_until: new Date(rateLimit.lockedUntil!).toISOString()
-          }),
-          { 
-            status: 429,
-            headers: { 
-              ...corsHeaders, 
-              'Content-Type': 'application/json',
-              'Retry-After': String(Math.ceil((rateLimit.lockedUntil! - Date.now()) / 1000))
-            } 
-          }
-        );
-      }
-
+    // Rate limiting: 10 verification attempts per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 10, 3600000); // 10 attempts, 1 hour window
+    if (!rateLimitResult.allowed) {
       return new Response(
-        JSON.stringify({ error: 'Too many verification attempts' }),
+        JSON.stringify({ 
+          error: 'Too many MFA verification attempts. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[MFA Verify] User ${user.email} verifying 2FA (${rateLimit.remaining} attempts remaining)`);
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
 
     const { code } = await req.json();
-    if (!code || code.length !== 6) {
-      throw new Error('Invalid verification code');
+
+    // Input validation
+    const tokenError = validateString('code', code, { 
+      required: true, 
+      minLength: 6, 
+      maxLength: 6,
+      pattern: /^\d{6}$/,
+      patternMessage: 'Token must be exactly 6 digits'
+    });
+    if (tokenError) {
+      return new Response(
+        JSON.stringify({ error: tokenError.message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    console.log(`[MFA Verify] User ${user.email} verifying 2FA`);
 
     // Get user's TOTP secret
     const { data: profile } = await supabase
@@ -114,8 +103,6 @@ serve(async (req) => {
       throw new Error('Invalid verification code');
     }
 
-    // Success - reset rate limit
-    resetRateLimit(rateLimitKey);
     console.log(`[MFA Verify] Code verified for ${user.email}`);
 
     // Generate recovery codes
