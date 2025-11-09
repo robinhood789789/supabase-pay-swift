@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Download, Copy, CheckCircle, AlertCircle } from "lucide-react";
 import QRCode from "qrcode";
+import { getCSRFToken } from "@/lib/security/csrf";
 
 export default function MfaEnroll() {
   const navigate = useNavigate();
@@ -62,7 +63,16 @@ export default function MfaEnroll() {
 
   const initEnrollment = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("mfa-enroll");
+      // Get CSRF token and session for authentication
+      const csrfToken = getCSRFToken();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke("mfa-enroll", {
+        headers: {
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        }
+      });
 
       if (error) throw error;
 
@@ -109,8 +119,16 @@ export default function MfaEnroll() {
     setError("");
 
     try {
+      // Get CSRF token and session for authentication
+      const csrfToken = getCSRFToken();
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const { data, error } = await supabase.functions.invoke("mfa-verify", {
-        body: { code }
+        body: { code },
+        headers: {
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        }
       });
 
       if (error) throw error;
