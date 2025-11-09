@@ -26,6 +26,7 @@ export default function PasswordChange() {
     uppercase: false,
     lowercase: false,
     number: false,
+    special: false,
     match: false,
   });
 
@@ -40,6 +41,7 @@ export default function PasswordChange() {
       uppercase: /[A-Z]/.test(newPassword),
       lowercase: /[a-z]/.test(newPassword),
       number: /[0-9]/.test(newPassword),
+      special: /[!@#$%^&*]/.test(newPassword),
       match: newPassword.length > 0 && newPassword === confirmPassword,
     });
   }, [newPassword, confirmPassword]);
@@ -228,6 +230,10 @@ export default function PasswordChange() {
                 <div className={`flex items-center gap-2 ${passwordChecks.number ? "text-green-600" : "text-muted-foreground"}`}>
                   {passwordChecks.number ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
                   <span>มีตัวเลข (0-9)</span>
+                </div>
+                <div className={`flex items-center gap-2 ${passwordChecks.special ? "text-green-600" : "text-muted-foreground"}`}>
+                  {passwordChecks.special ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
+                  <span>มีอักขระพิเศษ (!@#$%^&*)</span>
                 </div>
                 {confirmPassword && (
                   <div className={`flex items-center gap-2 ${passwordChecks.match ? "text-green-600" : "text-red-600"}`}>

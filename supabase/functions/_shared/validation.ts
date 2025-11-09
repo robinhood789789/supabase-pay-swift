@@ -85,6 +85,10 @@ export function validatePassword(password: string): ValidationError | null {
     return { field: 'password', message: 'Password must contain at least one number' };
   }
   
+  if (!/[!@#$%^&*]/.test(password)) {
+    return { field: 'password', message: 'Password must contain at least one special character (!@#$%^&*)' };
+  }
+  
   return null;
 }
 
