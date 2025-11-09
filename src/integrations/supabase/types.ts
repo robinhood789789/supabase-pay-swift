@@ -584,6 +584,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_blocks: {
+        Row: {
+          blocked_at: string
+          blocked_by: string | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          is_permanent: boolean | null
+          last_violation_at: string
+          metadata: Json | null
+          reason: string
+          updated_at: string | null
+          violation_count: number
+        }
+        Insert: {
+          blocked_at?: string
+          blocked_by?: string | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address: unknown
+          is_permanent?: boolean | null
+          last_violation_at?: string
+          metadata?: Json | null
+          reason: string
+          updated_at?: string | null
+          violation_count?: number
+        }
+        Update: {
+          blocked_at?: string
+          blocked_by?: string | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_permanent?: boolean | null
+          last_violation_at?: string
+          metadata?: Json | null
+          reason?: string
+          updated_at?: string | null
+          violation_count?: number
+        }
+        Relationships: []
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -2135,6 +2180,15 @@ export type Database = {
         Args: { _email: string }
         Returns: undefined
       }
+      check_and_block_ip: {
+        Args: {
+          block_duration_minutes?: number
+          check_ip: unknown
+          threshold?: number
+          violation_type: string
+        }
+        Returns: Json
+      }
       cleanup_expired_codes: { Args: never; Returns: undefined }
       cleanup_replay_cache: { Args: never; Returns: undefined }
       enable_totp_with_codes: {
@@ -2156,6 +2210,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_ip_blocked: { Args: { check_ip: unknown }; Returns: boolean }
       is_member_of_tenant: { Args: { tenant_uuid: string }; Returns: boolean }
       is_shareholder: { Args: { user_uuid: string }; Returns: boolean }
       is_super_admin: { Args: { user_uuid: string }; Returns: boolean }

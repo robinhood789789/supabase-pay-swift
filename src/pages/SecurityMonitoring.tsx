@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Shield, AlertTriangle, Activity, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
+import { Shield, AlertTriangle, Activity, TrendingUp, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
+import { BlockedIPsTable } from '@/components/security/BlockedIPsTable';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import {
   Table,
@@ -21,6 +23,28 @@ import { Skeleton } from '@/components/ui/skeleton';
 const SecurityMonitoring = () => {
   const { events, alerts, metrics, loading, updateAlert, refresh } = useSecurityMonitoring();
   const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
+  const [blockedIPs, setBlockedIPs] = useState<any[]>([]);
+  const [loadingBlocks, setLoadingBlocks] = useState(true);
+
+  useEffect(() => {
+    loadBlockedIPs();
+  }, []);
+
+  const loadBlockedIPs = async () => {
+    setLoadingBlocks(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ip-blocks-manage', {
+        method: 'GET',
+      });
+
+      if (error) throw error;
+      setBlockedIPs(data.blocks || []);
+    } catch (error) {
+      console.error('Error loading blocked IPs:', error);
+    } finally {
+      setLoadingBlocks(false);
+    }
+  };
 
   const getSeverityColor = (severity: string): 'default' | 'destructive' | 'secondary' => {
     switch (severity) {
@@ -170,6 +194,9 @@ const SecurityMonitoring = () => {
             <TabsTrigger value="events">
               Recent Events ({events.length})
             </TabsTrigger>
+            <TabsTrigger value="blocked-ips">
+              Blocked IPs ({blockedIPs.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="alerts" className="space-y-4">
@@ -317,6 +344,26 @@ const SecurityMonitoring = () => {
                       ))}
                     </TableBody>
                   </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="blocked-ips" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Blocked IP Addresses</CardTitle>
+                <CardDescription>
+                  IP addresses that have been automatically or manually blocked due to security violations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingBlocks ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <BlockedIPsTable blocks={blockedIPs} onRefresh={loadBlockedIPs} />
                 )}
               </CardContent>
             </Card>

@@ -86,3 +86,6 @@ verify_jwt = true
 
 [functions.security-alerts-manage]
 verify_jwt = true
+
+[functions.ip-blocks-manage]
+verify_jwt = true
