@@ -1,8 +1,11 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 Deno.serve(async (req) => {
@@ -36,6 +39,22 @@ Deno.serve(async (req) => {
       throw new Error('Only super admins can create owner users');
     }
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 5 owner creations per hour per super admin
+    const rateLimitResult = checkRateLimit(user.id, 5, 3600000);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many owner creation requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Parse request body
     const { 
       owner_user_id, 
@@ -49,8 +68,26 @@ Deno.serve(async (req) => {
       features 
     } = await req.json();
 
-    if (!owner_user_id || !owner_name || !owner_type || !tenant_name) {
-      throw new Error('Missing required fields: owner_user_id, owner_name, owner_type, tenant_name');
+    // Input validation
+    const validationErrors = [];
+    
+    const ownerUserIdError = validateString('owner_user_id', owner_user_id, { required: true, maxLength: 255 });
+    if (ownerUserIdError) validationErrors.push(ownerUserIdError);
+    
+    const ownerNameError = validateString('owner_name', owner_name, { required: true, maxLength: 255 });
+    if (ownerNameError) validationErrors.push(ownerNameError);
+    
+    const ownerTypeError = validateString('owner_type', owner_type, { required: true, maxLength: 50 });
+    if (ownerTypeError) validationErrors.push(ownerTypeError);
+    
+    const tenantNameError = validateString('tenant_name', tenant_name, { required: true, maxLength: 255 });
+    if (tenantNameError) validationErrors.push(tenantNameError);
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Generate temporary password
@@ -242,9 +279,8 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in create-owner-user function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการสร้าง Owner User';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateAmount, validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token",
 };
 
 serve(async (req) => {
@@ -87,27 +90,51 @@ serve(async (req) => {
       return createMfaError(mfaCheck.code!, mfaCheck.message!);
     }
 
-    // Parse request body
-    const { amount, currency, method, reference, notes } = await req.json();
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
 
-    // Validate required fields
-    if (!amount || !currency || !method) {
+    // Rate limiting: 20 system deposits per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 20, 3600000);
+    if (!rateLimitResult.allowed) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: amount, currency, method" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ 
+          error: 'Too many system deposit requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (amount <= 0) {
+    // Parse request body
+    const { amount, currency, method, reference, notes } = await req.json();
+
+    // Input validation
+    const validationErrors = [];
+    
+    const amountError = validateAmount(amount);
+    if (amountError) validationErrors.push(amountError);
+    
+    const currencyError = validateString('currency', currency, { required: true, maxLength: 3, pattern: /^[A-Z]{3}$/, patternMessage: 'Currency must be 3 uppercase letters' });
+    if (currencyError) validationErrors.push(currencyError);
+    
+    const methodError = validateString('method', method, { required: true, maxLength: 50 });
+    if (methodError) validationErrors.push(methodError);
+    
+    if (reference) {
+      const referenceError = validateString('reference', reference, { maxLength: 100 });
+      if (referenceError) validationErrors.push(referenceError);
+    }
+    
+    if (notes) {
+      const notesError = validateString('notes', notes, { maxLength: 500 });
+      if (notesError) validationErrors.push(notesError);
+    }
+
+    if (validationErrors.length > 0) {
       return new Response(
-        JSON.stringify({ error: "Amount must be greater than 0" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -170,9 +197,8 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in system-deposit-create:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

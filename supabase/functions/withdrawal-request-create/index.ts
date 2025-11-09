@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateAmount, validateString } from '../_shared/validation.ts';
+import { sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -71,13 +75,55 @@ serve(async (req) => {
       return createMfaError(mfaCheck.code!, mfaCheck.message!);
     }
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 10 withdrawal requests per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 10, 3600000);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many withdrawal requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { amount, currency, method, bank_name, bank_account_number, bank_account_name, notes, reason } = await req.json();
 
-    if (!amount || amount <= 0) {
-      return new Response(JSON.stringify({ error: 'Invalid amount' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Input validation
+    const validationErrors = [];
+    
+    const amountError = validateAmount(amount);
+    if (amountError) validationErrors.push(amountError);
+    
+    if (currency) {
+      const currencyError = validateString('currency', currency, { maxLength: 3, pattern: /^[A-Z]{3}$/, patternMessage: 'Currency must be 3 uppercase letters' });
+      if (currencyError) validationErrors.push(currencyError);
+    }
+    
+    if (bank_name) {
+      const bankNameError = validateString('bank_name', bank_name, { maxLength: 100 });
+      if (bankNameError) validationErrors.push(bankNameError);
+    }
+    
+    if (bank_account_number) {
+      const accountError = validateString('bank_account_number', bank_account_number, { maxLength: 50 });
+      if (accountError) validationErrors.push(accountError);
+    }
+    
+    if (bank_account_name) {
+      const accountNameError = validateString('bank_account_name', bank_account_name, { maxLength: 200 });
+      if (accountNameError) validationErrors.push(accountNameError);
+    }
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Check balance
@@ -136,8 +182,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in withdrawal-request-create:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: sanitizeErrorMessage(error as Error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

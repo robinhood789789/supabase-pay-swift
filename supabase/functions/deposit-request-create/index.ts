@@ -1,11 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
-import { createSecureErrorResponse, validateLength } from "../_shared/error-handling.ts";
+import { createSecureErrorResponse } from "../_shared/error-handling.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateAmount, validateString } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -72,13 +75,55 @@ serve(async (req) => {
       return createMfaError(mfaCheck.code!, mfaCheck.message!);
     }
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 10 deposit requests per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 10, 3600000);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many deposit requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { amount, currency, method, reference, notes, reason } = await req.json();
 
-    if (!amount || amount <= 0) {
-      return new Response(JSON.stringify({ error: 'Invalid amount' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Input validation
+    const validationErrors = [];
+    
+    const amountError = validateAmount(amount);
+    if (amountError) validationErrors.push(amountError);
+    
+    if (currency) {
+      const currencyError = validateString('currency', currency, { maxLength: 3, pattern: /^[A-Z]{3}$/, patternMessage: 'Currency must be 3 uppercase letters' });
+      if (currencyError) validationErrors.push(currencyError);
+    }
+    
+    if (method) {
+      const methodError = validateString('method', method, { maxLength: 50 });
+      if (methodError) validationErrors.push(methodError);
+    }
+    
+    if (reference) {
+      const referenceError = validateString('reference', reference, { maxLength: 100 });
+      if (referenceError) validationErrors.push(referenceError);
+    }
+    
+    if (notes) {
+      const notesError = validateString('notes', notes, { maxLength: 500 });
+      if (notesError) validationErrors.push(notesError);
+    }
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Create approval request for deposit

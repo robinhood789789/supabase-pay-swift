@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -96,11 +99,30 @@ serve(async (req) => {
       return createMfaError(mfaCheck.code!, mfaCheck.message!);
     }
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 20 API key revocations per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 20, 3600000);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many API key revocation requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Parse request body
     const { api_key_id } = await req.json();
-    if (!api_key_id) {
+
+    // Input validation
+    const apiKeyIdError = validateString('api_key_id', api_key_id, { required: true, maxLength: 255 });
+    if (apiKeyIdError) {
       return new Response(
-        JSON.stringify({ error: 'api_key_id is required' }),
+        JSON.stringify({ error: apiKeyIdError.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -157,9 +179,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Unexpected error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: errorMessage }),
+      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

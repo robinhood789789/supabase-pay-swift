@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
 };
 
 serve(async (req) => {
@@ -33,10 +36,38 @@ serve(async (req) => {
 
     console.log('🔐 Requesting user:', requestingUser.id);
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, requestingUser.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 10 user deletions per hour per user
+    const rateLimitResult = checkRateLimit(requestingUser.id, 10, 3600000);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many user deletion requests. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { user_id, tenant_id } = await req.json();
 
-    if (!user_id || !tenant_id) {
-      throw new Error('Missing user_id or tenant_id');
+    // Input validation
+    const validationErrors = [];
+    
+    const userIdError = validateString('user_id', user_id, { required: true, maxLength: 255 });
+    if (userIdError) validationErrors.push(userIdError);
+    
+    const tenantIdError = validateString('tenant_id', tenant_id, { required: true, maxLength: 255 });
+    if (tenantIdError) validationErrors.push(tenantIdError);
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log('🗑️ Delete request:', { user_id, tenant_id });
@@ -144,7 +175,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('❌ Error:', error);
     return new Response(
-      JSON.stringify({ error: error?.message || 'Unknown error' }),
+      JSON.stringify({ error: sanitizeErrorMessage(error) }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
