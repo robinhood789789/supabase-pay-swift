@@ -263,6 +263,10 @@ All colors MUST be HSL.
     background: linear-gradient(90deg, hsl(189 100% 50%), transparent);
   }
 
+  .glow-text {
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
   /* Float animation for orbs */
   @keyframes float {
     0%, 100% {

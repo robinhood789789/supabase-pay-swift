@@ -69,15 +69,15 @@ const PlatformSidebar = () => {
   return (
     <Sidebar className="w-64 border-r" collapsible="icon">
       <SidebarContent>
-        <div className="p-4 border-b bg-gradient-primary">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shadow-sm">
-              <Shield className="w-4 h-4 text-white" />
+        <div className="p-5 border-b border-primary/30 bg-gradient-to-br from-card via-card/95 to-primary/5 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow-info">
+              <Shield className="w-5 h-5 text-white" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-sm text-white">Platform Admin</h2>
-                <p className="text-xs text-white/80 font-mono">
+                <h2 className="font-bold text-base text-foreground tracking-wide">Platform Admin</h2>
+                <p className="text-sm text-primary font-mono font-semibold mt-0.5 glow-text">
                   ID: {publicId || "-"}
                 </p>
               </div>
@@ -86,7 +86,9 @@ const PlatformSidebar = () => {
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Platform Management</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 px-3">
+            Platform Management
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -97,11 +99,11 @@ const PlatformSidebar = () => {
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50"
+                          ? "bg-gradient-primary text-white font-semibold shadow-glow-info text-sm"
+                          : "hover:bg-primary/10 hover:text-primary text-foreground text-sm font-medium transition-all duration-200"
                       }
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-3 h-5 w-5" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -111,13 +113,13 @@ const PlatformSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-4 border-t border-sidebar-border">
+        <div className="mt-auto p-4 border-t border-primary/20">
           <Button
             variant="ghost"
             onClick={handleSignOut}
-            className="w-full justify-start"
+            className="w-full justify-start hover:bg-destructive/10 hover:text-destructive text-sm font-medium transition-all duration-200"
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-3 h-5 w-5" />
             {!isCollapsed && <span>Sign Out</span>}
           </Button>
         </div>
