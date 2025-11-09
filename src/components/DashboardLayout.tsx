@@ -53,6 +53,7 @@ import {
   UserCheck,
   Wallet,
 } from "lucide-react";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -562,12 +563,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="flex min-h-screen w-full overflow-x-hidden">
         <DashboardSidebar />
         
-        <div className="flex-1 flex flex-col w-full transition-all duration-300 ease-in-out overflow-x-hidden">
+        <div className="flex-1 flex flex-col w-full transition-all duration-300 ease-in-out overflow-x-hidden relative">
+          <AnimatedBackground />
           <header className="h-14 border-b border-border bg-background flex items-center justify-between px-4 gap-4 sticky top-0 z-10 transition-all duration-300">
             <SidebarTrigger className="ml-2" />
           </header>
           
-          <main className="flex-1 w-full transition-all duration-300 overflow-x-hidden">
+          <main className="relative z-10 flex-1 w-full transition-all duration-300 overflow-x-hidden">
             {children}
           </main>
         </div>

@@ -54,7 +54,7 @@ export function AnimatedBackground() {
       if (!ctx || !canvas) return;
 
       // Clear canvas with fade effect
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillStyle = "hsla(var(--background) / 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw and update particles
@@ -62,7 +62,7 @@ export function AnimatedBackground() {
         // Draw particle
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(139, 92, 246, ${particle.opacity})`; // Purple color
+        ctx.fillStyle = `hsla(var(--primary) / ${particle.opacity})`;
         ctx.fill();
 
         // Draw glow effect
@@ -74,8 +74,8 @@ export function AnimatedBackground() {
           particle.y,
           particle.size * 3
         );
-        gradient.addColorStop(0, `rgba(139, 92, 246, ${particle.opacity * 0.5})`);
-        gradient.addColorStop(1, "rgba(139, 92, 246, 0)");
+        gradient.addColorStop(0, `hsla(var(--primary) / ${particle.opacity * 0.5})`);
+        gradient.addColorStop(1, "hsla(var(--primary) / 0)");
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size * 3, 0, Math.PI * 2);
@@ -101,7 +101,7 @@ export function AnimatedBackground() {
 
           if (distance < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(139, 92, 246, ${0.15 * (1 - distance / 100)})`;
+            ctx.strokeStyle = `hsla(var(--primary) / ${0.15 * (1 - distance / 100)})`;
             ctx.lineWidth = 0.5;
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
@@ -137,9 +137,9 @@ export function AnimatedBackground() {
       
       {/* Animated gradient orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-0 -right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "4s" }} />
+        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 -right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "4s" }} />
       </div>
 
       {/* Scan lines effect */}
