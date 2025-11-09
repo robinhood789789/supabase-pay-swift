@@ -1230,6 +1230,183 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          description: string
+          event_count: number | null
+          first_seen_at: string | null
+          id: string
+          last_seen_at: string | null
+          metadata: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string | null
+          tenant_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          description: string
+          event_count?: number | null
+          first_seen_at?: string | null
+          id?: string
+          last_seen_at?: string | null
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          status?: string | null
+          tenant_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          description?: string
+          event_count?: number | null
+          first_seen_at?: string | null
+          id?: string
+          last_seen_at?: string | null
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string | null
+          tenant_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_events: {
+        Row: {
+          blocked: boolean | null
+          created_at: string | null
+          endpoint: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown
+          request_id: string | null
+          severity: string
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          created_at?: string | null
+          endpoint?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          request_id?: string | null
+          severity: string
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          created_at?: string | null
+          endpoint?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          request_id?: string | null
+          severity?: string
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_metrics: {
+        Row: {
+          blocked_requests: number | null
+          created_at: string | null
+          csrf_violations: number | null
+          failed_login_attempts: number | null
+          id: string
+          metric_date: string
+          mfa_failures: number | null
+          rate_limit_violations: number | null
+          suspicious_api_calls: number | null
+          tenant_id: string | null
+          unique_attackers: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          blocked_requests?: number | null
+          created_at?: string | null
+          csrf_violations?: number | null
+          failed_login_attempts?: number | null
+          id?: string
+          metric_date: string
+          mfa_failures?: number | null
+          rate_limit_violations?: number | null
+          suspicious_api_calls?: number | null
+          tenant_id?: string | null
+          unique_attackers?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          blocked_requests?: number | null
+          created_at?: string | null
+          csrf_violations?: number | null
+          failed_login_attempts?: number | null
+          id?: string
+          metric_date?: string
+          mfa_failures?: number | null
+          rate_limit_violations?: number | null
+          suspicious_api_calls?: number | null
+          tenant_id?: string | null
+          unique_attackers?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_metrics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settlements: {
         Row: {
           created_at: string | null

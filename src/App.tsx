@@ -84,6 +84,7 @@ import PlatformPartnerSettings from "./pages/admin/PlatformPartnerSettings";
 import PlatformShareholderEarnings from "./pages/admin/PlatformShareholderEarnings";
 import TransactionDashboard from "./pages/TransactionDashboard";
 import StyleGuide from "./pages/StyleGuide";
+import SecurityMonitoring from "./pages/SecurityMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -278,6 +279,14 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <ActivityHistory />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/security-monitoring"
+        element={
+          <ProtectedRoute>
+            <SecurityMonitoring />
           </ProtectedRoute>
         }
       />

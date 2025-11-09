@@ -80,3 +80,9 @@ verify_jwt = true
 
 [functions.platform-partners-create]
 verify_jwt = false
+
+[functions.security-event-log]
+verify_jwt = true
+
+[functions.security-alerts-manage]
+verify_jwt = true
