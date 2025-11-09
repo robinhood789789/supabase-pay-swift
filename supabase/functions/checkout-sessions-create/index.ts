@@ -2,13 +2,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { getPaymentProvider } from "../_shared/providerFactory.ts";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
-
-// Rate limiting: This endpoint should be rate-limited at the infrastructure level
-// Recommended: 10 requests per minute per tenant
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateAmount, validateString, validateEmail, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant, idempotency-key",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token, idempotency-key",
 };
 
 // Validation schema
@@ -172,6 +172,22 @@ serve(async (req) => {
 
     // MFA Step-up check for user-initiated payment creation
     if (auth.userId) {
+      // CSRF validation for user sessions
+      const csrfError = await requireCSRF(req, auth.userId);
+      if (csrfError) return csrfError;
+
+      // Rate limiting: 100 checkout sessions per hour per user
+      const rateLimitResult = checkRateLimit(auth.userId, 100, 3600000);
+      if (!rateLimitResult.allowed) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Too many checkout session requests. Please try again later.',
+            resetAt: new Date(rateLimitResult.resetAt).toISOString()
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Get user role and check if super admin
       const { data: profile } = await supabase
         .from('profiles')
@@ -229,6 +245,52 @@ serve(async (req) => {
 
     // Parse and validate request
     const body = await req.json();
+    
+    // Additional input validation
+    const validationErrors = [];
+    
+    if (body.amount) {
+      const amountError = validateAmount(body.amount);
+      if (amountError) validationErrors.push(amountError);
+    }
+    
+    if (body.currency) {
+      const currencyError = validateString('currency', body.currency, { 
+        maxLength: 3, 
+        pattern: /^[A-Z]{3}$/,
+        patternMessage: 'Currency must be 3 uppercase letters'
+      });
+      if (currencyError) validationErrors.push(currencyError);
+    }
+    
+    if (body.reference) {
+      const refError = validateString('reference', body.reference, { maxLength: 200 });
+      if (refError) validationErrors.push(refError);
+    }
+    
+    if (body.successUrl) {
+      try {
+        new URL(body.successUrl);
+      } catch {
+        validationErrors.push({ field: 'successUrl', message: 'Success URL must be a valid URL' });
+      }
+    }
+    
+    if (body.cancelUrl) {
+      try {
+        new URL(body.cancelUrl);
+      } catch {
+        validationErrors.push({ field: 'cancelUrl', message: 'Cancel URL must be a valid URL' });
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     const params = validateRequest(body);
 
     // Get payment provider
@@ -318,7 +380,7 @@ serve(async (req) => {
     // Secure error logging - no sensitive data
     console.error('[Checkout] Error:', (error as Error).message);
     return new Response(
-      JSON.stringify({ error: 'Failed to create checkout session' }),
+      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

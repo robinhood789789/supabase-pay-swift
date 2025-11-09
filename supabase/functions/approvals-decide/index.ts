@@ -1,9 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { requireStepUp, createMfaError } from '../_shared/mfa-guards.ts';
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
 };
 
 interface DecisionRequest {
@@ -85,8 +88,50 @@ Deno.serve(async (req) => {
       return createMfaError(mfaCheck.code!, mfaCheck.message!);
     }
 
+    // CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // Rate limiting: 50 approval decisions per hour per user
+    const rateLimitResult = checkRateLimit(user.id, 50, 3600000);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many approval decisions. Please try again later.',
+          resetAt: new Date(rateLimitResult.resetAt).toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body: DecisionRequest = await req.json();
     const { approvalId, decision, comment } = body;
+
+    // Input validation
+    const validationErrors = [];
+    
+    const idError = validateString('approvalId', approvalId, { 
+      required: true, 
+      pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      patternMessage: 'Approval ID must be a valid UUID'
+    });
+    if (idError) validationErrors.push(idError);
+    
+    if (!['approve', 'reject'].includes(decision)) {
+      validationErrors.push({ field: 'decision', message: 'Decision must be "approve" or "reject"' });
+    }
+    
+    if (comment) {
+      const commentError = validateString('comment', comment, { maxLength: 1000 });
+      if (commentError) validationErrors.push(commentError);
+    }
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!approvalId || !decision || !['approve', 'reject'].includes(decision)) {
       return new Response(
@@ -167,7 +212,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[Approval Decide] Error:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to process decision' }),
+      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
