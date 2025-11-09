@@ -29,6 +29,11 @@ export default function PasswordChange() {
     special: false,
     match: false,
   });
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    label: "",
+    color: "",
+  });
 
   useEffect(() => {
     checkAuth();
@@ -36,14 +41,66 @@ export default function PasswordChange() {
 
   useEffect(() => {
     // Update password strength checks
-    setPasswordChecks({
+    const checks = {
       length: newPassword.length >= 12,
       uppercase: /[A-Z]/.test(newPassword),
       lowercase: /[a-z]/.test(newPassword),
       number: /[0-9]/.test(newPassword),
       special: /[!@#$%^&*]/.test(newPassword),
       match: newPassword.length > 0 && newPassword === confirmPassword,
-    });
+    };
+    setPasswordChecks(checks);
+
+    // Calculate password strength
+    if (newPassword.length === 0) {
+      setPasswordStrength({ score: 0, label: "", color: "" });
+      return;
+    }
+
+    let score = 0;
+    
+    // Length scoring (0-40 points)
+    if (newPassword.length >= 12) score += 20;
+    if (newPassword.length >= 16) score += 10;
+    if (newPassword.length >= 20) score += 10;
+    
+    // Complexity scoring (60 points)
+    if (checks.uppercase) score += 15;
+    if (checks.lowercase) score += 15;
+    if (checks.number) score += 15;
+    if (checks.special) score += 15;
+    
+    // Variety bonus (check for multiple different characters)
+    const uniqueChars = new Set(newPassword).size;
+    if (uniqueChars >= 8) score += 5;
+    if (uniqueChars >= 12) score += 5;
+
+    // Sequential or repeated character penalty
+    const hasSequential = /(.)\1{2,}/.test(newPassword); // 3+ repeated chars
+    if (hasSequential) score -= 10;
+
+    // Determine strength level
+    let label = "";
+    let color = "";
+    
+    if (score < 30) {
+      label = "อย่อนมาก";
+      color = "text-red-600";
+    } else if (score < 50) {
+      label = "อ่อน";
+      color = "text-orange-600";
+    } else if (score < 70) {
+      label = "ปานกลาง";
+      color = "text-yellow-600";
+    } else if (score < 85) {
+      label = "แข็งแกร่ง";
+      color = "text-green-600";
+    } else {
+      label = "แข็งแกร่งมาก";
+      color = "text-emerald-600";
+    }
+
+    setPasswordStrength({ score: Math.min(100, Math.max(0, score)), label, color });
   }, [newPassword, confirmPassword]);
 
   const checkAuth = async () => {
@@ -186,6 +243,34 @@ export default function PasswordChange() {
                   {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
+              
+              {/* Password Strength Meter */}
+              {newPassword && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">ความแข็งแกร่ง:</span>
+                    <span className={`font-medium ${passwordStrength.color}`}>
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        passwordStrength.score < 30
+                          ? "bg-red-500"
+                          : passwordStrength.score < 50
+                          ? "bg-orange-500"
+                          : passwordStrength.score < 70
+                          ? "bg-yellow-500"
+                          : passwordStrength.score < 85
+                          ? "bg-green-500"
+                          : "bg-emerald-500"
+                      }`}
+                      style={{ width: `${passwordStrength.score}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
