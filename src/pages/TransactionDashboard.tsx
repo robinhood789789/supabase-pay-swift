@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign } from "lucide-react";
 
 export default function TransactionDashboard() {
   const { activeTenantId } = useTenantSwitcher();
@@ -63,23 +63,6 @@ export default function TransactionDashboard() {
     enabled: !!activeTenantId,
   });
 
-  // ดึงข้อมูลสรุปรายวัน
-  const { data: dailySummary } = useQuery({
-    queryKey: ["daily-summary", activeTenantId],
-    queryFn: async () => {
-      if (!activeTenantId) return [];
-      const { data, error } = await supabase
-        .from("v_tx_daily_by_tenant")
-        .select("*")
-        .eq("tenant_id", activeTenantId)
-        .order("tx_date", { ascending: false })
-        .limit(7);
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!activeTenantId,
-  });
 
   // กรองตาม search query
   const filteredTransactions = transactions?.filter((tx) => {
@@ -141,7 +124,7 @@ export default function TransactionDashboard() {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Wallet Balance</CardTitle>
@@ -156,32 +139,6 @@ export default function TransactionDashboard() {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground">{wallet?.currency || "THB"}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total In (7 days)</CardTitle>
-                <TrendingUp className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  ฿{dailySummary?.reduce((sum, day) => sum + (day.net_in || 0), 0).toLocaleString() || "0.00"}
-                </div>
-                <p className="text-xs text-muted-foreground">เงินเข้า</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Out (7 days)</CardTitle>
-                <TrendingDown className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  ฿{dailySummary?.reduce((sum, day) => sum + (day.net_out || 0), 0).toLocaleString() || "0.00"}
-                </div>
-                <p className="text-xs text-muted-foreground">เงินออก</p>
               </CardContent>
             </Card>
 
