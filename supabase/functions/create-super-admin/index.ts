@@ -1,8 +1,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { 
+  validateEmail, 
+  validatePassword,
+  validateFields,
+  ValidationException,
+  sanitizeErrorMessage
+} from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token, cookie',
 };
 
 Deno.serve(async (req) => {
@@ -19,6 +28,24 @@ Deno.serve(async (req) => {
     // Parse request body
     const { email, password, full_name, secret_key } = await req.json();
 
+    // SECURITY: Rate limiting (3 attempts per hour from this IP)
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimitKey = `create-super-admin:${clientIp}`;
+    const rateLimit = await checkRateLimit(rateLimitKey, 3, 3600000, 0);
+    
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Maximum 3 attempts per hour.',
+          remaining: 0
+        }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     // Verify secret key (CRITICAL SECURITY: No default value)
     const SUPER_ADMIN_SECRET = Deno.env.get('SUPER_ADMIN_CREATION_SECRET');
     
@@ -33,6 +60,25 @@ Deno.serve(async (req) => {
 
     if (!email || !password || !full_name) {
       throw new Error('Missing required fields: email, password, full_name');
+    }
+
+    // SECURITY: Input validation
+    try {
+      validateFields([
+        () => validateEmail(email),
+        () => validatePassword(password),
+      ]);
+    } catch (error) {
+      if (error instanceof ValidationException) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: error.errors 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw error;
     }
 
     console.log('Creating new super admin user:', email);
@@ -83,8 +129,8 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in create-super-admin function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการสร้าง Super Admin';
+    console.error('[INTERNAL] Error in create-super-admin function:', error);
+    const errorMessage = error instanceof Error ? sanitizeErrorMessage(error) : 'An error occurred';
     return new Response(
       JSON.stringify({ error: errorMessage }),
       {

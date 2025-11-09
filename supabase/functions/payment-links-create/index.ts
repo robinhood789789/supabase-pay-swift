@@ -1,9 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { 
+  validateAmount,
+  validateReference,
+  validateString,
+  validateFields,
+  ValidationException,
+  sanitizeErrorMessage
+} from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token, cookie',
 };
 
 serve(async (req) => {
@@ -44,6 +54,32 @@ serve(async (req) => {
       });
     }
 
+    // SECURITY: CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // SECURITY: Rate limiting (100 links per hour per tenant)
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimitKey = `payment-links:${tenantId}:${clientIp}`;
+    const rateLimit = await checkRateLimit(rateLimitKey, 100, 3600000, 0);
+    
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Maximum 100 payment links per hour.',
+          remaining: rateLimit.remaining 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': String(rateLimit.remaining)
+          } 
+        }
+      );
+    }
+
     // Check permission: payment_links:create
     const { data: membership } = await supabase
       .from('memberships')
@@ -78,6 +114,26 @@ serve(async (req) => {
     // Parse request body
     const body = await req.json();
     const { amount, currency, reference, expiresAt, usageLimit } = body;
+
+    // SECURITY: Input validation
+    try {
+      validateFields([
+        () => validateAmount(amount),
+        () => validateString('currency', currency, { required: true, minLength: 3, maxLength: 3 }),
+        () => reference ? validateReference(reference) : null,
+      ]);
+    } catch (error) {
+      if (error instanceof ValidationException) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: error.errors 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw error;
+    }
 
     if (!amount || !currency) {
       return new Response(JSON.stringify({ error: 'amount and currency are required' }), {
@@ -129,8 +185,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    console.error('[INTERNAL] Error:', error);
+    const errorMessage = error instanceof Error ? sanitizeErrorMessage(error) : 'An error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

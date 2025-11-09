@@ -1,8 +1,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { 
+  validateEmail, 
+  validateFullName, 
+  validatePassword, 
+  validatePublicId,
+  validateFields,
+  ValidationException,
+  sanitizeErrorMessage
+} from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token, cookie',
 };
 
 Deno.serve(async (req) => {
@@ -30,7 +41,53 @@ Deno.serve(async (req) => {
       throw new Error('ไม่ได้รับอนุญาต');
     }
 
+    // SECURITY: CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // SECURITY: Rate limiting (10 users per hour per user)
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimitKey = `create-admin:${user.id}:${clientIp}`;
+    const rateLimit = await checkRateLimit(rateLimitKey, 10, 3600000, 0); // 10 per hour
+    
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Maximum 10 user creations per hour.',
+          remaining: rateLimit.remaining 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': String(rateLimit.remaining)
+          } 
+        }
+      );
+    }
+
     const { prefix, user_number, public_id, password, full_name, role, tenant_id, permissions } = await req.json();
+
+    // SECURITY: Input validation
+    try {
+      validateFields([
+        () => validatePublicId(public_id),
+        () => validatePassword(password),
+        () => validateFullName(full_name),
+      ]);
+    } catch (error) {
+      if (error instanceof ValidationException) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Validation failed', 
+            details: error.errors 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw error;
+    }
 
     if (!prefix || !user_number || !public_id || !password || !full_name || !role || !tenant_id) {
       throw new Error('ข้อมูลไม่ครบถ้วน');
@@ -370,8 +427,13 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error creating admin user:', error);
-    const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการสร้างผู้ใช้';
+    console.error('[INTERNAL] Error creating admin user:', error);
+    
+    // SECURITY: Sanitize error messages
+    const errorMessage = error instanceof Error 
+      ? sanitizeErrorMessage(error)
+      : 'An error occurred. Please contact support.';
+    
     return new Response(
       JSON.stringify({
         error: errorMessage,

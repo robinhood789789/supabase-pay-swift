@@ -3,10 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { crypto } from "https://deno.land/std@0.177.0/crypto/mod.ts";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
 import { createSecureErrorResponse, validateLength, createFriendlyErrorResponse } from "../_shared/error-handling.ts";
+import { requireCSRF } from '../_shared/csrf-validation.ts';
+import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { 
+  validateString,
+  validateFields,
+  ValidationException,
+  sanitizeErrorMessage
+} from '../_shared/validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token, cookie',
 };
 
 // Generate a random API key with prefix
@@ -69,6 +77,32 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Invalid authorization' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: CSRF validation
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
+
+    // SECURITY: Rate limiting (10 API keys per hour per user)
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimitKey = `api-keys-create:${user.id}:${clientIp}`;
+    const rateLimit = await checkRateLimit(rateLimitKey, 10, 3600000, 0);
+    
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Maximum 10 API keys per hour.',
+          remaining: rateLimit.remaining 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Remaining': String(rateLimit.remaining)
+          } 
+        }
       );
     }
 
@@ -219,6 +253,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('[INTERNAL] API keys creation error:', error);
     return createSecureErrorResponse(error, 'api-keys-create', corsHeaders);
   }
 });
