@@ -12,6 +12,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { usePasswordStrength } from "@/hooks/usePasswordStrength";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 const signInSchema = z.object({
   publicId: z.string().min(1, { message: "กรุณากรอก Public ID" }).regex(/^[A-Z0-9]{2,6}-\d{6}$/, { message: "รูปแบบ Public ID ไม่ถูกต้อง (เช่น OWN-123456)" }),
@@ -21,7 +23,13 @@ const signInSchema = z.object({
 const signUpSchema = z.object({
   fullName: z.string().min(2, { message: "กรุณากรอกชื่อ-นามสกุล" }),
   email: z.string().email({ message: "กรุณากรอกอีเมลให้ถูกต้อง" }),
-  password: z.string().min(6, { message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" }),
+  password: z
+    .string()
+    .min(12, { message: "รหัสผ่านต้องมีอย่างน้อย 12 ตัวอักษร" })
+    .regex(/[A-Z]/, { message: "รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว" })
+    .regex(/[a-z]/, { message: "รหัสผ่านต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว" })
+    .regex(/[0-9]/, { message: "รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว" })
+    .regex(/[!@#$%^&*]/, { message: "รหัสผ่านต้องมีอักขระพิเศษอย่างน้อย 1 ตัว (!@#$%^&*)" }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "รหัสผ่านไม่ตรงกัน",
@@ -51,6 +59,10 @@ const Auth = () => {
       confirmPassword: "",
     },
   });
+
+  const signUpPassword = signUpForm.watch("password");
+  const signUpConfirmPassword = signUpForm.watch("confirmPassword");
+  const signUpPasswordStrength = usePasswordStrength(signUpPassword, signUpConfirmPassword);
 
   useEffect(() => {
     if (user && !shLoading) {
@@ -201,6 +213,13 @@ const Auth = () => {
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+
+                  {/* Password Strength Meter */}
+                  <PasswordStrengthMeter
+                    strength={signUpPasswordStrength}
+                    password={signUpPassword}
+                    confirmPassword={signUpConfirmPassword}
                   />
 
                   <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>

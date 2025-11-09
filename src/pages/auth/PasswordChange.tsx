@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Eye, EyeOff, AlertCircle, CheckCircle, Lock } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { getCSRFToken } from "@/lib/security/csrf";
+import { usePasswordStrength } from "@/hooks/usePasswordStrength";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 export default function PasswordChange() {
   const navigate = useNavigate();
@@ -21,87 +23,12 @@ export default function PasswordChange() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
-  const [passwordChecks, setPasswordChecks] = useState({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    special: false,
-    match: false,
-  });
-  const [passwordStrength, setPasswordStrength] = useState({
-    score: 0,
-    label: "",
-    color: "",
-  });
+  
+  const passwordStrength = usePasswordStrength(newPassword, confirmPassword);
 
   useEffect(() => {
     checkAuth();
   }, []);
-
-  useEffect(() => {
-    // Update password strength checks
-    const checks = {
-      length: newPassword.length >= 12,
-      uppercase: /[A-Z]/.test(newPassword),
-      lowercase: /[a-z]/.test(newPassword),
-      number: /[0-9]/.test(newPassword),
-      special: /[!@#$%^&*]/.test(newPassword),
-      match: newPassword.length > 0 && newPassword === confirmPassword,
-    };
-    setPasswordChecks(checks);
-
-    // Calculate password strength
-    if (newPassword.length === 0) {
-      setPasswordStrength({ score: 0, label: "", color: "" });
-      return;
-    }
-
-    let score = 0;
-    
-    // Length scoring (0-40 points)
-    if (newPassword.length >= 12) score += 20;
-    if (newPassword.length >= 16) score += 10;
-    if (newPassword.length >= 20) score += 10;
-    
-    // Complexity scoring (60 points)
-    if (checks.uppercase) score += 15;
-    if (checks.lowercase) score += 15;
-    if (checks.number) score += 15;
-    if (checks.special) score += 15;
-    
-    // Variety bonus (check for multiple different characters)
-    const uniqueChars = new Set(newPassword).size;
-    if (uniqueChars >= 8) score += 5;
-    if (uniqueChars >= 12) score += 5;
-
-    // Sequential or repeated character penalty
-    const hasSequential = /(.)\1{2,}/.test(newPassword); // 3+ repeated chars
-    if (hasSequential) score -= 10;
-
-    // Determine strength level
-    let label = "";
-    let color = "";
-    
-    if (score < 30) {
-      label = "อย่อนมาก";
-      color = "text-red-600";
-    } else if (score < 50) {
-      label = "อ่อน";
-      color = "text-orange-600";
-    } else if (score < 70) {
-      label = "ปานกลาง";
-      color = "text-yellow-600";
-    } else if (score < 85) {
-      label = "แข็งแกร่ง";
-      color = "text-green-600";
-    } else {
-      label = "แข็งแกร่งมาก";
-      color = "text-emerald-600";
-    }
-
-    setPasswordStrength({ score: Math.min(100, Math.max(0, score)), label, color });
-  }, [newPassword, confirmPassword]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -136,7 +63,7 @@ export default function PasswordChange() {
       return;
     }
 
-    if (!Object.values(passwordChecks).every(v => v)) {
+    if (!Object.values(passwordStrength.checks).every(v => v)) {
       setError("รหัสผ่านไม่ตรงตามเงื่อนไข");
       return;
     }
@@ -243,34 +170,6 @@ export default function PasswordChange() {
                   {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-              
-              {/* Password Strength Meter */}
-              {newPassword && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">ความแข็งแกร่ง:</span>
-                    <span className={`font-medium ${passwordStrength.color}`}>
-                      {passwordStrength.label}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        passwordStrength.score < 30
-                          ? "bg-red-500"
-                          : passwordStrength.score < 50
-                          ? "bg-orange-500"
-                          : passwordStrength.score < 70
-                          ? "bg-yellow-500"
-                          : passwordStrength.score < 85
-                          ? "bg-green-500"
-                          : "bg-emerald-500"
-                      }`}
-                      style={{ width: `${passwordStrength.score}%` }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -297,37 +196,12 @@ export default function PasswordChange() {
               </div>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <p className="font-medium">เงื่อนไขรหัสผ่าน:</p>
-              <div className="space-y-1">
-                <div className={`flex items-center gap-2 ${passwordChecks.length ? "text-green-600" : "text-muted-foreground"}`}>
-                  {passwordChecks.length ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
-                  <span>อย่างน้อย 12 ตัวอักษร</span>
-                </div>
-                <div className={`flex items-center gap-2 ${passwordChecks.uppercase ? "text-green-600" : "text-muted-foreground"}`}>
-                  {passwordChecks.uppercase ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
-                  <span>มีตัวพิมพ์ใหญ่ (A-Z)</span>
-                </div>
-                <div className={`flex items-center gap-2 ${passwordChecks.lowercase ? "text-green-600" : "text-muted-foreground"}`}>
-                  {passwordChecks.lowercase ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
-                  <span>มีตัวพิมพ์เล็ก (a-z)</span>
-                </div>
-                <div className={`flex items-center gap-2 ${passwordChecks.number ? "text-green-600" : "text-muted-foreground"}`}>
-                  {passwordChecks.number ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
-                  <span>มีตัวเลข (0-9)</span>
-                </div>
-                <div className={`flex items-center gap-2 ${passwordChecks.special ? "text-green-600" : "text-muted-foreground"}`}>
-                  {passwordChecks.special ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
-                  <span>มีอักขระพิเศษ (!@#$%^&*)</span>
-                </div>
-                {confirmPassword && (
-                  <div className={`flex items-center gap-2 ${passwordChecks.match ? "text-green-600" : "text-red-600"}`}>
-                    {passwordChecks.match ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                    <span>รหัสผ่านตรงกัน</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Password Strength Meter */}
+            <PasswordStrengthMeter
+              strength={passwordStrength}
+              password={newPassword}
+              confirmPassword={confirmPassword}
+            />
 
             {error && (
               <Alert variant="destructive">
@@ -339,7 +213,7 @@ export default function PasswordChange() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || !Object.values(passwordChecks).every(v => v)}
+              disabled={loading || !Object.values(passwordStrength.checks).every(v => v)}
             >
               {loading ? "กำลังเปลี่ยนรหัสผ่าน..." : "เปลี่ยนรหัสผ่าน"}
             </Button>

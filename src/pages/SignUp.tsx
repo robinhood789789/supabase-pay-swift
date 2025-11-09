@@ -10,11 +10,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { usePasswordStrength } from "@/hooks/usePasswordStrength";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 const signUpSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z
+    .string()
+    .min(12, { message: "Password must be at least 12 characters" })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .regex(/[!@#$%^&*]/, { message: "Password must contain at least one special character (!@#$%^&*)" }),
   confirmPassword: z.string(),
   referralCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -39,6 +47,10 @@ const SignUp = () => {
       referralCode: referralCode || "",
     },
   });
+
+  const password = form.watch("password");
+  const confirmPassword = form.watch("confirmPassword");
+  const passwordStrength = usePasswordStrength(password, confirmPassword);
 
   useEffect(() => {
     if (user) {
@@ -141,6 +153,13 @@ const SignUp = () => {
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              {/* Password Strength Meter */}
+              <PasswordStrengthMeter
+                strength={passwordStrength}
+                password={password}
+                confirmPassword={confirmPassword}
               />
 
               {!referralCode && (
