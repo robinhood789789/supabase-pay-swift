@@ -21,10 +21,11 @@ export function AnimatedBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Get computed primary color from CSS variable
+    // Get computed primary color from CSS variable and build HSLA helper (comma-separated for Canvas)
     const computedStyle = getComputedStyle(document.documentElement);
-    const primaryHSL = computedStyle.getPropertyValue('--primary').trim();
-    const primaryColor = `hsl(${primaryHSL})`;
+    const primaryHSLRaw = computedStyle.getPropertyValue('--primary').trim() || '250 95% 64%';
+    const primaryHSL = primaryHSLRaw.replace(/\s+/g, ', ');
+    const hsla = (a: number) => `hsla(${primaryHSL}, ${Math.max(0, Math.min(1, a))})`;
 
     // Set canvas size
     const resizeCanvas = () => {
@@ -68,7 +69,7 @@ export function AnimatedBackground() {
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         // Convert HSL to rgba for canvas
-        ctx.fillStyle = primaryColor.replace('hsl', 'hsla').replace(')', `, ${particle.opacity})`);
+        ctx.fillStyle = hsla(particle.opacity);
         ctx.fill();
 
         // Draw glow effect
@@ -80,8 +81,8 @@ export function AnimatedBackground() {
           particle.y,
           particle.size * 3
         );
-        gradient.addColorStop(0, primaryColor.replace('hsl', 'hsla').replace(')', `, ${particle.opacity * 0.5})`));
-        gradient.addColorStop(1, primaryColor.replace('hsl', 'hsla').replace(')', `, 0)`));
+        gradient.addColorStop(0, hsla(particle.opacity * 0.5));
+        gradient.addColorStop(1, hsla(0));
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size * 3, 0, Math.PI * 2);
@@ -107,7 +108,7 @@ export function AnimatedBackground() {
 
           if (distance < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = primaryColor.replace('hsl', 'hsla').replace(')', `, ${0.15 * (1 - distance / 100)})`);
+            ctx.strokeStyle = hsla(0.15 * (1 - distance / 100));
             ctx.lineWidth = 0.5;
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
