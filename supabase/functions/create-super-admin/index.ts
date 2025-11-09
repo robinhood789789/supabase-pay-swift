@@ -19,8 +19,13 @@ Deno.serve(async (req) => {
     // Parse request body
     const { email, password, full_name, secret_key } = await req.json();
 
-    // Verify secret key (for security - this should match a secret you set)
-    const SUPER_ADMIN_SECRET = Deno.env.get('SUPER_ADMIN_CREATION_SECRET') || 'create-super-admin-secret-2024';
+    // Verify secret key (CRITICAL SECURITY: No default value)
+    const SUPER_ADMIN_SECRET = Deno.env.get('SUPER_ADMIN_CREATION_SECRET');
+    
+    if (!SUPER_ADMIN_SECRET) {
+      console.error('SUPER_ADMIN_CREATION_SECRET not configured');
+      throw new Error('Server configuration error');
+    }
     
     if (secret_key !== SUPER_ADMIN_SECRET) {
       throw new Error('Invalid secret key');
