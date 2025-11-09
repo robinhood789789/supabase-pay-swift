@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Download, Copy, CheckCircle, AlertCircle } from "lucide-react";
+import { Download, Copy, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import QRCode from "qrcode";
 import { getCSRFToken } from "@/lib/security/csrf";
+import { generateTOTPSecret, getTOTPQRCodeUrl } from "@/lib/security/totp";
 
 export default function MfaEnroll() {
   const navigate = useNavigate();
@@ -22,6 +23,9 @@ export default function MfaEnroll() {
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [copiedBackup, setCopiedBackup] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   useEffect(() => {
     checkAuthAndInitEnroll();
@@ -63,6 +67,8 @@ export default function MfaEnroll() {
 
   const initEnrollment = async () => {
     try {
+      setUseFallback(false);
+      
       // Get CSRF token and session for authentication
       const csrfToken = getCSRFToken();
       const { data: { session } } = await supabase.auth.getSession();
@@ -90,10 +96,50 @@ export default function MfaEnroll() {
       }
       
       setSecret(data.secret);
+      setRetryCount(0);
       setLoading(false);
     } catch (err: any) {
       console.error("Enrollment init error:", err);
-      setError("ไม่สามารถเริ่มการลงทะเบียน MFA ได้");
+      
+      // Use client-side fallback
+      await initFallbackEnrollment();
+    }
+  };
+
+  const initFallbackEnrollment = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("User email not found");
+
+      toast.warning("ใช้โหมดสำรอง", {
+        description: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กำลังสร้าง QR code ในเบราว์เซอร์"
+      });
+
+      // Generate secret client-side
+      const clientSecret = generateTOTPSecret();
+      const otpauthUrl = getTOTPQRCodeUrl(clientSecret, user.email, 'Payment Platform');
+      
+      // Generate QR code
+      const qrDataUrl = await QRCode.toDataURL(otpauthUrl, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      setQrCodeUrl(qrDataUrl);
+      setSecret(clientSecret);
+      setUseFallback(true);
+      setLoading(false);
+      
+      toast.info("โปรดทราบ", {
+        description: "คุณกำลังใช้โหมดสำรอง กรุณายืนยัน MFA ให้เรียบร้อย"
+      });
+    } catch (err: any) {
+      console.error("Fallback enrollment error:", err);
+      setError("ไม่สามารถสร้าง QR code ได้ กรุณาลองใหม่อีกครั้ง");
       setLoading(false);
     }
   };
@@ -103,9 +149,13 @@ export default function MfaEnroll() {
     setError("");
     setQrCodeUrl("");
     setSecret("");
+    setUseFallback(false);
     setLoading(true);
     
-    toast.info("เริ่มต้นใหม่...");
+    const newRetryCount = retryCount + 1;
+    setRetryCount(newRetryCount);
+    
+    toast.info(`เริ่มต้นใหม่... (ครั้งที่ ${newRetryCount})`);
     await initEnrollment();
   };
 
@@ -183,6 +233,21 @@ export default function MfaEnroll() {
       navigate("/auth/password-change");
     } else {
       navigate(location.state?.returnTo || "/dashboard");
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) return;
+      
+      const otpauthUrl = getTOTPQRCodeUrl(secret, user.email, 'Payment Platform');
+      await navigator.clipboard.writeText(otpauthUrl);
+      setCopiedUrl(true);
+      toast.success("คัดลอก URL แล้ว");
+      setTimeout(() => setCopiedUrl(false), 2000);
+    } catch (err) {
+      toast.error("ไม่สามารถคัดลอกได้");
     }
   };
 
@@ -270,6 +335,15 @@ export default function MfaEnroll() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {useFallback && (
+            <Alert variant="default" className="border-orange-500">
+              <AlertCircle className="h-4 w-4 text-orange-500" />
+              <AlertDescription>
+                <strong>โหมดสำรอง:</strong> กำลังใช้ QR code ที่สร้างในเบราว์เซอร์ หากต้องการใช้เซิร์ฟเวอร์ กรุณาคลิก "เริ่มต้นใหม่"
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -280,11 +354,21 @@ export default function MfaEnroll() {
           {qrCodeUrl && (
             <div className="flex flex-col items-center space-y-4">
               <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 border rounded-lg" />
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground mb-2">หรือกรอกรหัสด้วยตนเอง:</p>
                 <code className="bg-muted px-3 py-1 rounded text-sm break-all">
                   {secret}
                 </code>
+                <div className="pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyUrl}
+                  >
+                    {copiedUrl ? <CheckCircle className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                    {copiedUrl ? "คัดลอก URL แล้ว" : "คัดลอก otpauth:// URL"}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -339,6 +423,7 @@ export default function MfaEnroll() {
               onClick={handleReset}
               disabled={enrolling}
             >
+              <RefreshCw className="h-4 w-4 mr-2" />
               เริ่มต้นใหม่ (สร้าง QR Code ใหม่)
             </Button>
           </div>
