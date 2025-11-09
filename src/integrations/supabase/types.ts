@@ -1744,6 +1744,7 @@ export type Database = {
           direction: Database["public"]["Enums"]["tx_direction"]
           fee: number
           id: string
+          is_verified: boolean | null
           metadata: Json | null
           method: Database["public"]["Enums"]["tx_method"]
           net_amount: number
@@ -1756,6 +1757,9 @@ export type Database = {
           status: Database["public"]["Enums"]["tx_status"]
           tenant_id: string | null
           type: Database["public"]["Enums"]["tx_type"]
+          verification_note: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           amount: number
@@ -1766,6 +1770,7 @@ export type Database = {
           direction: Database["public"]["Enums"]["tx_direction"]
           fee?: number
           id?: string
+          is_verified?: boolean | null
           metadata?: Json | null
           method: Database["public"]["Enums"]["tx_method"]
           net_amount: number
@@ -1778,6 +1783,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["tx_status"]
           tenant_id?: string | null
           type: Database["public"]["Enums"]["tx_type"]
+          verification_note?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           amount?: number
@@ -1788,6 +1796,7 @@ export type Database = {
           direction?: Database["public"]["Enums"]["tx_direction"]
           fee?: number
           id?: string
+          is_verified?: boolean | null
           metadata?: Json | null
           method?: Database["public"]["Enums"]["tx_method"]
           net_amount?: number
@@ -1800,6 +1809,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["tx_status"]
           tenant_id?: string | null
           type?: Database["public"]["Enums"]["tx_type"]
+          verification_note?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {

@@ -4,20 +4,33 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { RequireTenant } from "@/components/RequireTenant";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
+import { useRoleVisibility } from "@/hooks/useRoleVisibility";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign } from "lucide-react";
+import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2 } from "lucide-react";
+import { TransactionDetailDrawer } from "@/components/TransactionDetailDrawer";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function TransactionDashboard() {
   const { activeTenantId } = useTenantSwitcher();
+  const { isViewer } = useRoleVisibility();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // ดึงข้อมูลยอด wallet
   const { data: wallet, isLoading: walletLoading } = useQuery({
@@ -38,7 +51,7 @@ export default function TransactionDashboard() {
 
   // ดึงข้อมูล transactions
   const { data: transactions, isLoading: txLoading } = useQuery({
-    queryKey: ["transactions", activeTenantId, statusFilter, typeFilter],
+    queryKey: ["transactions", activeTenantId, statusFilter, typeFilter, dateRange],
     queryFn: async () => {
       if (!activeTenantId) return [];
       
@@ -54,6 +67,16 @@ export default function TransactionDashboard() {
       
       if (typeFilter !== "all") {
         query = query.eq("type", typeFilter.toUpperCase() as any);
+      }
+
+      // Date range filter
+      if (dateRange.from) {
+        query = query.gte("created_at", dateRange.from.toISOString());
+      }
+      if (dateRange.to) {
+        const toDate = new Date(dateRange.to);
+        toDate.setHours(23, 59, 59, 999);
+        query = query.lte("created_at", toDate.toISOString());
       }
 
       const { data, error } = await query;
@@ -110,6 +133,41 @@ export default function TransactionDashboard() {
     { label: "Withdrawal", value: "withdrawal" },
     { label: "Transfer", value: "transfer" },
   ];
+
+  const handleExport = () => {
+    if (!filteredTransactions || filteredTransactions.length === 0) {
+      toast.error("ไม่มีข้อมูลให้ Export");
+      return;
+    }
+
+    const csvContent = [
+      ["วันที่", "Reference", "Type", "Method", "Amount", "Fee", "Net Amount", "Status", "Counterparty", "Verified"].join(","),
+      ...filteredTransactions.map(tx => [
+        format(new Date(tx.created_at), "dd/MM/yyyy HH:mm"),
+        tx.reference || "",
+        tx.type,
+        tx.method,
+        tx.amount,
+        tx.fee,
+        tx.net_amount,
+        tx.status,
+        tx.counterparty || "",
+        tx.is_verified ? "Yes" : "No",
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `transactions_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
+    link.click();
+    toast.success("Export สำเร็จ");
+  };
+
+  const handleViewDetail = (transaction: any) => {
+    setSelectedTransaction(transaction);
+    setIsDetailOpen(true);
+  };
 
   return (
     <DashboardLayout>
@@ -210,6 +268,81 @@ export default function TransactionDashboard() {
                   />
                 </div>
               </div>
+
+              {/* Date Range Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">ช่วงวันที่</label>
+                <div className="flex gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal flex-1",
+                          !dateRange.from && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.from ? format(dateRange.from, "dd/MM/yyyy") : "เริ่มต้น"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.from}
+                        onSelect={(date) => setDateRange({ ...dateRange, from: date })}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal flex-1",
+                          !dateRange.to && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.to ? format(dateRange.to, "dd/MM/yyyy") : "สิ้นสุด"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.to}
+                        onSelect={(date) => setDateRange({ ...dateRange, to: date })}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {(dateRange.from || dateRange.to) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDateRange({ from: undefined, to: undefined })}
+                    >
+                      ล้าง
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Export Button */}
+              <div className="pt-2">
+                <Button 
+                  onClick={handleExport} 
+                  variant="outline"
+                  className="w-full"
+                  disabled={!filteredTransactions || filteredTransactions.length === 0}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export รายงาน CSV
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -241,7 +374,8 @@ export default function TransactionDashboard() {
                         <TableHead className="text-right">Fee</TableHead>
                         <TableHead className="text-right">Net Amount</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Counterparty</TableHead>
+                        <TableHead>Verified</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -267,7 +401,27 @@ export default function TransactionDashboard() {
                             </span>
                           </TableCell>
                           <TableCell>{getStatusBadge(tx.status)}</TableCell>
-                          <TableCell className="text-sm">{tx.counterparty || "-"}</TableCell>
+                          <TableCell>
+                            {tx.is_verified ? (
+                              <Badge variant="default" className="bg-green-600">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                Verified
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-yellow-600">
+                                Pending
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetail(tx)}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -282,6 +436,13 @@ export default function TransactionDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Transaction Detail Drawer */}
+        <TransactionDetailDrawer
+          transaction={selectedTransaction}
+          open={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+        />
       </RequireTenant>
     </DashboardLayout>
   );
