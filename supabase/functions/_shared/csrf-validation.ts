@@ -3,6 +3,12 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Provide CORS headers for all CSRF responses to avoid browser "Failed to fetch" on errors
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
+};
+
 export async function validateCSRFToken(
   req: Request,
   userId: string
@@ -14,14 +20,14 @@ export async function validateCSRFToken(
     return { valid: false, reason: 'CSRF token required' };
   }
   
-  // Get CSRF token from cookie (double-submit cookie pattern)
+  // Try double-submit cookie pattern (optional in cross-origin Edge calls)
   const cookieHeader = req.headers.get('cookie') || '';
   const cookies = cookieHeader.split(';').map(c => c.trim());
   const csrfCookie = cookies.find(c => c.startsWith('csrf_token='));
   const cookieToken = csrfCookie?.split('=')[1];
   
-  // Verify double-submit pattern
-  if (cookieToken !== csrfToken) {
+  // If cookie is present, enforce match. If absent (cross-origin), continue with DB check
+  if (cookieToken && cookieToken !== csrfToken) {
     return { valid: false, reason: 'CSRF token mismatch' };
   }
   
@@ -55,7 +61,7 @@ export async function requireCSRF(req: Request, userId: string): Promise<Respons
       JSON.stringify({ error: result.reason || 'CSRF validation failed' }),
       {
         status: 403,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }
