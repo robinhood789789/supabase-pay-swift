@@ -36,7 +36,7 @@ export default function PasswordChange() {
   useEffect(() => {
     // Update password strength checks
     setPasswordChecks({
-      length: newPassword.length >= 10,
+      length: newPassword.length >= 12,
       uppercase: /[A-Z]/.test(newPassword),
       lowercase: /[a-z]/.test(newPassword),
       number: /[0-9]/.test(newPassword),
@@ -215,7 +215,7 @@ export default function PasswordChange() {
               <div className="space-y-1">
                 <div className={`flex items-center gap-2 ${passwordChecks.length ? "text-green-600" : "text-muted-foreground"}`}>
                   {passwordChecks.length ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}
-                  <span>อย่างน้อย 10 ตัวอักษร</span>
+                  <span>อย่างน้อย 12 ตัวอักษร</span>
                 </div>
                 <div className={`flex items-center gap-2 ${passwordChecks.uppercase ? "text-green-600" : "text-muted-foreground"}`}>
                   {passwordChecks.uppercase ? <CheckCircle className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2" />}

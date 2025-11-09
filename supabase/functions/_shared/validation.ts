@@ -58,7 +58,7 @@ export function validateFullName(fullName: string): ValidationError | null {
   return null;
 }
 
-// Password validation
+// Password validation with complexity requirements
 export function validatePassword(password: string): ValidationError | null {
   if (!password || typeof password !== 'string') {
     return { field: 'password', message: 'Password is required' };
@@ -70,6 +70,19 @@ export function validatePassword(password: string): ValidationError | null {
   
   if (password.length > 128) {
     return { field: 'password', message: 'Password must be less than 128 characters' };
+  }
+  
+  // Check for complexity requirements
+  if (!/[A-Z]/.test(password)) {
+    return { field: 'password', message: 'Password must contain at least one uppercase letter' };
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    return { field: 'password', message: 'Password must contain at least one lowercase letter' };
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    return { field: 'password', message: 'Password must contain at least one number' };
   }
   
   return null;
