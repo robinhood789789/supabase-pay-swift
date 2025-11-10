@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useParallax } from "@/hooks/useParallax";
 
 interface Particle {
   x: number;
@@ -25,6 +26,12 @@ export function AnimatedBackground() {
   const particlesRef = useRef<Particle[]>([]);
   const starsRef = useRef<Star[]>([]);
   const animationFrameRef = useRef<number>();
+  
+  // Parallax effects with different speeds for depth
+  const parallaxSlow = useParallax(0.1);
+  const parallaxMedium = useParallax(0.2);
+  const parallaxFast = useParallax(0.3);
+  const parallaxVeryFast = useParallax(0.4);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -219,58 +226,64 @@ export function AnimatedBackground() {
       {/* Grid pattern overlay */}
       <div className="fixed inset-0 pointer-events-none z-0 grid-pattern opacity-5" />
       
-      {/* Nebula layers - Red Spider Nebula inspired */}
+      {/* Nebula layers - Red Spider Nebula inspired with Parallax */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Red nebula core */}
+        {/* Red nebula core - Slowest (far background) */}
         <div 
-          className="absolute top-1/4 -left-1/4 w-[800px] h-[800px] rounded-full blur-3xl animate-nebula-pulse"
+          className="absolute top-1/4 -left-1/4 w-[800px] h-[800px] rounded-full blur-3xl animate-nebula-pulse transition-transform duration-100 ease-out"
           style={{
             background: 'radial-gradient(ellipse at center, hsl(0 95% 55% / 0.35) 0%, hsl(15 100% 60% / 0.25) 40%, transparent 70%)',
+            transform: `translateY(${parallaxSlow}px)`,
           }}
         />
         
-        {/* Orange nebula dust */}
+        {/* Orange nebula dust - Slow-medium */}
         <div 
-          className="absolute top-1/3 right-1/4 w-[700px] h-[700px] rounded-full blur-3xl animate-nebula-pulse"
+          className="absolute top-1/3 right-1/4 w-[700px] h-[700px] rounded-full blur-3xl animate-nebula-pulse transition-transform duration-100 ease-out"
           style={{
             background: 'radial-gradient(circle at center, hsl(15 100% 60% / 0.3) 0%, hsl(340 95% 65% / 0.2) 50%, transparent 75%)',
             animationDelay: '2s',
+            transform: `translateY(${parallaxMedium}px)`,
           }}
         />
         
-        {/* Pink nebula wisps */}
+        {/* Pink nebula wisps - Medium */}
         <div 
-          className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] rounded-full blur-3xl animate-nebula-pulse"
+          className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] rounded-full blur-3xl animate-nebula-pulse transition-transform duration-100 ease-out"
           style={{
             background: 'radial-gradient(ellipse at center, hsl(340 95% 65% / 0.28) 0%, hsl(355 85% 45% / 0.18) 60%, transparent 80%)',
             animationDelay: '4s',
+            transform: `translateY(${parallaxMedium}px)`,
           }}
         />
         
-        {/* Aurora cyan orb */}
+        {/* Aurora cyan orb - Fast (closer) */}
         <div 
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl animate-float"
+          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl animate-float transition-transform duration-100 ease-out"
           style={{
             background: 'radial-gradient(circle at center, hsl(189 100% 50% / 0.25) 0%, hsl(160 70% 55% / 0.15) 50%, transparent 75%)',
             animationDelay: '1s',
+            transform: `translateY(${parallaxFast}px)`,
           }}
         />
         
-        {/* Aurora purple orb */}
+        {/* Aurora purple orb - Very fast (closest) */}
         <div 
-          className="absolute bottom-0 -right-1/4 w-[700px] h-[700px] rounded-full blur-3xl animate-float"
+          className="absolute bottom-0 -right-1/4 w-[700px] h-[700px] rounded-full blur-3xl animate-float transition-transform duration-100 ease-out"
           style={{
             background: 'radial-gradient(ellipse at center, hsl(280 100% 60% / 0.28) 0%, hsl(230 100% 60% / 0.18) 60%, transparent 80%)',
             animationDelay: '3s',
+            transform: `translateY(${parallaxVeryFast}px)`,
           }}
         />
         
-        {/* Deep space vortex center */}
+        {/* Deep space vortex center - Medium depth */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl animate-nebula-pulse"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full blur-3xl animate-nebula-pulse transition-transform duration-100 ease-out"
           style={{
             background: 'radial-gradient(circle at center, hsl(355 85% 45% / 0.2) 0%, hsl(280 100% 60% / 0.15) 40%, hsl(189 100% 50% / 0.1) 70%, transparent 100%)',
             animationDelay: '5s',
+            transform: `translateY(${parallaxMedium}px) translateX(-50%)`,
           }}
         />
       </div>
