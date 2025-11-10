@@ -205,17 +205,17 @@ const DashboardSidebar = () => {
   ];
 
   return (
-    <Sidebar className="w-64 border-r" collapsible="icon">
+    <Sidebar className="w-64 border-r bg-background" collapsible="icon">
       <SidebarContent>
-        <div className="p-4 border-b border-sidebar-border">
+        <div className="p-4 border-b border-border bg-card">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="w-4 h-4 text-primary" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-sm">SaaS Platform</h2>
-                <p className="text-xs text-muted-foreground/70 font-mono">
+                <h2 className="font-semibold text-sm text-foreground">SaaS Platform</h2>
+                <p className="text-xs text-muted-foreground font-mono">
                   ID: {publicId || "-"}
                 </p>
               </div>
@@ -225,7 +225,7 @@ const DashboardSidebar = () => {
 
         {/* Main Menu - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && userMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-primary bg-primary/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-primary/30 bg-primary/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-primary font-semibold">{t('dashboard.overview')}</SidebarGroupLabel>
             <SidebarGroupContent>
                 <SidebarMenu>
@@ -237,8 +237,8 @@ const DashboardSidebar = () => {
                         end
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-primary/20 text-primary font-medium shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] border-l-2 border-primary"
-                            : "hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)] hover:border-l-2 hover:border-primary/50 transition-all duration-300"
+                            ? "bg-primary/15 text-primary font-medium border-l-2 border-primary"
+                            : "text-foreground hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -254,7 +254,7 @@ const DashboardSidebar = () => {
 
         {/* Transaction Menu - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && (transactionMenuItems.length > 0 || showSystemDeposit) && (
-          <SidebarGroup className="border-l-[6px] border-secondary bg-secondary/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-secondary/30 bg-secondary/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-secondary font-semibold">ธุรกรรม</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -265,8 +265,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-secondary/20 text-secondary font-medium shadow-[0_0_15px_rgba(var(--secondary-rgb),0.3)] border-l-2 border-secondary"
-                            : "hover:bg-secondary/10 hover:text-secondary hover:shadow-[0_0_15px_rgba(var(--secondary-rgb),0.2)] hover:border-l-2 hover:border-secondary/50 transition-all duration-300"
+                            ? "bg-secondary/15 text-secondary font-medium border-l-2 border-secondary"
+                            : "text-foreground hover:bg-secondary/10 hover:text-secondary hover:border-l-2 hover:border-secondary/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -329,7 +329,7 @@ const DashboardSidebar = () => {
 
         {/* Owner Menu (Tenant Management) - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && ownerMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-accent bg-accent/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-accent/30 bg-accent/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-accent font-semibold">Organization</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -340,8 +340,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-accent/20 text-accent font-medium shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] border-l-2 border-accent"
-                            : "hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)] hover:border-l-2 hover:border-accent/50 transition-all duration-300"
+                            ? "bg-accent/15 text-accent font-medium border-l-2 border-accent"
+                            : "text-foreground hover:bg-accent/10 hover:text-accent hover:border-l-2 hover:border-accent/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -357,7 +357,7 @@ const DashboardSidebar = () => {
 
         {/* Management Menu - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && managementMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-warning bg-warning/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-warning/30 bg-warning/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-warning font-semibold">Management</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -368,8 +368,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-warning/20 text-warning font-medium shadow-[0_0_15px_rgba(var(--warning-rgb),0.3)] border-l-2 border-warning"
-                            : "hover:bg-warning/10 hover:text-warning hover:shadow-[0_0_15px_rgba(var(--warning-rgb),0.2)] hover:border-l-2 hover:border-warning/50 transition-all duration-300"
+                            ? "bg-warning/15 text-warning font-medium border-l-2 border-warning"
+                            : "text-foreground hover:bg-warning/10 hover:text-warning hover:border-l-2 hover:border-warning/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -385,7 +385,7 @@ const DashboardSidebar = () => {
 
         {/* Developers Menu - H-3: แยก API/Webhooks/Docs - Hidden for Shareholder */}
         {!isSuperAdmin && !isShareholder && developersMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-blue-500 bg-blue-500/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-blue-500/30 bg-blue-500/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-blue-600 font-semibold">Developers</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -396,8 +396,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-blue-500/20 text-blue-400 font-medium shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-2 border-blue-500"
-                            : "hover:bg-blue-500/10 hover:text-blue-400 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:border-l-2 hover:border-blue-500/50 transition-all duration-300"
+                            ? "bg-blue-500/15 text-blue-600 font-medium border-l-2 border-blue-500"
+                            : "text-foreground hover:bg-blue-500/10 hover:text-blue-600 hover:border-l-2 hover:border-blue-500/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -413,7 +413,7 @@ const DashboardSidebar = () => {
 
         {/* Settings & Docs - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && (settingsMenuItems.length > 0 || goLiveItems.length > 0) && (
-          <SidebarGroup className="border-l-[6px] border-accent bg-accent/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-accent/30 bg-accent/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupContent>
               <SidebarMenu>
                 {[...settingsMenuItems, ...goLiveItems].map((item) => {
@@ -424,8 +424,8 @@ const DashboardSidebar = () => {
                           to={item.url}
                           className={({ isActive }) =>
                             isActive
-                              ? "bg-accent/20 text-accent font-medium shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] border-l-2 border-accent"
-                              : "hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)] hover:border-l-2 hover:border-accent/50 transition-all duration-300"
+                              ? "bg-accent/15 text-accent font-medium border-l-2 border-accent"
+                              : "text-foreground hover:bg-accent/10 hover:text-accent hover:border-l-2 hover:border-accent/50 transition-all duration-300"
                           }
                         >
                           <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -444,7 +444,7 @@ const DashboardSidebar = () => {
         )}
 
         {isSuperAdmin && (
-          <SidebarGroup className="border-l-[6px] border-destructive bg-destructive/5 pl-3 py-2 rounded-r-lg">
+          <SidebarGroup className="border-l-[6px] border-destructive/30 bg-destructive/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-destructive font-semibold">Super Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -455,8 +455,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-destructive/20 text-destructive font-medium shadow-[0_0_15px_rgba(var(--destructive-rgb),0.3)] border-l-2 border-destructive"
-                            : "hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_15px_rgba(var(--destructive-rgb),0.2)] hover:border-l-2 hover:border-destructive/50 transition-all duration-300"
+                            ? "bg-destructive/15 text-destructive font-medium border-l-2 border-destructive"
+                            : "text-foreground hover:bg-destructive/10 hover:text-destructive hover:border-l-2 hover:border-destructive/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -472,8 +472,8 @@ const DashboardSidebar = () => {
 
         {/* Debug Menu - Available for testing (not for limited role users or shareholder) */}
         {!isSuperAdmin && !isShareholder && (isOwner || hasPermission("api_keys.view")) && (
-          <SidebarGroup className="border-l-[6px] border-yellow-500 bg-yellow-500/5 pl-3 py-2 rounded-r-lg">
-            <SidebarGroupLabel className="text-yellow-600 font-semibold">Debug</SidebarGroupLabel>
+          <SidebarGroup className="border-l-[6px] border-yellow-500/30 bg-yellow-500/5 pl-3 py-2 rounded-r-lg">
+            <SidebarGroupLabel className="text-yellow-700 font-semibold">Debug</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {debugMenuItems.map((item) => (
@@ -483,8 +483,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-accent/20 text-accent font-medium shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] border-l-2 border-accent"
-                            : "hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)] hover:border-l-2 hover:border-accent/50 transition-all duration-300"
+                            ? "bg-yellow-500/15 text-yellow-700 font-medium border-l-2 border-yellow-500"
+                            : "text-foreground hover:bg-yellow-500/10 hover:text-yellow-700 hover:border-l-2 hover:border-yellow-500/50 transition-all duration-300"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
@@ -498,11 +498,11 @@ const DashboardSidebar = () => {
           </SidebarGroup>
         )}
 
-        <div className="mt-auto p-4 border-t border-sidebar-border space-y-3">
+        <div className="mt-auto p-4 border-t border-border bg-card/50 space-y-3">
           {!isCollapsed && (
             <div className="space-y-2 mb-3">
               <p className="text-xs text-muted-foreground">Logged in as:</p>
-              <p className="text-sm font-medium truncate">{user?.email}</p>
+              <p className="text-sm font-medium truncate text-foreground">{user?.email}</p>
               {isSuperAdmin && (
                 <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-destructive">
                   Super Admin

@@ -67,17 +67,17 @@ const PlatformSidebar = () => {
   ];
 
   return (
-    <Sidebar className="w-64 border-r" collapsible="icon">
+    <Sidebar className="w-64 border-r bg-background" collapsible="icon">
       <SidebarContent>
-        <div className="p-5 border-b border-primary/30 bg-gradient-to-br from-card via-card/95 to-primary/5 backdrop-blur-sm">
+        <div className="p-5 border-b border-border bg-card">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow-info">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-primary" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-base text-foreground tracking-wide">Platform Admin</h2>
-                <p className="text-sm text-primary font-mono font-semibold mt-0.5 glow-text">
+                <p className="text-sm text-primary font-mono font-semibold mt-0.5">
                   ID: {publicId || "-"}
                 </p>
               </div>
@@ -99,8 +99,8 @@ const PlatformSidebar = () => {
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-primary/20 text-primary font-semibold shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] border-l-2 border-primary text-sm"
-                          : "hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)] hover:border-l-2 hover:border-primary/50 text-foreground text-sm font-medium transition-all duration-300"
+                          ? "bg-primary/15 text-primary font-semibold border-l-2 border-primary text-sm"
+                          : "text-foreground hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 text-sm font-medium transition-all duration-300"
                       }
                     >
                       <item.icon className="mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
@@ -113,7 +113,7 @@ const PlatformSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-4 border-t border-primary/20">
+        <div className="mt-auto p-4 border-t border-border bg-card/50">
           <Button
             variant="ghost"
             onClick={handleSignOut}
