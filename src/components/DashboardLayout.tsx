@@ -528,7 +528,7 @@ const DashboardSidebar = () => {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full overflow-x-hidden">
         <DashboardSidebar />
         
