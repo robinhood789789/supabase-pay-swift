@@ -12,10 +12,10 @@ All colors MUST be HSL.
     --foreground: 220 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
+    --card-foreground: 220 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
+    --popover-foreground: 220 25% 10%;
 
     --primary: 189 100% 50%;
     --primary-foreground: 0 0% 100%;
@@ -25,7 +25,7 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 45%;
+    --muted-foreground: 220 20% 30%;
 
     --accent: 326 100% 55%;
     --accent-foreground: 0 0% 100%;
@@ -104,10 +104,10 @@ All colors MUST be HSL.
     --foreground: 220 15% 95%;
 
     --card: 230 35% 12%;
-    --card-foreground: 0 0% 100%;
+    --card-foreground: 189 50% 98%;
 
     --popover: 220 30% 10%;
-    --popover-foreground: 0 0% 100%;
+    --popover-foreground: 189 50% 98%;
 
     --primary: 189 100% 50%;
     --primary-foreground: 0 0% 100%;
@@ -117,7 +117,7 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 30% 12%;
-    --muted-foreground: 220 15% 95%;
+    --muted-foreground: 189 30% 85%;
 
     --accent: 326 100% 55%;
     --accent-foreground: 0 0% 100%;
@@ -183,6 +183,15 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Enhanced text readability on glass surfaces */
+  .glass-text {
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
+  }
+  
+  .glass-text-light {
+    text-shadow: 0 1px 2px hsl(0 0% 100% / 0.5);
   }
 }
 
