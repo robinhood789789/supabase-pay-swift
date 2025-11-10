@@ -23,7 +23,7 @@ const COLOR_HARMONIES: Record<ColorHarmony, ColorPreset> = {
     colors: {
       primary: "189 100% 50%",
       secondary: "45 85% 55%",
-      accent: "326 50% 45%",
+      accent: "142 70% 45%",
     },
   },
   complementary: {
