@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 interface Star {
   x: number;
@@ -80,14 +82,100 @@ const constellations: Constellation[] = [
       [0, 1], [0, 2], [1, 3], [2, 4], [3, 4]
     ],
   },
+  {
+    name: "Cygnus",
+    description: "The Swan - Also known as the Northern Cross",
+    position: { x: 40, y: 10 },
+    stars: [
+      { x: 50, y: 20, brightness: 0.95 },
+      { x: 50, y: 40, brightness: 0.85 },
+      { x: 50, y: 60, brightness: 0.9 },
+      { x: 30, y: 45, brightness: 0.75 },
+      { x: 70, y: 45, brightness: 0.75 },
+      { x: 50, y: 80, brightness: 0.8 },
+    ],
+    connections: [
+      [0, 1], [1, 2], [2, 5], [1, 3], [1, 4]
+    ],
+  },
+  {
+    name: "Draco",
+    description: "The Dragon - Winds between Ursa Major and Minor",
+    position: { x: 5, y: 40 },
+    stars: [
+      { x: 30, y: 20, brightness: 0.85 },
+      { x: 45, y: 25, brightness: 0.8 },
+      { x: 60, y: 35, brightness: 0.85 },
+      { x: 70, y: 50, brightness: 0.8 },
+      { x: 65, y: 65, brightness: 0.75 },
+      { x: 50, y: 70, brightness: 0.8 },
+      { x: 35, y: 65, brightness: 0.75 },
+      { x: 25, y: 50, brightness: 0.8 },
+    ],
+    connections: [
+      [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0]
+    ],
+  },
+  {
+    name: "Scorpius",
+    description: "The Scorpion - Features the red supergiant Antares",
+    position: { x: 50, y: 70 },
+    stars: [
+      { x: 20, y: 30, brightness: 1 },
+      { x: 30, y: 35, brightness: 0.85 },
+      { x: 40, y: 40, brightness: 0.8 },
+      { x: 50, y: 50, brightness: 0.8 },
+      { x: 60, y: 55, brightness: 0.75 },
+      { x: 70, y: 65, brightness: 0.8 },
+      { x: 75, y: 75, brightness: 0.7 },
+    ],
+    connections: [
+      [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]
+    ],
+  },
 ];
 
 export function ConstellationOverlay() {
   const [hoveredConstellation, setHoveredConstellation] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(() => {
+    const saved = localStorage.getItem('constellations-visible');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('constellations-visible', JSON.stringify(isVisible));
+  }, [isVisible]);
 
   return (
     <TooltipProvider>
       <div className="fixed inset-0 pointer-events-none z-[5]">
+        {/* Toggle Control */}
+        <div className="fixed bottom-6 right-6 pointer-events-auto z-10">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsVisible(!isVisible)}
+                className="backdrop-blur-xl bg-glass border-glass-border hover:bg-glass/80 transition-all duration-300"
+              >
+                {isVisible ? (
+                  <Eye className="h-5 w-5 text-primary" />
+                ) : (
+                  <EyeOff className="h-5 w-5 text-muted-foreground" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="left" 
+              className="backdrop-blur-xl bg-glass border-glass-border text-card-foreground"
+            >
+              {isVisible ? "Hide constellations" : "Show constellations"}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {!isVisible && <div />}
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             {/* Glow filter for stars */}
@@ -109,7 +197,7 @@ export function ConstellationOverlay() {
             </filter>
           </defs>
 
-          {constellations.map((constellation) => {
+          {isVisible && constellations.map((constellation) => {
             const isHovered = hoveredConstellation === constellation.name;
             const baseX = (constellation.position.x / 100) * (typeof window !== 'undefined' ? window.innerWidth : 1920);
             const baseY = (constellation.position.y / 100) * (typeof window !== 'undefined' ? window.innerHeight : 1080);
