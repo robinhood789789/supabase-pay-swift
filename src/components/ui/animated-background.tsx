@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParallax } from "@/hooks/useParallax";
+import { ConstellationOverlay } from "./constellation-overlay";
 
 interface Particle {
   x: number;
@@ -444,6 +445,9 @@ export function AnimatedBackground() {
 
       {/* Scan lines effect */}
       <div className="fixed inset-0 pointer-events-none z-0 scan-line opacity-5" />
+      
+      {/* Constellation patterns */}
+      <ConstellationOverlay />
       
       {/* Shooting stars */}
       {shootingStars.map((star) => (
