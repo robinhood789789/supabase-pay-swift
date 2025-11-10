@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -333,23 +334,24 @@ const AdminUsers = () => {
   };
 
   return (
-    <PermissionGate
-      permission="users.view"
-      allowOwner={true}
-      fallback={
-        <div className="p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Access Denied</CardTitle>
-              <CardDescription>
-                You don't have permission to manage users
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-        }
-      >
-        <div className="p-6 space-y-6 max-w-full overflow-x-hidden">
+    <DashboardLayout>
+      <PermissionGate
+        permission="users.view"
+        allowOwner={true}
+        fallback={
+          <div className="p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Access Denied</CardTitle>
+                <CardDescription>
+                  You don't have permission to manage users
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+          }
+        >
+          <div className="p-6 space-y-6 max-w-full overflow-x-hidden">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Members</h1>
@@ -644,6 +646,7 @@ const AdminUsers = () => {
     />
     <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
     </PermissionGate>
+    </DashboardLayout>
   );
 };
 
