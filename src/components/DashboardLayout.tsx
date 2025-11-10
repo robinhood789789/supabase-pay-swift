@@ -266,10 +266,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? (item.url === "/transactions-dashboard"
-                                ? "bg-secondary text-secondary-foreground font-bold border-l-2 border-secondary shadow-glow-info glass-text"
-                                : "bg-secondary/20 text-secondary font-bold border-l-2 border-secondary shadow-glow-info glass-text"
-                              )
+                            ? "bg-secondary/20 text-secondary font-bold border-l-2 border-secondary shadow-glow-info glass-text"
                             : "text-foreground/90 hover:bg-secondary/10 hover:text-secondary hover:border-l-2 hover:border-secondary/50 transition-all duration-300 glass-text"
                         }
                       >
