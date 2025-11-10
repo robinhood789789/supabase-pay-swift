@@ -79,7 +79,6 @@ const DashboardSidebar = () => {
 
   // Transaction menu items - filtered by actual permissions
   const allTransactionItems = [
-    { title: "Transaction Dashboard", url: "/transactions-dashboard", icon: PieChart, permission: null }, // Available to all
     { title: t('dashboard.deposit'), url: "/deposit-list", icon: ArrowDownToLine, permission: "deposits.view" },
     { title: t('dashboard.withdrawal'), url: "/withdrawal-list", icon: ArrowUpFromLine, permission: "withdrawals.view" },
     { 
