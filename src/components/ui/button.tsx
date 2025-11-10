@@ -19,6 +19,9 @@ const buttonVariants = cva(
         gradient: "bg-gradient-primary text-white hover:opacity-90 hover:shadow-glow",
         deposit: "bg-gradient-deposit text-white hover:opacity-90 hover:shadow-glow",
         withdrawal: "bg-gradient-withdrawal text-white hover:opacity-90 hover:shadow-glow",
+        glass: "bg-glass backdrop-blur-xl border border-glass-border text-foreground hover:bg-glass-hover hover:border-glass-hover-border hover:shadow-glow-cosmic",
+        "glass-primary": "bg-glass backdrop-blur-xl border border-primary/30 text-primary-foreground hover:bg-primary/20 hover:border-primary/50 hover:shadow-glow",
+        "glass-nebula": "bg-nebula-glass backdrop-blur-xl border border-nebula-border text-foreground hover:bg-nebula-glass-hover hover:border-nebula-border-hover hover:shadow-nebula-glow",
       },
       size: {
         default: "h-10 px-4 py-2",

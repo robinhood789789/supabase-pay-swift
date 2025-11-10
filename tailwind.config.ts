@@ -56,6 +56,26 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        nebula: {
+          red: "hsl(var(--nebula-red))",
+          orange: "hsl(var(--nebula-orange))",
+          pink: "hsl(var(--nebula-pink))",
+          "deep-red": "hsl(var(--nebula-deep-red))",
+        },
+        glass: {
+          DEFAULT: "hsl(var(--glass-background))",
+          border: "hsl(var(--glass-border))",
+          hover: "hsl(var(--glass-hover-background))",
+          "hover-border": "hsl(var(--glass-hover-border))",
+        },
+        "nebula-glass": {
+          DEFAULT: "hsl(var(--nebula-red) / 0.1)",
+          hover: "hsl(var(--nebula-red) / 0.2)",
+        },
+        "nebula-border": {
+          DEFAULT: "hsl(var(--nebula-orange) / 0.3)",
+          hover: "hsl(var(--nebula-orange) / 0.5)",
+        },
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
@@ -72,6 +92,9 @@ export default {
         "gradient-radial-bright": "var(--gradient-radial-bright)",
         "gradient-neon": "var(--gradient-neon)",
         "gradient-aurora": "var(--gradient-aurora)",
+        "gradient-nebula": "var(--gradient-nebula)",
+        "gradient-nebula-dust": "var(--gradient-nebula-dust)",
+        "gradient-cosmic": "var(--gradient-cosmic)",
       },
       boxShadow: {
         sm: "var(--shadow-sm)",
@@ -80,9 +103,21 @@ export default {
         glow: "var(--shadow-glow)",
         elegant: "var(--shadow-elegant)",
         neon: "var(--shadow-neon)",
+        glass: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+        "glow-cosmic": "0 0 30px hsl(189 100% 50% / 0.4), 0 0 60px hsl(280 100% 60% / 0.2)",
+        "nebula-glow": "0 0 30px hsl(0 95% 55% / 0.4), 0 0 60px hsl(15 100% 60% / 0.2)",
       },
       transitionTimingFunction: {
         smooth: "var(--transition-smooth)",
+      },
+      backdropBlur: {
+        xs: "2px",
+        sm: "4px",
+        md: "8px",
+        lg: "12px",
+        xl: "16px",
+        "2xl": "24px",
+        "3xl": "40px",
       },
       borderRadius: {
         lg: "var(--radius)",
