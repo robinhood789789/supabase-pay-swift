@@ -228,7 +228,7 @@ const DashboardSidebar = () => {
           <SidebarGroup className="border-l-[6px] border-primary bg-primary/5 pl-3 py-2 rounded-r-lg">
             <SidebarGroupLabel className="text-primary font-semibold">{t('dashboard.overview')}</SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+                <SidebarMenu>
                 {userMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
@@ -237,11 +237,11 @@ const DashboardSidebar = () => {
                         end
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-primary/20 text-primary font-medium shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] border-l-2 border-primary"
+                            : "hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)] hover:border-l-2 hover:border-primary/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -265,11 +265,11 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-secondary/20 text-secondary font-medium shadow-[0_0_15px_rgba(var(--secondary-rgb),0.3)] border-l-2 border-secondary"
+                            : "hover:bg-secondary/10 hover:text-secondary hover:shadow-[0_0_15px_rgba(var(--secondary-rgb),0.2)] hover:border-l-2 hover:border-secondary/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -340,11 +340,11 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-accent/20 text-accent font-medium shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] border-l-2 border-accent"
+                            : "hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)] hover:border-l-2 hover:border-accent/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -368,11 +368,11 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-warning/20 text-warning font-medium shadow-[0_0_15px_rgba(var(--warning-rgb),0.3)] border-l-2 border-warning"
+                            : "hover:bg-warning/10 hover:text-warning hover:shadow-[0_0_15px_rgba(var(--warning-rgb),0.2)] hover:border-l-2 hover:border-warning/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -396,11 +396,11 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-blue-500/20 text-blue-400 font-medium shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-2 border-blue-500"
+                            : "hover:bg-blue-500/10 hover:text-blue-400 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:border-l-2 hover:border-blue-500/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -424,11 +424,11 @@ const DashboardSidebar = () => {
                           to={item.url}
                           className={({ isActive }) =>
                             isActive
-                              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                              : "hover:bg-sidebar-accent/50"
+                              ? "bg-accent/20 text-accent font-medium shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] border-l-2 border-accent"
+                              : "hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)] hover:border-l-2 hover:border-accent/50 transition-all duration-300"
                           }
                         >
-                          <item.icon className="mr-2 h-4 w-4" />
+                          <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                           {!isCollapsed && <span>{item.title}</span>}
                         </NavLink>
                       </SidebarMenuButton>
@@ -455,42 +455,11 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-destructive/20 text-destructive font-medium shadow-[0_0_15px_rgba(var(--destructive-rgb),0.3)] border-l-2 border-destructive"
+                            : "hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_15px_rgba(var(--destructive-rgb),0.2)] hover:border-l-2 hover:border-destructive/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* Shareholder Menu - Always show at top for visibility */}
-        {isShareholder && !isSuperAdmin && (
-          <SidebarGroup className="border-l-[6px] border-green-500 bg-green-500/10 pl-3 py-2 rounded-r-lg shadow-md">
-            <SidebarGroupLabel className="text-green-700 font-bold flex items-center gap-2">
-              💰 Shareholder
-              <Badge variant="default" className="bg-green-600 text-white text-xs">Active</Badge>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {shareholderMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className={({ isActive }) =>
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
-                        }
-                      >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -514,11 +483,11 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
+                            ? "bg-accent/20 text-accent font-medium shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] border-l-2 border-accent"
+                            : "hover:bg-accent/10 hover:text-accent hover:shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)] hover:border-l-2 hover:border-accent/50 transition-all duration-300"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>

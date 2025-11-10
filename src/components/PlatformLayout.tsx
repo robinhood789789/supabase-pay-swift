@@ -99,11 +99,11 @@ const PlatformSidebar = () => {
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-gradient-primary text-white font-semibold shadow-glow-info text-sm menu-item-3d"
-                          : "hover:bg-primary/10 hover:text-primary text-foreground text-sm font-medium transition-all duration-200 menu-item-3d"
+                          ? "bg-primary/20 text-primary font-semibold shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] border-l-2 border-primary text-sm"
+                          : "hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)] hover:border-l-2 hover:border-primary/50 text-foreground text-sm font-medium transition-all duration-300"
                       }
                     >
-                      <item.icon className="mr-3 h-5 w-5" />
+                      <item.icon className="mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
