@@ -54,6 +54,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
+import { ColorHarmonySelector } from "@/components/ui/color-harmony-selector";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -534,6 +535,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         
         <div className="flex-1 flex flex-col w-full transition-all duration-300 ease-in-out overflow-x-hidden relative">
           <AnimatedBackground />
+          <ColorHarmonySelector />
           <header className="h-14 border-b border-border bg-background flex items-center justify-between px-4 gap-4 sticky top-0 z-10 transition-all duration-300">
             <SidebarTrigger className="ml-2" />
           </header>
