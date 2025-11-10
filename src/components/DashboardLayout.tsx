@@ -238,8 +238,8 @@ const DashboardSidebar = () => {
                         end
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-primary/20 text-primary font-bold border-l-2 border-primary shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 transition-all duration-300 glass-text"
+                            ? "bg-primary/70 text-primary-foreground font-bold border-l-2 border-primary shadow-glow-info glass-text"
+                            : "text-foreground/90 hover:bg-primary/50 hover:text-primary-foreground hover:border-l-2 hover:border-primary/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -267,7 +267,7 @@ const DashboardSidebar = () => {
                         className={({ isActive }) =>
                           isActive
                             ? "bg-secondary text-secondary-foreground font-bold border-l-2 border-secondary shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-secondary/10 hover:text-secondary hover:border-l-2 hover:border-secondary/50 transition-all duration-300 glass-text"
+                            : "text-foreground/90 hover:bg-secondary/50 hover:text-secondary-foreground hover:border-l-2 hover:border-secondary/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -341,8 +341,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-accent/20 text-accent font-bold border-l-2 border-accent shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-accent/10 hover:text-accent hover:border-l-2 hover:border-accent/50 transition-all duration-300 glass-text"
+                            ? "bg-accent/70 text-accent-foreground font-bold border-l-2 border-accent shadow-glow-info glass-text"
+                            : "text-foreground/90 hover:bg-accent/50 hover:text-accent-foreground hover:border-l-2 hover:border-accent/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -369,8 +369,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-warning/20 text-warning font-bold border-l-2 border-warning shadow-glow-warning glass-text"
-                            : "text-foreground/90 hover:bg-warning/10 hover:text-warning hover:border-l-2 hover:border-warning/50 transition-all duration-300 glass-text"
+                            ? "bg-warning/70 text-warning-foreground font-bold border-l-2 border-warning shadow-glow-warning glass-text"
+                            : "text-foreground/90 hover:bg-warning/50 hover:text-warning-foreground hover:border-l-2 hover:border-warning/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -397,8 +397,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-primary/20 text-primary font-bold border-l-2 border-primary shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 transition-all duration-300 glass-text"
+                            ? "bg-primary/70 text-primary-foreground font-bold border-l-2 border-primary shadow-glow-info glass-text"
+                            : "text-foreground/90 hover:bg-primary/50 hover:text-primary-foreground hover:border-l-2 hover:border-primary/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -425,8 +425,8 @@ const DashboardSidebar = () => {
                           to={item.url}
                           className={({ isActive }) =>
                             isActive
-                              ? "bg-accent/20 text-accent font-bold border-l-2 border-accent shadow-glow-info glass-text"
-                              : "text-foreground/90 hover:bg-accent/10 hover:text-accent hover:border-l-2 hover:border-accent/50 transition-all duration-300 glass-text"
+                              ? "bg-accent/70 text-accent-foreground font-bold border-l-2 border-accent shadow-glow-info glass-text"
+                              : "text-foreground/90 hover:bg-accent/50 hover:text-accent-foreground hover:border-l-2 hover:border-accent/50 transition-all duration-300 glass-text"
                           }
                         >
                           <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -456,8 +456,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-destructive/20 text-destructive font-bold border-l-2 border-destructive shadow-glow-warning glass-text"
-                            : "text-foreground/90 hover:bg-destructive/10 hover:text-destructive hover:border-l-2 hover:border-destructive/50 transition-all duration-300 glass-text"
+                            ? "bg-destructive/70 text-destructive-foreground font-bold border-l-2 border-destructive shadow-glow-warning glass-text"
+                            : "text-foreground/90 hover:bg-destructive/50 hover:text-destructive-foreground hover:border-l-2 hover:border-destructive/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
@@ -484,8 +484,8 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-warning/20 text-warning font-bold border-l-2 border-warning shadow-glow-warning glass-text"
-                            : "text-foreground/90 hover:bg-warning/10 hover:text-warning hover:border-l-2 hover:border-warning/50 transition-all duration-300 glass-text"
+                            ? "bg-warning/70 text-warning-foreground font-bold border-l-2 border-warning shadow-glow-warning glass-text"
+                            : "text-foreground/90 hover:bg-warning/50 hover:text-warning-foreground hover:border-l-2 hover:border-warning/50 transition-all duration-300 glass-text"
                         }
                       >
                         <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
