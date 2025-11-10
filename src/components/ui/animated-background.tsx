@@ -30,13 +30,28 @@ interface ShootingStar {
   angle: number;
 }
 
+interface DustParticle {
+  x: number;
+  y: number;
+  size: number;
+  vx: number;
+  vy: number;
+  opacity: number;
+  life: number;
+  maxLife: number;
+  hue: number;
+}
+
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const starsRef = useRef<Star[]>([]);
+  const dustParticlesRef = useRef<DustParticle[]>([]);
   const animationFrameRef = useRef<number>();
   const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
   const shootingStarIdRef = useRef(0);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const prevMousePosRef = useRef({ x: 0, y: 0 });
   
   // Parallax effects with different speeds for depth
   const parallaxSlow = useParallax(0.1);
@@ -212,6 +227,45 @@ export function AnimatedBackground() {
         });
       });
 
+      // Update and draw interactive dust particles
+      dustParticlesRef.current = dustParticlesRef.current.filter(dust => {
+        // Update life
+        dust.life -= 1;
+        if (dust.life <= 0) return false;
+
+        // Apply velocity with friction
+        dust.x += dust.vx;
+        dust.y += dust.vy;
+        dust.vx *= 0.96;
+        dust.vy *= 0.96;
+
+        // Calculate fade based on life
+        const lifeFactor = dust.life / dust.maxLife;
+        const currentOpacity = dust.opacity * lifeFactor;
+
+        // Draw dust particle with glow
+        const gradient = ctx.createRadialGradient(
+          dust.x, dust.y, 0,
+          dust.x, dust.y, dust.size * 4
+        );
+        gradient.addColorStop(0, hsla(dust.hue, 100, 70, currentOpacity * 0.9));
+        gradient.addColorStop(0.5, hsla(dust.hue, 100, 65, currentOpacity * 0.6));
+        gradient.addColorStop(1, hsla(dust.hue, 100, 60, 0));
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(dust.x, dust.y, dust.size * 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw core
+        ctx.beginPath();
+        ctx.arc(dust.x, dust.y, dust.size, 0, Math.PI * 2);
+        ctx.fillStyle = hsla(dust.hue, 100, 75, currentOpacity);
+        ctx.fill();
+
+        return true;
+      });
+
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
@@ -261,6 +315,57 @@ export function AnimatedBackground() {
         clearTimeout(timeoutRef.current);
       }
     };
+  }, []);
+
+  // Mouse tracking and dust particle generation
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const newPos = { x: e.clientX, y: e.clientY };
+      setMousePos(newPos);
+
+      // Calculate mouse velocity
+      const dx = newPos.x - prevMousePosRef.current.x;
+      const dy = newPos.y - prevMousePosRef.current.y;
+      const velocity = Math.sqrt(dx * dx + dy * dy);
+
+      // Generate dust particles based on mouse movement
+      if (velocity > 2) {
+        const numParticles = Math.min(Math.floor(velocity / 8), 5);
+        
+        for (let i = 0; i < numParticles; i++) {
+          // Random color from cosmic palette
+          const hues = [0, 15, 340, 189, 280, 326, 160, 230];
+          const randomHue = hues[Math.floor(Math.random() * hues.length)];
+          
+          const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * Math.PI / 3;
+          const speed = velocity * 0.3;
+          
+          const dust: DustParticle = {
+            x: newPos.x + (Math.random() - 0.5) * 20,
+            y: newPos.y + (Math.random() - 0.5) * 20,
+            size: Math.random() * 1.5 + 0.8,
+            vx: Math.cos(angle) * speed * (Math.random() * 0.5 + 0.5),
+            vy: Math.sin(angle) * speed * (Math.random() * 0.5 + 0.5),
+            opacity: Math.random() * 0.6 + 0.4,
+            life: Math.random() * 40 + 40,
+            maxLife: Math.random() * 40 + 40,
+            hue: randomHue,
+          };
+          
+          dustParticlesRef.current.push(dust);
+        }
+
+        // Limit total dust particles
+        if (dustParticlesRef.current.length > 150) {
+          dustParticlesRef.current = dustParticlesRef.current.slice(-150);
+        }
+      }
+
+      prevMousePosRef.current = newPos;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   return (
