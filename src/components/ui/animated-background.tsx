@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParallax } from "@/hooks/useParallax";
 
 interface Particle {
@@ -21,11 +21,22 @@ interface Star {
   twinkleOffset: number;
 }
 
+interface ShootingStar {
+  id: number;
+  x: number;
+  y: number;
+  length: number;
+  speed: number;
+  angle: number;
+}
+
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const starsRef = useRef<Star[]>([]);
   const animationFrameRef = useRef<number>();
+  const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
+  const shootingStarIdRef = useRef(0);
   
   // Parallax effects with different speeds for depth
   const parallaxSlow = useParallax(0.1);
@@ -214,6 +225,44 @@ export function AnimatedBackground() {
     };
   }, []);
 
+  // Separate effect for shooting stars
+  useEffect(() => {
+    const createShootingStar = () => {
+      const newStar: ShootingStar = {
+        id: shootingStarIdRef.current++,
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * (window.innerHeight / 2), // Top half of screen
+        length: Math.random() * 80 + 60,
+        speed: Math.random() * 2 + 2,
+        angle: Math.random() * 30 + 30, // 30-60 degrees downward
+      };
+      
+      setShootingStars(prev => [...prev, newStar]);
+      
+      // Remove shooting star after animation completes
+      setTimeout(() => {
+        setShootingStars(prev => prev.filter(star => star.id !== newStar.id));
+      }, 2000);
+    };
+
+    // Create shooting stars at random intervals (3-8 seconds)
+    const scheduleNext = () => {
+      const delay = Math.random() * 5000 + 3000;
+      return setTimeout(() => {
+        createShootingStar();
+        timeoutRef.current = scheduleNext();
+      }, delay);
+    };
+
+    const timeoutRef = { current: scheduleNext() };
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <>
       {/* Canvas for particles and stars */}
@@ -290,6 +339,46 @@ export function AnimatedBackground() {
 
       {/* Scan lines effect */}
       <div className="fixed inset-0 pointer-events-none z-0 scan-line opacity-5" />
+      
+      {/* Shooting stars */}
+      {shootingStars.map((star) => (
+        <div
+          key={star.id}
+          className="fixed pointer-events-none z-10"
+          style={{
+            left: `${star.x}px`,
+            top: `${star.y}px`,
+            width: `${star.length}px`,
+            height: '2px',
+            background: `linear-gradient(90deg, 
+              hsla(189, 100%, 90%, 0) 0%, 
+              hsla(189, 100%, 95%, 0.9) 20%, 
+              hsla(200, 100%, 98%, 1) 50%, 
+              hsla(189, 100%, 95%, 0.9) 80%, 
+              hsla(189, 100%, 90%, 0) 100%)`,
+            boxShadow: `
+              0 0 6px 2px hsla(189, 100%, 90%, 0.8),
+              0 0 12px 4px hsla(189, 100%, 80%, 0.5),
+              0 0 20px 6px hsla(189, 100%, 70%, 0.3)
+            `,
+            transform: `rotate(${star.angle}deg)`,
+            animation: `shootingStar ${star.speed}s linear forwards`,
+            transformOrigin: 'left center',
+          }}
+        >
+          {/* Shooting star head glow */}
+          <div
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
+            style={{
+              background: 'radial-gradient(circle, hsla(200, 100%, 98%, 1) 0%, hsla(189, 100%, 90%, 0) 70%)',
+              boxShadow: `
+                0 0 8px 3px hsla(189, 100%, 95%, 0.9),
+                0 0 16px 6px hsla(189, 100%, 85%, 0.6)
+              `,
+            }}
+          />
+        </div>
+      ))}
     </>
   );
 }

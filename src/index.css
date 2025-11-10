@@ -263,15 +263,19 @@ All colors MUST be HSL.
 
   @keyframes shootingStar {
     0% {
-      transform: rotate(-45deg) translateX(0);
-      opacity: 1;
+      opacity: 0;
+      transform: translateX(0) translateY(0) scale(0.5);
     }
-    70% {
+    10% {
+      opacity: 1;
+      transform: translateX(0) translateY(0) scale(1);
+    }
+    90% {
       opacity: 1;
     }
     100% {
-      transform: rotate(-45deg) translateX(-500px);
       opacity: 0;
+      transform: translateX(800px) translateY(800px) scale(0.8);
     }
   }
 
