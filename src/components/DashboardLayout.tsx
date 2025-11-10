@@ -205,7 +205,7 @@ const DashboardSidebar = () => {
   ];
 
   return (
-    <Sidebar className="w-64 border-r-2 border-primary/20 backdrop-blur-3xl bg-card/98 shadow-elegant" collapsible="icon">
+    <Sidebar className="w-64 border-r-2 border-primary/20 backdrop-blur-3xl bg-card/98 shadow-elegant" collapsible="none">
       <SidebarContent>
         <div className="p-4 border-b-2 border-primary/10 backdrop-blur-3xl bg-background/90">
           <div className="flex items-center gap-2">
