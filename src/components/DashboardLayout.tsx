@@ -205,9 +205,9 @@ const DashboardSidebar = () => {
   ];
 
   return (
-    <Sidebar className="w-64 border-r bg-background" collapsible="icon">
+    <Sidebar className="w-64 border-r border-glass-border backdrop-blur-xl bg-glass/95 shadow-glow" collapsible="icon">
       <SidebarContent>
-        <div className="p-4 border-b border-border bg-card">
+        <div className="p-4 border-b border-glass-border backdrop-blur-xl bg-glass/80">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="w-4 h-4 text-primary" />
