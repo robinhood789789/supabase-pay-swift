@@ -184,8 +184,7 @@ export default function TransactionDashboard() {
   return (
     <DashboardLayout>
       <RequireTenant>
-        <AnimatedBackground />
-        <div className="relative z-10 space-y-6 animate-in">
+        <div className="space-y-6 animate-in">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
