@@ -79,6 +79,12 @@ const DashboardSidebar = () => {
 
   // Transaction menu items - filtered by actual permissions
   const allTransactionItems = [
+    { 
+      title: "Transaction Verification", 
+      url: "/transactions-dashboard", 
+      icon: Receipt, 
+      roleAccess: ['owner', 'manager', 'finance', 'viewer'] // All roles including viewer
+    },
     { title: t('dashboard.deposit'), url: "/deposit-list", icon: ArrowDownToLine, permission: "deposits.view" },
     { title: t('dashboard.withdrawal'), url: "/withdrawal-list", icon: ArrowUpFromLine, permission: "withdrawals.view" },
     { 
