@@ -45,6 +45,12 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
+    /* Red Spider Nebula colors */
+    --nebula-red: 0 95% 55%;
+    --nebula-orange: 15 100% 60%;
+    --nebula-pink: 340 95% 65%;
+    --nebula-deep-red: 355 85% 45%;
+    
     /* Futuristic cyberpunk gradients */
     --gradient-primary: linear-gradient(135deg, hsl(189 100% 45%) 0%, hsl(280 100% 55%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(158 64% 52%) 100%);
@@ -60,6 +66,11 @@ All colors MUST be HSL.
     --gradient-radial-bright: radial-gradient(ellipse at center, hsl(160 85% 60% / 0.5) 0%, hsl(280 85% 70% / 0.45) 40%, hsl(230 80% 65% / 0.4) 100%);
     --gradient-neon: linear-gradient(90deg, hsl(189 100% 50%) 0%, hsl(280 100% 60%) 50%, hsl(326 100% 55%) 100%);
     --gradient-aurora: linear-gradient(135deg, hsl(160 65% 60%) 0%, hsl(280 70% 70%) 25%, hsl(230 65% 65%) 50%, hsl(326 65% 70%) 75%, hsl(160 65% 60%) 100%);
+    
+    /* Red Spider Nebula + Aurora gradients */
+    --gradient-nebula: radial-gradient(ellipse at 30% 50%, hsl(var(--nebula-red) / 0.4) 0%, hsl(var(--nebula-orange) / 0.3) 30%, hsl(var(--nebula-pink) / 0.2) 60%, transparent 100%);
+    --gradient-nebula-dust: radial-gradient(circle at 70% 40%, hsl(var(--nebula-deep-red) / 0.25) 0%, hsl(15 85% 50% / 0.15) 40%, transparent 70%);
+    --gradient-cosmic: linear-gradient(135deg, hsl(0 90% 50% / 0.3) 0%, hsl(280 100% 60% / 0.25) 30%, hsl(189 100% 50% / 0.2) 60%, hsl(340 95% 65% / 0.25) 100%);
     
     /* Role-specific colors */
     --color-finance: hsl(142 76% 45%);
@@ -118,6 +129,12 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
+    /* Red Spider Nebula colors */
+    --nebula-red: 0 95% 55%;
+    --nebula-orange: 15 100% 60%;
+    --nebula-pink: 340 95% 65%;
+    --nebula-deep-red: 355 85% 45%;
+    
     --gradient-primary: linear-gradient(135deg, hsl(189 100% 45%) 0%, hsl(280 100% 55%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(158 64% 52%) 100%);
     --gradient-deposit: linear-gradient(135deg, hsl(189 100% 50%) 0%, hsl(230 100% 60%) 100%);
@@ -132,6 +149,11 @@ All colors MUST be HSL.
     --gradient-radial-bright: radial-gradient(ellipse at center, hsl(160 85% 60% / 0.55) 0%, hsl(280 85% 70% / 0.5) 40%, hsl(230 80% 65% / 0.45) 100%);
     --gradient-neon: linear-gradient(90deg, hsl(189 100% 50%) 0%, hsl(280 100% 60%) 50%, hsl(326 100% 55%) 100%);
     --gradient-aurora: linear-gradient(135deg, hsl(160 65% 60%) 0%, hsl(280 70% 70%) 25%, hsl(230 65% 65%) 50%, hsl(326 65% 70%) 75%, hsl(160 65% 60%) 100%);
+    
+    /* Red Spider Nebula + Aurora gradients */
+    --gradient-nebula: radial-gradient(ellipse at 30% 50%, hsl(var(--nebula-red) / 0.4) 0%, hsl(var(--nebula-orange) / 0.3) 30%, hsl(var(--nebula-pink) / 0.2) 60%, transparent 100%);
+    --gradient-nebula-dust: radial-gradient(circle at 70% 40%, hsl(var(--nebula-deep-red) / 0.25) 0%, hsl(15 85% 50% / 0.15) 40%, transparent 70%);
+    --gradient-cosmic: linear-gradient(135deg, hsl(0 90% 50% / 0.3) 0%, hsl(280 100% 60% / 0.25) 30%, hsl(189 100% 50% / 0.2) 60%, hsl(340 95% 65% / 0.25) 100%);
 
     --shadow-glow: 0 0 40px hsl(189 100% 50% / 0.6), 0 0 80px hsl(189 100% 50% / 0.3);
     --shadow-glow-success: 0 0 35px hsl(142 76% 45% / 0.4);
@@ -322,5 +344,31 @@ All colors MUST be HSL.
 
   .animate-float {
     animation: float 20s ease-in-out infinite;
+  }
+
+  /* Star twinkle animation */
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .animate-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  /* Nebula pulse animation */
+  @keyframes nebulaPulse {
+    0%, 100% { 
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 0.6;
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-nebula-pulse {
+    animation: nebulaPulse 8s ease-in-out infinite;
   }
 }
