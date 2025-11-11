@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
+import { PasswordBreachAlert, isPasswordBreachError } from "@/components/security/PasswordBreachAlert";
 
 const signUpSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -34,6 +35,7 @@ const SignUp = () => {
   const { user, signUp } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showBreachAlert, setShowBreachAlert] = useState(false);
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get("ref");
 
@@ -60,8 +62,18 @@ const SignUp = () => {
 
   const handleSubmit = async (values: z.infer<typeof signUpSchema>) => {
     setIsLoading(true);
-    await signUp(values.email, values.password, values.fullName, values.referralCode);
-    setIsLoading(false);
+    setShowBreachAlert(false);
+    
+    try {
+      await signUp(values.email, values.password, values.fullName, values.referralCode);
+    } catch (error: any) {
+      // Check if error is due to password breach
+      if (isPasswordBreachError(error)) {
+        setShowBreachAlert(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,6 +88,8 @@ const SignUp = () => {
         </CardHeader>
 
         <CardContent>
+          {showBreachAlert && <PasswordBreachAlert />}
+          
           {referralCode && (
             <Alert className="mb-4 bg-green-50 border-green-200">
               <Tag className="h-4 w-4 text-green-600" />

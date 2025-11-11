@@ -11,6 +11,7 @@ import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { getCSRFToken } from "@/lib/security/csrf";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
+import { PasswordBreachAlert, isPasswordBreachError } from "@/components/security/PasswordBreachAlert";
 
 export default function PasswordChange() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function PasswordChange() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
+  const [showBreachAlert, setShowBreachAlert] = useState(false);
   
   const passwordStrength = usePasswordStrength(newPassword, confirmPassword);
 
@@ -97,7 +99,15 @@ export default function PasswordChange() {
       }
     } catch (err: any) {
       console.error("Password change error:", err);
-      setError(err.message || "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
+      
+      // Check if error is due to password breach
+      if (isPasswordBreachError(err)) {
+        setShowBreachAlert(true);
+        setError("");
+      } else {
+        setError(err.message || "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
+        setShowBreachAlert(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -117,12 +127,16 @@ export default function PasswordChange() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                กรุณาตั้งรหัสผ่านใหม่ที่แข็งแรงและปลอดภัย
-              </AlertDescription>
-            </Alert>
+            {showBreachAlert && <PasswordBreachAlert />}
+            
+            {!showBreachAlert && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  กรุณาตั้งรหัสผ่านใหม่ที่แข็งแรงและปลอดภัย
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="current">รหัสผ่านปัจจุบัน (รหัสชั่วคราว)</Label>
