@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 import { verifyTOTP, hashCode } from "../_shared/totp.ts";
 import { checkRateLimit, resetRateLimit } from "../_shared/rate-limit.ts";
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { MfaChallengeResponse } from '../_shared/types.ts';
 
 serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);

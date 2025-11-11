@@ -11,6 +11,7 @@ import {
   sanitizeErrorMessage
 } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { PaymentLinkRequest, PaymentLinkResponse } from '../_shared/types.ts';
 
 serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);

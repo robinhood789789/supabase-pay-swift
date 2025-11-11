@@ -1,20 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
-};
-
-interface SecurityEventData {
-  tenantId?: string;
-  userId?: string;
-  eventType: 'failed_login' | 'rate_limit_violation' | 'suspicious_api_usage' | 'mfa_failure' | 'csrf_violation';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  eventData?: Record<string, any>;
-  endpoint?: string;
-  requestId?: string;
-  blocked?: boolean;
-}
+import { corsHeaders } from '../_shared/cors.ts';
+import { SecurityEvent } from '../_shared/types.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -46,19 +32,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    const eventData: SecurityEventData = await req.json();
+    const eventData: SecurityEvent = await req.json();
 
     // Validate required fields
-    if (!eventData.eventType || !eventData.severity) {
+    if (!eventData.type || !eventData.severity) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: eventType, severity' }),
+        JSON.stringify({ error: 'Missing required fields: type, severity' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Get IP address and user agent
-    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const ipAddress = eventData.ipAddress || req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const userAgent = eventData.userAgent || req.headers.get('user-agent') || 'unknown';
 
     // Insert security event
     const { data: event, error: insertError } = await supabase
@@ -66,14 +52,12 @@ Deno.serve(async (req) => {
       .insert({
         tenant_id: eventData.tenantId || null,
         user_id: eventData.userId || user.id,
-        event_type: eventData.eventType,
+        event_type: eventData.type,
         severity: eventData.severity,
-        event_data: eventData.eventData || {},
+        event_data: eventData.metadata || {},
         ip_address: ipAddress,
         user_agent: userAgent,
-        endpoint: eventData.endpoint,
-        request_id: eventData.requestId,
-        blocked: eventData.blocked || false,
+        timestamp: eventData.timestamp,
       })
       .select()
       .single();

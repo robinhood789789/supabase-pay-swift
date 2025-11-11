@@ -5,6 +5,7 @@ import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateString } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { MfaVerifyRequest } from '../_shared/types.ts';
 
 serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);

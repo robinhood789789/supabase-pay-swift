@@ -1,10 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { processWebhookWithRetry, calculateBackoffDelay } from '../_shared/webhook-security.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type',
-};
+import { corsHeaders } from '../_shared/cors.ts';
+import { WebhookEvent, WebhookRetryRequest } from '../_shared/types.ts';
 
 /**
  * Background worker to retry failed webhooks with exponential backoff
