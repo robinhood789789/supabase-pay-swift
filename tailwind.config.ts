@@ -173,6 +173,17 @@ export default {
             filter: "drop-shadow(0 0 40px rgba(6, 182, 212, 1))",
           },
         },
+        "shimmer": {
+          "0%": {
+            backgroundPosition: "0% 50%",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+          },
+          "100%": {
+            backgroundPosition: "0% 50%",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -180,6 +191,7 @@ export default {
         "fade-in-up": "fade-in-up 1s ease-out",
         "fade-in-delayed": "fade-in-delayed 1s ease-out 0.5s both",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "shimmer": "shimmer 3s ease-in-out infinite",
       },
     },
   },
