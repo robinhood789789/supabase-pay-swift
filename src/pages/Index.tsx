@@ -175,10 +175,10 @@ const Index = () => {
               fontWeight: 950,
               WebkitTextStroke: '2px rgba(6, 182, 212, 0.8)',
               textShadow: '0 0 30px rgba(6, 182, 212, 1), 0 0 60px rgba(6, 182, 212, 0.8), 0 0 90px rgba(6, 182, 212, 0.6), 0 4px 12px rgba(0, 0, 0, 0.8)'
-            }} className="text-white tracking-wider font-orbitron text-7xl md:text-8xl font-extrabold block mb-4">PayX</span>
+            }} className="text-white tracking-wider font-orbitron text-7xl md:text-8xl font-extrabold block mb-4 animate-fade-in-up">PayX</span>
               <span style={{
               textShadow: '0 0 20px rgba(147, 51, 234, 0.8), 0 0 40px rgba(147, 51, 234, 0.5), 0 2px 8px rgba(0, 0, 0, 0.8)'
-            }} className="text-white/95 font-inter text-3xl md:text-4xl font-semibold tracking-wide block">Power Your Payment</span>
+            }} className="text-white/95 font-inter text-3xl md:text-4xl font-semibold tracking-wide block animate-fade-in-delayed">Power Your Payment</span>
             </h1>
             <div className="flex items-center justify-center gap-2">
               <div className="h-1 w-20 bg-primary shadow-neon"></div>
