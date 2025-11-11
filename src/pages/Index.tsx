@@ -128,13 +128,13 @@ const Index = () => {
               <div className="h-px w-12 bg-gradient-neon"></div>
             </div>
             <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter drop-shadow-2xl relative">
-              <span className="text-white font-black tracking-wide" style={{ 
+              <span className="text-white font-black tracking-wide font-orbitron" style={{ 
                 fontWeight: 950,
                 WebkitTextStroke: '2px rgba(6, 182, 212, 0.8)',
                 textShadow: '0 0 30px rgba(6, 182, 212, 1), 0 0 60px rgba(6, 182, 212, 0.8), 0 0 90px rgba(6, 182, 212, 0.6), 0 4px 12px rgba(0, 0, 0, 0.8)'
-              }}>PAYMENT</span>
+              }}>PayX</span>
               <br />
-              <span className="text-white/90">COMMAND</span>
+              <span className="text-white/90 font-inter">Power Your Payment</span>
             </h1>
             <div className="flex items-center justify-center gap-2">
               <div className="h-1 w-20 bg-primary shadow-neon"></div>
