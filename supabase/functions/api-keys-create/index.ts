@@ -11,11 +11,7 @@ import {
   ValidationException,
   sanitizeErrorMessage
 } from '../_shared/validation.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token, cookie',
-};
+import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 
 // Generate a random API key with prefix
 const generateApiKey = (): { prefix: string; secret: string; fullKey: string } => {

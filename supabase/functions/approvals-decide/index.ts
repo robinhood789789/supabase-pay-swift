@@ -3,11 +3,7 @@ import { requireStepUp, createMfaError } from '../_shared/mfa-guards.ts';
 import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
-};
+import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 
 interface DecisionRequest {
   approvalId: string;

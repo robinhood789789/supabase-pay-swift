@@ -4,16 +4,11 @@ import { verifyTOTP, generateBackupCodes, hashCode } from "../_shared/totp.ts";
 import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateString } from '../_shared/validation.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
-};
+import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCorsPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const authHeader = req.headers.get('Authorization');
