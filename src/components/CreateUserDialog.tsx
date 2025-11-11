@@ -142,53 +142,79 @@ export const CreateUserDialog = () => {
     mutationFn: async (data: CreateUserFormData) => {
       console.log('🔄 Starting user creation process...');
       
-      // Get current user's tenant
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('❌ No user found');
-        throw new Error("ไม่พบข้อมูลผู้ใช้");
-      }
-      console.log('✅ Current user:', user.id);
-
-      if (!activeTenantId) {
-        console.error('❌ No active tenant ID');
-        throw new Error("กรุณาเลือก Workspace ก่อนสร้างผู้ใช้");
-      }
-      console.log('✅ Active tenant:', activeTenantId);
-
-      // Convert selected groups to individual permission IDs
-      const selectedPermissionNames = selectedPermissionGroups.flatMap(groupId => {
-        const group = permissionGroups.find(g => g.id === groupId);
-        return group ? group.permissions : [];
+      // Show initial loading toast
+      const loadingToastId = toast.loading("กำลังเตรียมการสร้างบัญชี...", {
+        description: "กรุณารอสักครู่",
       });
-
-      // Get permission IDs from names
-      const permissionIds = selectedPermissionNames
-        .map(name => allPermissions.find(p => p.name === name)?.id)
-        .filter(Boolean) as string[];
-
-      // Generate public_id from prefix and user_number
-      const public_id = `${data.prefix}-${data.user_number}`;
-      console.log('📝 Form data:', { public_id, role: data.role, permissions: permissionIds.length });
       
-      // Check CSRF token
-      const csrfToken = localStorage.getItem('csrf_token');
-      if (!csrfToken) {
-        console.warn('⚠️ No CSRF token found, attempting to generate...');
-        try {
-          const { setCSRFToken } = await import('@/lib/security/csrf');
-          await setCSRFToken(user.id);
-          console.log('✅ CSRF token generated');
-        } catch (err) {
-          console.error('❌ Failed to generate CSRF token:', err);
+      try {
+        // Get current user's tenant
+        toast.loading("กำลังตรวจสอบข้อมูลผู้ใช้...", {
+          id: loadingToastId,
+          description: "ขั้นตอนที่ 1/5",
+        });
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.error('❌ No user found');
+          throw new Error("ไม่พบข้อมูลผู้ใช้");
         }
-      } else {
-        console.log('✅ CSRF token exists');
-      }
-      
-      // Call edge function to create user (with automatic CSRF token)
-      console.log('🚀 Calling create-admin-user edge function...');
-      const { data: result, error } = await invokeFunctionWithTenant("create-admin-user", {
+        console.log('✅ Current user:', user.id);
+
+        if (!activeTenantId) {
+          console.error('❌ No active tenant ID');
+          throw new Error("กรุณาเลือก Workspace ก่อนสร้างผู้ใช้");
+        }
+        console.log('✅ Active tenant:', activeTenantId);
+
+        // Convert selected groups to individual permission IDs
+        toast.loading("กำลังเตรียมข้อมูลสิทธิ์...", {
+          id: loadingToastId,
+          description: "ขั้นตอนที่ 2/5",
+        });
+        
+        const selectedPermissionNames = selectedPermissionGroups.flatMap(groupId => {
+          const group = permissionGroups.find(g => g.id === groupId);
+          return group ? group.permissions : [];
+        });
+
+        // Get permission IDs from names
+        const permissionIds = selectedPermissionNames
+          .map(name => allPermissions.find(p => p.name === name)?.id)
+          .filter(Boolean) as string[];
+
+        // Generate public_id from prefix and user_number
+        const public_id = `${data.prefix}-${data.user_number}`;
+        console.log('📝 Form data:', { public_id, role: data.role, permissions: permissionIds.length });
+        
+        toast.loading("กำลังตรวจสอบความปลอดภัย...", {
+          id: loadingToastId,
+          description: "ขั้นตอนที่ 3/5",
+        });
+        
+        // Check CSRF token
+        const csrfToken = localStorage.getItem('csrf_token');
+        if (!csrfToken) {
+          console.warn('⚠️ No CSRF token found, attempting to generate...');
+          try {
+            const { setCSRFToken } = await import('@/lib/security/csrf');
+            await setCSRFToken(user.id);
+            console.log('✅ CSRF token generated');
+          } catch (err) {
+            console.error('❌ Failed to generate CSRF token:', err);
+          }
+        } else {
+          console.log('✅ CSRF token exists');
+        }
+        
+        // Call edge function to create user (with automatic CSRF token)
+        toast.loading("กำลังสร้างบัญชีผู้ใช้...", {
+          id: loadingToastId,
+          description: "ขั้นตอนที่ 4/5 • กรุณารอสักครู่",
+        });
+        
+        console.log('🚀 Calling create-admin-user edge function...');
+        const { data: result, error } = await invokeFunctionWithTenant("create-admin-user", {
         body: {
           prefix: data.prefix,
           user_number: data.user_number,
@@ -201,26 +227,48 @@ export const CreateUserDialog = () => {
         },
       });
 
-      if (error) {
-        console.error('❌ Edge function error:', error);
+        if (error) {
+          console.error('❌ Edge function error:', error);
+          toast.dismiss(loadingToastId);
+          throw error;
+        }
+        if (result?.error) {
+          console.error('❌ Result error:', result.error);
+          toast.dismiss(loadingToastId);
+          throw new Error(result.error);
+        }
+        
+        // Final step
+        toast.loading("กำลังตั้งค่าสิทธิ์และรายละเอียด...", {
+          id: loadingToastId,
+          description: "ขั้นตอนที่ 5/5 • เกือบเสร็จแล้ว!",
+        });
+        
+        // Simulate final processing
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        console.log('✅ User created successfully:', result);
+        toast.dismiss(loadingToastId);
+        return result;
+      } catch (error) {
+        toast.dismiss(loadingToastId);
         throw error;
       }
-      if (result?.error) {
-        console.error('❌ Result error:', result.error);
-        throw new Error(result.error);
-      }
-      console.log('✅ User created successfully:', result);
-      return result;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       
+      const public_id = `${form.getValues('prefix')}-${form.getValues('user_number')}`;
       const message = result?.message || "สร้างบัญชีผู้ใช้สำเร็จ!";
-      toast.success(message);
+      
+      // Show success toast with details
+      toast.success(message, {
+        description: `User ID: ${public_id} • Role: ${form.getValues('role')}`,
+        duration: 5000,
+      });
       
       // Show credentials dialog with temporary password
-      const public_id = `${form.getValues('prefix')}-${form.getValues('user_number')}`;
       setCredentials({
         email: public_id,  // Use public_id as email for display
         user_id: public_id,
