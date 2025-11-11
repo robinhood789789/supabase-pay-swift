@@ -572,7 +572,14 @@ const AdminUsers = () => {
                             ) : (
                               <User className="w-4 h-4 text-muted-foreground" />
                             )}
-                            {user.full_name || "ไม่ระบุชื่อ"}
+                            <div className="flex items-center gap-2">
+                              <span>{user.full_name || "ไม่ระบุชื่อ"}</span>
+                              {newUserIds.includes(user.id) && (
+                                <Badge className="animate-highlight-fade bg-success text-success-foreground text-xs">
+                                  NEW
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
