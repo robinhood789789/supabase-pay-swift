@@ -140,13 +140,21 @@ export const CreateUserDialog = () => {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
+      console.log('🔄 Starting user creation process...');
+      
       // Get current user's tenant
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("ไม่พบข้อมูลผู้ใช้");
+      if (!user) {
+        console.error('❌ No user found');
+        throw new Error("ไม่พบข้อมูลผู้ใช้");
+      }
+      console.log('✅ Current user:', user.id);
 
       if (!activeTenantId) {
+        console.error('❌ No active tenant ID');
         throw new Error("กรุณาเลือก Workspace ก่อนสร้างผู้ใช้");
       }
+      console.log('✅ Active tenant:', activeTenantId);
 
       // Convert selected groups to individual permission IDs
       const selectedPermissionNames = selectedPermissionGroups.flatMap(groupId => {
@@ -161,8 +169,25 @@ export const CreateUserDialog = () => {
 
       // Generate public_id from prefix and user_number
       const public_id = `${data.prefix}-${data.user_number}`;
+      console.log('📝 Form data:', { public_id, role: data.role, permissions: permissionIds.length });
+      
+      // Check CSRF token
+      const csrfToken = localStorage.getItem('csrf_token');
+      if (!csrfToken) {
+        console.warn('⚠️ No CSRF token found, attempting to generate...');
+        try {
+          const { setCSRFToken } = await import('@/lib/security/csrf');
+          await setCSRFToken(user.id);
+          console.log('✅ CSRF token generated');
+        } catch (err) {
+          console.error('❌ Failed to generate CSRF token:', err);
+        }
+      } else {
+        console.log('✅ CSRF token exists');
+      }
       
       // Call edge function to create user (with automatic CSRF token)
+      console.log('🚀 Calling create-admin-user edge function...');
       const { data: result, error } = await invokeFunctionWithTenant("create-admin-user", {
         body: {
           prefix: data.prefix,
@@ -176,8 +201,15 @@ export const CreateUserDialog = () => {
         },
       });
 
-      if (error) throw error;
-      if (result?.error) throw new Error(result.error);
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw error;
+      }
+      if (result?.error) {
+        console.error('❌ Result error:', result.error);
+        throw new Error(result.error);
+      }
+      console.log('✅ User created successfully:', result);
       return result;
     },
     onSuccess: (result) => {
@@ -206,8 +238,17 @@ export const CreateUserDialog = () => {
       setTemporaryPassword("");
     },
     onError: (error: any) => {
+      console.error('❌ Mutation error:', error);
+      
+      // Show detailed error message
+      let errorMessage = error.message || "ไม่สามารถสร้างบัญชีได้";
+      if (error.code) {
+        errorMessage = `[${error.code}] ${errorMessage}`;
+      }
+      
       toast.error("เกิดข้อผิดพลาด", {
-        description: error.message || "ไม่สามารถสร้างบัญชีได้",
+        description: errorMessage,
+        duration: 5000,
       });
     },
   });
