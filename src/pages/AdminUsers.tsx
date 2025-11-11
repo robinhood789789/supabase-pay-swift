@@ -90,6 +90,7 @@ const AdminUsers = () => {
           user_id, 
           tenant_id, 
           role_id,
+          status,
           roles!inner(name),
           tenants!inner(name)
         `)
@@ -127,6 +128,7 @@ const AdminUsers = () => {
           role_id: membership?.role_id || null,
           tenant_id: membership?.tenant_id || null,
           tenant_name: membership?.tenants?.name || "No workspace",
+          status: membership?.status || "active",
           is_locked: false, // Can be extended with actual lock status from profiles
         };
       });
@@ -491,11 +493,11 @@ const AdminUsers = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="default">
+                          <Badge variant={user.status === "active" ? "default" : "destructive"}>
                             <span className="w-2 h-2 rounded-full mr-2" style={{
-                              backgroundColor: "#22c55e"
+                              backgroundColor: user.status === "active" ? "#22c55e" : "#ef4444"
                             }}></span>
-                            Active
+                            {user.status === "active" ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
                         <TableCell>

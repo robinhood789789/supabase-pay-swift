@@ -690,6 +690,7 @@ export type Database = {
           created_at: string | null
           id: string
           role_id: string
+          status: string
           tenant_id: string
           user_id: string
         }
@@ -697,6 +698,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           role_id: string
+          status?: string
           tenant_id: string
           user_id: string
         }
@@ -704,6 +706,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           role_id?: string
+          status?: string
           tenant_id?: string
           user_id?: string
         }

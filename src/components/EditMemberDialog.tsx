@@ -55,13 +55,17 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     mutationFn: async ({ 
       userId, 
       tenantId, 
-      newRole 
+      newRole,
+      newStatus 
     }: { 
       userId: string; 
       tenantId: string; 
       newRole?: string;
+      newStatus?: string;
     }) => {
-      // If role changed, update the membership
+      const updates: any = {};
+      
+      // If role changed, get the role_id
       if (newRole && newRole !== member?.role) {
         const { data: roleData, error: roleError } = await supabase
           .from("roles")
@@ -72,9 +76,19 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         if (roleError) throw roleError;
         if (!roleData) throw new Error(`Role ${newRole} not found`);
         
+        updates.role_id = roleData.id;
+      }
+      
+      // If status changed, add it to updates
+      if (newStatus && newStatus !== member?.status) {
+        updates.status = newStatus;
+      }
+      
+      // Only update if there are changes
+      if (Object.keys(updates).length > 0) {
         const { error } = await supabase
           .from("memberships")
-          .update({ role_id: roleData.id })
+          .update(updates)
           .eq("user_id", userId)
           .eq("tenant_id", tenantId);
 
@@ -100,6 +114,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       userId: member.id,
       tenantId: member.tenant_id,
       newRole: selectedRole,
+      newStatus: status,
     });
   };
 
