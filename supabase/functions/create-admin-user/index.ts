@@ -200,150 +200,39 @@ Deno.serve(async (req) => {
         .eq('id', userId);
     }
 
-    // Get or create the role ID for the specified role in this tenant
+    // Get the role ID for the specified role (roles are global, not per-tenant)
     let roleId: string | null = null;
     const { data: roleData, error: roleError } = await supabaseClient
       .from('roles')
       .select('id')
       .eq('name', role)
-      .eq('tenant_id', tenant_id)
-      .eq('is_system', true)
       .maybeSingle();
 
-    console.log('Role lookup (system only):', { role, roleData, roleError });
+    console.log('Role lookup:', { role, roleData, roleError });
 
     if (roleData?.id) {
       roleId = roleData.id;
     } else {
-      // Fallback: try without is_system in case roles were created differently
-      const { data: fallbackRole, error: fallbackError } = await supabaseClient
+      // Auto-create the missing role if it doesn't exist
+      console.log(`Creating missing role '${role}'`);
+      const { data: createdRole, error: createRoleError } = await supabaseClient
         .from('roles')
-        .select('id, is_system')
-        .eq('name', role)
-        .eq('tenant_id', tenant_id)
-        .maybeSingle();
+        .insert({
+          name: role,
+          description: `${role} role (auto-created)`,
+        })
+        .select('id')
+        .single();
 
-      console.log('Role fallback lookup (any):', { fallbackRole, fallbackError });
-
-      if (fallbackRole?.id) {
-        roleId = fallbackRole.id;
-      } else {
-        // Auto-create the missing system role for this tenant
-        console.log(`Creating missing system role '${role}' for tenant ${tenant_id}`);
-        const { data: createdRole, error: createRoleError } = await supabaseClient
-          .from('roles')
-          .insert({
-            tenant_id: tenant_id,
-            name: role,
-            description: `${role} role (auto-created)`,
-            is_system: true,
-          })
-          .select('id')
-          .single();
-
-        if (createRoleError || !createdRole) {
-          if (!existingUser) {
-            console.log('Cleaning up newly created user due to role creation error');
-            await supabaseClient.auth.admin.deleteUser(userId);
-          }
-          throw new Error(`ไม่สามารถสร้างบทบาท ${role} สำหรับเทนนันต์นี้ได้`);
+      if (createRoleError || !createdRole) {
+        if (!existingUser) {
+          console.log('Cleaning up newly created user due to role creation error');
+          await supabaseClient.auth.admin.deleteUser(userId);
         }
-
-        roleId = createdRole.id;
-
-        // Assign permissions from the request
-        console.log(`Assigning custom permissions to new ${role} role`);
-        
-        if (permissions && Array.isArray(permissions) && permissions.length > 0) {
-          // Use custom permissions selected by owner
-          const rolePermissions = permissions.map((permissionId: string) => ({
-            role_id: roleId,
-            permission_id: permissionId
-          }));
-          
-          const { error: permError } = await supabaseClient
-            .from('role_permissions')
-            .insert(rolePermissions);
-          
-          if (permError) {
-            console.error('Error assigning permissions:', permError);
-          }
-        } else {
-          // Fallback to default permissions based on role type if no custom permissions provided
-          console.log(`No custom permissions provided, using default permissions for ${role}`);
-          
-          if (role === 'admin' || role === 'manager') {
-            // Admin/Manager: all permissions except sensitive settings and user management
-            const { data: defaultPermissions } = await supabaseClient
-              .from('permissions')
-              .select('id')
-              .not('name', 'in', '("settings.manage","users.manage")');
-            
-            if (defaultPermissions && defaultPermissions.length > 0) {
-              const rolePermissions = defaultPermissions.map(p => ({
-                role_id: roleId,
-                permission_id: p.id
-              }));
-              
-              await supabaseClient
-                .from('role_permissions')
-                .insert(rolePermissions);
-            }
-          } else if (role === 'developer') {
-            // Developer: API and webhook management
-            const { data: defaultPermissions } = await supabaseClient
-              .from('permissions')
-              .select('id')
-              .in('name', ['payments.view', 'customers.view', 'api_keys.view', 'api_keys.manage', 'webhooks.view', 'webhooks.manage', 'settings.view']);
-            
-            if (defaultPermissions && defaultPermissions.length > 0) {
-              const rolePermissions = defaultPermissions.map(p => ({
-                role_id: roleId,
-                permission_id: p.id
-              }));
-              
-              await supabaseClient
-                .from('role_permissions')
-                .insert(rolePermissions);
-            }
-          } else if (role === 'finance') {
-            // Finance: payment and settlement related
-            const { data: defaultPermissions } = await supabaseClient
-              .from('permissions')
-              .select('id')
-              .in('name', ['payments.view', 'payments.create', 'payments.refund', 'customers.view', 'settlements.view', 'reports.view']);
-            
-            if (defaultPermissions && defaultPermissions.length > 0) {
-              const rolePermissions = defaultPermissions.map(p => ({
-                role_id: roleId,
-                permission_id: p.id
-              }));
-              
-              await supabaseClient
-                .from('role_permissions')
-                .insert(rolePermissions);
-            }
-          } else if (role === 'viewer') {
-            // Viewer: read-only access
-            const { data: defaultPermissions } = await supabaseClient
-              .from('permissions')
-              .select('id')
-              .like('name', '%.view');
-            
-            if (defaultPermissions && defaultPermissions.length > 0) {
-              const rolePermissions = defaultPermissions.map(p => ({
-                role_id: roleId,
-                permission_id: p.id
-              }));
-              
-              await supabaseClient
-                .from('role_permissions')
-                .insert(rolePermissions);
-            }
-          }
-        }
-        // owner role gets all permissions by default in handle_new_user trigger
+        throw new Error(`ไม่สามารถสร้างบทบาท ${role} ได้: ${createRoleError?.message || 'Unknown error'}`);
       }
+
+      roleId = createdRole.id;
     }
 
     if (!roleId) {
