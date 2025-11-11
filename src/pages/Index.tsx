@@ -177,8 +177,12 @@ const Index = () => {
               textShadow: '0 0 30px rgba(6, 182, 212, 1), 0 0 60px rgba(6, 182, 212, 0.8), 0 0 90px rgba(6, 182, 212, 0.6), 0 4px 12px rgba(0, 0, 0, 0.8)'
             }} className="text-white tracking-wider font-orbitron text-7xl md:text-8xl font-extrabold block mb-4 animate-fade-in-up">PayX</span>
               <span style={{
-              textShadow: '0 0 20px rgba(147, 51, 234, 0.8), 0 0 40px rgba(147, 51, 234, 0.5), 0 2px 8px rgba(0, 0, 0, 0.8)'
-            }} className="text-white/95 text-3xl md:text-4xl font-black tracking-tight block animate-fade-in-delayed">POWER YOUR PAYMENT</span>
+              background: 'linear-gradient(135deg, #06b6d4 0%, #a855f7 50%, #ec4899 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 40px rgba(6, 182, 212, 0.5))'
+            }} className="text-3xl md:text-4xl font-black tracking-tight block animate-fade-in-delayed">POWER YOUR PAYMENT</span>
             </h1>
             <div className="flex items-center justify-center gap-2">
               <div className="h-1 w-20 bg-primary shadow-neon"></div>
