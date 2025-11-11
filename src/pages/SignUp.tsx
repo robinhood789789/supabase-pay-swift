@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 import { PasswordBreachAlert, isPasswordBreachError } from "@/components/security/PasswordBreachAlert";
+import { logPasswordBreachEvent } from "@/lib/security/passwordBreachLogger";
 
 const signUpSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -70,6 +71,12 @@ const SignUp = () => {
       // Check if error is due to password breach
       if (isPasswordBreachError(error)) {
         setShowBreachAlert(true);
+        
+        // Log password breach detection event
+        await logPasswordBreachEvent({
+          email: values.email,
+          context: 'signup',
+        });
       }
     } finally {
       setIsLoading(false);

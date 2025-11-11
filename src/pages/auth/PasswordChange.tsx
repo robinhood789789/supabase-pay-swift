@@ -12,6 +12,7 @@ import { getCSRFToken } from "@/lib/security/csrf";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 import { PasswordBreachAlert, isPasswordBreachError } from "@/components/security/PasswordBreachAlert";
+import { logPasswordBreachEvent, logPasswordBreachResolution } from "@/lib/security/passwordBreachLogger";
 
 export default function PasswordChange() {
   const navigate = useNavigate();
@@ -104,6 +105,14 @@ export default function PasswordChange() {
       if (isPasswordBreachError(err)) {
         setShowBreachAlert(true);
         setError("");
+        
+        // Log password breach detection event
+        const { data: { user } } = await supabase.auth.getUser();
+        await logPasswordBreachEvent({
+          userId: user?.id,
+          email: user?.email,
+          context: 'password_change',
+        });
       } else {
         setError(err.message || "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
         setShowBreachAlert(false);
