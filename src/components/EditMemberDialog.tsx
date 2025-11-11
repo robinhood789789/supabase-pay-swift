@@ -24,8 +24,8 @@ interface EditMemberDialogProps {
 }
 
 export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialogProps) {
-  const [status, setStatus] = useState<string>(member?.status || "active");
-  const [selectedRole, setSelectedRole] = useState<string>(member?.role || "");
+  const [status, setStatus] = useState<string>("active");
+  const [selectedRole, setSelectedRole] = useState<string>("");
   const queryClient = useQueryClient();
 
   // Fetch available roles
@@ -46,10 +46,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   // Update status and role whenever member changes
   useEffect(() => {
     if (member) {
-      setStatus(member.status);
+      setStatus(member.status || "active");
       setSelectedRole(member.role || "");
     }
-  }, [member]);
+  }, [member, open]);
 
   const updateMemberMutation = useMutation({
     mutationFn: async ({ 
@@ -79,8 +79,8 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         updates.role_id = roleData.id;
       }
       
-      // If status changed, add it to updates
-      if (newStatus && newStatus !== member?.status) {
+      // Always update status if provided
+      if (newStatus) {
         updates.status = newStatus;
       }
       
