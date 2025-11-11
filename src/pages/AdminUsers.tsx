@@ -138,6 +138,9 @@ const AdminUsers = () => {
       return result;
     },
     enabled: !!activeTenantId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   const force2FAMutation = useMutation({
