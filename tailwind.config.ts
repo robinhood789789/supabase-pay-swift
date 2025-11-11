@@ -184,16 +184,6 @@ export default {
             backgroundPosition: "0% 50%",
           },
         },
-        "highlight-fade": {
-          "0%": {
-            backgroundColor: "hsl(var(--primary) / 0.2)",
-            transform: "scale(1.01)",
-          },
-          "100%": {
-            backgroundColor: "transparent",
-            transform: "scale(1)",
-          },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -202,7 +192,6 @@ export default {
         "fade-in-delayed": "fade-in-delayed 1s ease-out 0.5s both",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "shimmer": "shimmer 3s ease-in-out infinite",
-        "highlight-fade": "highlight-fade 2s ease-out forwards",
       },
     },
   },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,6 @@ const AdminUsers = () => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [editMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<any>(null);
-  const [newUserIds, setNewUserIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const { activeTenantId } = useTenantSwitcher();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
@@ -341,90 +340,6 @@ const AdminUsers = () => {
     setEditMemberDialogOpen(true);
   };
 
-  // Real-time subscription for new users and memberships
-  useEffect(() => {
-    if (!activeTenantId) return;
-
-    const channel = supabase
-      .channel('admin-users-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('🔔 New user created:', payload);
-          const newUserId = payload.new.id;
-          
-          // Add to highlight list
-          setNewUserIds(prev => [...prev, newUserId]);
-          
-          // Remove from highlight list after 2 seconds
-          setTimeout(() => {
-            setNewUserIds(prev => prev.filter(id => id !== newUserId));
-          }, 2000);
-          
-          toast.success('ผู้ใช้ใหม่ถูกเพิ่มเข้ามา');
-          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'memberships',
-          filter: `tenant_id=eq.${activeTenantId}`
-        },
-        (payload) => {
-          console.log('🔔 New membership created:', payload);
-          const userId = payload.new.user_id;
-          
-          // Add to highlight list
-          setNewUserIds(prev => [...prev, userId]);
-          
-          // Remove from highlight list after 2 seconds
-          setTimeout(() => {
-            setNewUserIds(prev => prev.filter(id => id !== userId));
-          }, 2000);
-          
-          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'memberships',
-          filter: `tenant_id=eq.${activeTenantId}`
-        },
-        (payload) => {
-          console.log('🔔 Membership updated:', payload);
-          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('🔔 Profile updated:', payload);
-          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [activeTenantId, queryClient]);
-
   return (
     <DashboardLayout>
       <PermissionGate
@@ -545,10 +460,7 @@ const AdminUsers = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredUsers?.map((user) => (
-                      <TableRow 
-                        key={user.id}
-                        className={newUserIds.includes(user.id) ? 'animate-highlight-fade' : ''}
-                      >
+                      <TableRow key={user.id}>
                         <PermissionGate allowOwner={true}>
                           <TableCell>
                             <Checkbox
@@ -572,14 +484,7 @@ const AdminUsers = () => {
                             ) : (
                               <User className="w-4 h-4 text-muted-foreground" />
                             )}
-                            <div className="flex items-center gap-2">
-                              <span>{user.full_name || "ไม่ระบุชื่อ"}</span>
-                              {newUserIds.includes(user.id) && (
-                                <Badge className="animate-highlight-fade bg-success text-success-foreground text-xs">
-                                  NEW
-                                </Badge>
-                              )}
-                            </div>
+                            {user.full_name || "ไม่ระบุชื่อ"}
                           </div>
                         </TableCell>
                         <TableCell>
