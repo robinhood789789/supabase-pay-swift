@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -339,6 +339,70 @@ const AdminUsers = () => {
     });
     setEditMemberDialogOpen(true);
   };
+
+  // Real-time subscription for new users and memberships
+  useEffect(() => {
+    if (!activeTenantId) return;
+
+    const channel = supabase
+      .channel('admin-users-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('🔔 New user created:', payload);
+          toast.success('ผู้ใช้ใหม่ถูกเพิ่มเข้ามา');
+          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'memberships',
+          filter: `tenant_id=eq.${activeTenantId}`
+        },
+        (payload) => {
+          console.log('🔔 New membership created:', payload);
+          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'memberships',
+          filter: `tenant_id=eq.${activeTenantId}`
+        },
+        (payload) => {
+          console.log('🔔 Membership updated:', payload);
+          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('🔔 Profile updated:', payload);
+          queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTenantId, queryClient]);
 
   return (
     <DashboardLayout>
