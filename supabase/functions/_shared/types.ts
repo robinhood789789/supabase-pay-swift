@@ -296,8 +296,16 @@ export interface SecurityEvent {
 export interface IpBlockRequest {
   ipAddress: string;
   reason: string;
+  durationMinutes?: number;
+  isPermanent?: boolean;
   expiresAt?: string;
   severity?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface IpUnblockRequest {
+  ipAddress: string;
+  reason?: string;
 }
 
 export interface IpBlockResponse {

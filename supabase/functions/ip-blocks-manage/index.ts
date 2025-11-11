@@ -1,16 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
-
-interface BlockIPRequest {
-  ipAddress: string;
-  reason: string;
-  durationMinutes?: number;
-  isPermanent?: boolean;
-}
-
-interface UnblockIPRequest {
-  ipAddress: string;
-}
+import { IpBlockRequest, IpUnblockRequest } from '../_shared/types.ts';
 
 Deno.serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);
@@ -82,7 +72,7 @@ Deno.serve(async (req) => {
 
     // Block IP
     if (method === 'POST' && action === 'block') {
-      const body: BlockIPRequest = await req.json();
+      const body: IpBlockRequest = await req.json();
 
       if (!body.ipAddress || !body.reason) {
         return new Response(
@@ -130,7 +120,7 @@ Deno.serve(async (req) => {
 
     // Unblock IP
     if (method === 'POST' && action === 'unblock') {
-      const body: UnblockIPRequest = await req.json();
+      const body: IpUnblockRequest = await req.json();
 
       if (!body.ipAddress) {
         return new Response(

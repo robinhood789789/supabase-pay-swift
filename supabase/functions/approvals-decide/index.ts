@@ -4,17 +4,11 @@ import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
-
-interface DecisionRequest {
-  approvalId: string;
-  decision: 'approve' | 'reject';
-  comment?: string;
-}
+import { ApprovalDecision } from '../_shared/types.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCorsPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const supabase = createClient(
@@ -100,8 +94,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body: DecisionRequest = await req.json();
-    const { approvalId, decision, comment } = body;
+    const body: ApprovalDecision = await req.json();
+    const { approvalId, action, reason } = body;
 
     // Input validation
     const validationErrors = [];
@@ -113,13 +107,13 @@ Deno.serve(async (req) => {
     });
     if (idError) validationErrors.push(idError);
     
-    if (!['approve', 'reject'].includes(decision)) {
-      validationErrors.push({ field: 'decision', message: 'Decision must be "approve" or "reject"' });
+    if (!['approve', 'reject'].includes(action)) {
+      validationErrors.push({ field: 'action', message: 'Action must be "approve" or "reject"' });
     }
     
-    if (comment) {
-      const commentError = validateString('comment', comment, { maxLength: 1000 });
-      if (commentError) validationErrors.push(commentError);
+    if (reason) {
+      const reasonError = validateString('reason', reason, { maxLength: 1000 });
+      if (reasonError) validationErrors.push(reasonError);
     }
 
     if (validationErrors.length > 0) {
@@ -129,7 +123,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!approvalId || !decision || !['approve', 'reject'].includes(decision)) {
+    if (!approvalId || !action || !['approve', 'reject'].includes(action)) {
       return new Response(
         JSON.stringify({ error: 'Invalid request' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -170,38 +164,38 @@ Deno.serve(async (req) => {
     const { error: updateError } = await supabase
       .from('approvals')
       .update({
-        status: decision === 'approve' ? 'approved' : 'rejected',
+        status: action === 'approve' ? 'approved' : 'rejected',
         reviewed_by: user.id,
         reviewed_at: new Date().toISOString(),
-        review_notes: comment || null,
+        review_notes: reason || null,
       })
       .eq('id', approvalId);
 
     if (updateError) throw updateError;
 
     // If approved, execute the original action
-    if (decision === 'approve') {
+    if (action === 'approve') {
       await executeApprovedAction(supabase, approval);
     }
 
-    // Log the decision
+    // Log the action
     await supabase
       .from('audit_logs')
       .insert({
         tenant_id: tenantId,
         actor_user_id: user.id,
-        action: `approval.${decision}d`,
+        action: `approval.${action}d`,
         target: `approval:${approvalId}`,
         before: { status: 'pending' },
-        after: { status: decision, comment },
+        after: { status: action, reason },
         ip: req.headers.get('x-forwarded-for') || null,
         user_agent: req.headers.get('user-agent') || null
       });
 
-    console.log(`[Approval] ${decision} by ${user.id}: ${approvalId}`);
+    console.log(`[Approval] ${action} by ${user.id}: ${approvalId}`);
 
     return new Response(
-      JSON.stringify({ success: true, decision }),
+      JSON.stringify({ success: true, action }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
