@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
+import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { 
   validateEmail, 
   validatePassword,
@@ -10,7 +11,7 @@ import {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 Deno.serve(async (req) => {
@@ -43,6 +44,23 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
+    }
+
+    // CSRF protection (Note: This function uses secret_key auth, but CSRF adds defense in depth)
+    // For this endpoint, we'll validate CSRF if auth header is present
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+      // Get user from auth header for CSRF validation
+      const tempSupabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user } } = await tempSupabase.auth.getUser();
+      if (user) {
+        const csrfError = await requireCSRF(req, user.id);
+        if (csrfError) return csrfError;
+      }
     }
 
     // Verify secret key (CRITICAL SECURITY: No default value)

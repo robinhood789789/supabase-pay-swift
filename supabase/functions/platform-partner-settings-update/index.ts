@@ -1,9 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { requireStepUp } from '../_shared/mfa-guards.ts';
+import { requireCSRF } from '../_shared/csrf-validation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
 };
 
 Deno.serve(async (req) => {
@@ -40,6 +41,10 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // CSRF protection
+    const csrfError = await requireCSRF(req, user.id);
+    if (csrfError) return csrfError;
 
     // MFA step-up required
     const mfaCheck = await requireStepUp({
