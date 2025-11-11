@@ -45,6 +45,7 @@ import { EditMemberDialog } from "@/components/EditMemberDialog";
 const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -198,8 +199,9 @@ const AdminUsers = () => {
       user.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesRole = selectedRole === "all" || user.role === selectedRole;
+    const matchesStatus = selectedStatus === "all" || user.status === selectedStatus;
     
-    return matchesSearch && matchesRole;
+    return matchesSearch && matchesRole && matchesStatus;
   });
 
   const handleViewDetails = (userId: string) => {
@@ -393,6 +395,16 @@ const AdminUsers = () => {
                       {role.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="กรองตามสถานะ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
               <PermissionGate allowOwner={true}>
