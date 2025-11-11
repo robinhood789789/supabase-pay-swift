@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Shield, User, ShieldCheck, Eye, Trash2, UserX, Edit, Code, Edit2, Copy } from "lucide-react";
+import { Search, Shield, User, ShieldCheck, Eye, Trash2, UserX, Edit, Code, Edit2, Copy, RefreshCw } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,7 +74,7 @@ const AdminUsers = () => {
     enabled: !!activeTenantId,
   });
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["admin-users", activeTenantId],
     queryFn: async () => {
       if (!activeTenantId) {
@@ -410,6 +410,17 @@ const AdminUsers = () => {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  refetch();
+                  toast.success("รีเฟรชข้อมูลเรียบร้อย");
+                }}
+                disabled={isFetching}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+                รีเฟรช
+              </Button>
               <PermissionGate allowOwner={true}>
                 <Button
                   variant="destructive"
