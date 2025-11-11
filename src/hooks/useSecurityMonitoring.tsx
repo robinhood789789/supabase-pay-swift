@@ -124,12 +124,21 @@ export function useSecurityMonitoring() {
             const newAlert = payload.new as any;
             setAlerts((prev) => [newAlert, ...prev]);
 
-            // Show toast for new alerts
-            toast({
-              title: 'New Security Alert',
-              description: newAlert.title,
-              variant: newAlert.severity === 'critical' ? 'destructive' : 'default',
-            });
+            // Show toast for new alerts with special handling for password breach spikes
+            if (newAlert.alert_type === 'password_breach_spike') {
+              toast({
+                title: '🔒 Password Security Alert',
+                description: `${newAlert.event_count} password breach attempts detected in the last 15 minutes. Users are trying to use compromised passwords.`,
+                variant: 'destructive',
+                duration: 10000,
+              });
+            } else {
+              toast({
+                title: 'New Security Alert',
+                description: newAlert.title,
+                variant: newAlert.severity === 'critical' ? 'destructive' : 'default',
+              });
+            }
           } else if (payload.eventType === 'UPDATE') {
             const updatedAlert = payload.new as any;
             setAlerts((prev) =>
