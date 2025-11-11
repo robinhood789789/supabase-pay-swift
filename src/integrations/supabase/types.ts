@@ -2170,6 +2170,21 @@ export type Database = {
           },
         ]
       }
+      v_tx_monthly_by_tenant: {
+        Row: {
+          deposit_net: number | null
+          net_in: number | null
+          net_out: number | null
+          success_count: number | null
+          tenant_id: string | null
+          total_fees: number | null
+          transfer_net: number | null
+          tx_count: number | null
+          tx_month: string | null
+          withdrawal_net: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       assign_owner_role_by_email: {
