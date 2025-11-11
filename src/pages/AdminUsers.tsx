@@ -54,6 +54,7 @@ const AdminUsers = () => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [editMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<any>(null);
+  const [newUserIds, setNewUserIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const { activeTenantId } = useTenantSwitcher();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
@@ -355,6 +356,16 @@ const AdminUsers = () => {
         },
         (payload) => {
           console.log('🔔 New user created:', payload);
+          const newUserId = payload.new.id;
+          
+          // Add to highlight list
+          setNewUserIds(prev => [...prev, newUserId]);
+          
+          // Remove from highlight list after 2 seconds
+          setTimeout(() => {
+            setNewUserIds(prev => prev.filter(id => id !== newUserId));
+          }, 2000);
+          
           toast.success('ผู้ใช้ใหม่ถูกเพิ่มเข้ามา');
           queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
         }
@@ -369,6 +380,16 @@ const AdminUsers = () => {
         },
         (payload) => {
           console.log('🔔 New membership created:', payload);
+          const userId = payload.new.user_id;
+          
+          // Add to highlight list
+          setNewUserIds(prev => [...prev, userId]);
+          
+          // Remove from highlight list after 2 seconds
+          setTimeout(() => {
+            setNewUserIds(prev => prev.filter(id => id !== userId));
+          }, 2000);
+          
           queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
         }
       )
@@ -524,7 +545,10 @@ const AdminUsers = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredUsers?.map((user) => (
-                      <TableRow key={user.id}>
+                      <TableRow 
+                        key={user.id}
+                        className={newUserIds.includes(user.id) ? 'animate-highlight-fade' : ''}
+                      >
                         <PermissionGate allowOwner={true}>
                           <TableCell>
                             <Checkbox
