@@ -129,6 +129,7 @@ export interface CheckoutSessionRequest {
   successUrl?: string;
   cancelUrl?: string;
   methodTypes: string[];
+  tenantId: string;
   metadata?: Record<string, any>;
 }
 
@@ -394,10 +395,10 @@ export interface ExportResponse {
 // ============================================================================
 
 export interface ApprovalRequest {
-  type: string;
-  entityId: string;
-  requestedBy: string;
-  metadata?: Record<string, any>;
+  actionType: string;
+  actionData: any;
+  amount?: number;
+  reason: string;
 }
 
 export interface ApprovalDecision {

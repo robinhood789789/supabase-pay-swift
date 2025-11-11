@@ -7,26 +7,15 @@ import { createSecureErrorResponse, logSecureAction } from "../_shared/error-han
 import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateAmount, validateString } from '../_shared/validation.ts';
+import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { RefundRequest } from '../_shared/types.ts';
 
 // Rate limiting: Critical endpoint - strict rate limits enforced
 // 20 requests per hour per user
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token',
-};
-
-interface RefundRequest {
-  paymentId: string;
-  amount?: number; // Optional - if not provided, full refund
-  reason?: string;
-}
-
 Deno.serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCorsPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const supabase = createClient(

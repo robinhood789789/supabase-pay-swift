@@ -6,12 +6,8 @@ import {
   validateEmail, 
   validateLength 
 } from '../_shared/error-handling.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, Authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token, cookie',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { PartnerCreateRequest } from '../_shared/types.ts';
 
 // Generate secure random password
 function generateTempPassword(): string {
@@ -50,9 +46,10 @@ Deno.serve(async (req) => {
   console.log('[platform-partners-create] Method:', req.method);
   console.log('[platform-partners-create] Headers:', Object.fromEntries(req.headers));
   
-  if (req.method === 'OPTIONS') {
+  const corsResponse = handleCorsPreflight(req);
+  if (corsResponse) {
     console.log('[platform-partners-create] Handling CORS preflight');
-    return new Response(null, { headers: corsHeaders });
+    return corsResponse;
   }
 
   try {

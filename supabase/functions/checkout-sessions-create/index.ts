@@ -6,18 +6,9 @@ import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateAmount, validateString, validateEmail, sanitizeErrorMessage } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { CheckoutSessionRequest } from '../_shared/types.ts';
 
-// Validation schema
-interface CreateSessionRequest {
-  amount: number;
-  currency: string;
-  reference?: string;
-  successUrl?: string;
-  cancelUrl?: string;
-  methodTypes: string[];
-}
-
-function validateRequest(body: any): CreateSessionRequest {
+function validateRequest(body: any): CheckoutSessionRequest {
   if (!body || typeof body !== "object") {
     throw new Error("Invalid request body");
   }
@@ -48,7 +39,7 @@ function validateRequest(body: any): CreateSessionRequest {
     throw new Error("methodTypes must be a non-empty array");
   }
 
-  return { amount, currency, reference, successUrl, cancelUrl, methodTypes };
+  return { amount, currency, reference, successUrl, cancelUrl, methodTypes, tenantId: '' };
 }
 
 async function authenticateRequest(
@@ -289,6 +280,9 @@ serve(async (req) => {
     
     const params = validateRequest(body);
 
+    // Override tenantId with actual value
+    params.tenantId = tenantId;
+
     // Get payment provider
     const provider = await getPaymentProvider(supabase, tenantId);
 
@@ -296,10 +290,7 @@ serve(async (req) => {
     console.log(`[Checkout] Creating session for tenant ${tenantId}, amount: ${params.amount} ${params.currency}`);
 
     // Create session with provider
-    const providerSession = await provider.createCheckoutSession({
-      ...params,
-      tenantId,
-    });
+    const providerSession = await provider.createCheckoutSession(params);
 
     // Store in database
     const { data: session, error: dbError } = await supabase
