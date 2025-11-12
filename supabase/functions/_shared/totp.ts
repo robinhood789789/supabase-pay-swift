@@ -53,11 +53,15 @@ export function getTOTPQRCodeUrl(secret: string, email: string, issuer: string =
 }
 
 export async function verifyTOTP(secret: string, token: string): Promise<boolean> {
-  const window = 2; // Allow 2 time steps before/after (±60 seconds) for better compatibility
+  const window = 4; // Allow 4 time steps before/after (±120 seconds) for clock drift tolerance
   const timeStep = 30;
   const currentTime = Math.floor(Date.now() / 1000 / timeStep);
 
-  console.log(`[TOTP Verify] Current time: ${currentTime}, Token: ${token}`);
+  // Mask secret for security (show only first 4 and last 4 chars)
+  const maskedSecret = secret.length > 8 
+    ? `${secret.substring(0, 4)}...${secret.substring(secret.length - 4)}` 
+    : '***';
+  console.log(`[TOTP Verify] Secret: ${maskedSecret}, Current time: ${currentTime}, Token: ${token}`);
 
   for (let i = -window; i <= window; i++) {
     const time = currentTime + i;
