@@ -90,23 +90,28 @@ serve(async (req) => {
       }, {});
     }
 
-    // Get public_ids for all tenants (from profiles via owner membership)
+    // Get public_ids for all tenants user_ids
     let publicIdsMap: Record<string, string> = {};
-    if (tenantIds.length > 0) {
-      const { data: memberships, error: membershipsError } = await supabaseClient
-        .from('memberships')
-        .select(`
-          tenant_id,
-          profiles:user_id (
-            public_id
-          )
-        `)
-        .in('tenant_id', tenantIds);
+    const userIds = Object.values(tenantsById).map((t: any) => t.user_id).filter(Boolean);
+    
+    if (userIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabaseClient
+        .from('profiles')
+        .select('id, public_id')
+        .in('id', userIds);
       
-      if (!membershipsError && memberships) {
-        memberships.forEach((m: any) => {
-          if (m.profiles?.public_id) {
-            publicIdsMap[m.tenant_id] = m.profiles.public_id;
+      if (!profilesError && profiles) {
+        const profilesById = profiles.reduce((acc: Record<string, string>, p: any) => {
+          if (p.public_id) {
+            acc[p.id] = p.public_id;
+          }
+          return acc;
+        }, {});
+        
+        // Map tenant_id -> public_id via user_id
+        Object.entries(tenantsById).forEach(([tenantId, tenant]: [string, any]) => {
+          if (tenant.user_id && profilesById[tenant.user_id]) {
+            publicIdsMap[tenantId] = profilesById[tenant.user_id];
           }
         });
       }
@@ -114,11 +119,13 @@ serve(async (req) => {
 
     const owners = (clientLinks || []).map((link: any) => {
       const tenant = tenantsById[link.tenant_id] || {};
+      const publicId = publicIdsMap[link.tenant_id] || '';
+      
       return {
         ownerId: tenant.id || link.tenant_id,
         businessName: tenant.name || 'Unknown',
         userId: tenant.user_id || '',
-        publicId: publicIdsMap[link.tenant_id] || tenant.user_id || '',
+        publicId: publicId || '-',
         createdAt: link.referred_at || tenant.created_at || null,
         status: link.status === 'active' ? 'Active' : link.status === 'trial' ? 'Trial' : (link.status || 'Churned'),
         mrr: link.status === 'active' ? Math.round(Math.random() * 5000 + 1000) : 0, // TODO: Replace with real MRR when available
