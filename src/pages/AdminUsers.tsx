@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Shield, User, ShieldCheck, Eye, Trash2, UserX, Edit, Code, Edit2, Copy, Calendar, Filter } from "lucide-react";
+import { Search, Shield, User, ShieldCheck, Eye, Trash2, UserX, Edit, Code, Edit2, Copy, Calendar, Filter, KeyRound } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +55,9 @@ const AdminUsers = () => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [editMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<any>(null);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; public_id: string } | null>(null);
   const queryClient = useQueryClient();
   const { activeTenantId } = useTenantSwitcher();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
@@ -338,6 +341,74 @@ const AdminUsers = () => {
 
   const confirmBulkDelete = () => {
     checkAndChallenge(() => bulkDeleteMutation.mutate(selectedUserIds));
+  };
+
+  const handleResetPasswordClick = (user: any) => {
+    // Generate a strong password
+    const generateRandomPassword = () => {
+      const lowercase = "abcdefghijklmnopqrstuvwxyz";
+      const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const numbers = "0123456789";
+      const special = "!@#$%^&*";
+      
+      let password = "";
+      password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+      password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+      password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+      password += special.charAt(Math.floor(Math.random() * special.length));
+      
+      const allChars = lowercase + uppercase + numbers + special;
+      for (let i = password.length; i < 16; i++) {
+        password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+      }
+      
+      return password.split('').sort(() => Math.random() - 0.5).join('');
+    };
+    
+    const generatedPassword = generateRandomPassword();
+    setNewPassword(generatedPassword);
+    setResetPasswordUser({
+      id: user.id,
+      name: user.full_name || user.email,
+      public_id: user.public_id,
+    });
+    setResetPasswordDialogOpen(true);
+  };
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No session");
+
+      const { data, error } = await supabase.functions.invoke("admin-reset-user-password", {
+        body: { user_id: userId, new_password: password },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
+      toast.success("รีเซ็ตรหัสผ่านสำเร็จ! กรุณาบันทึกรหัสผ่านใหม่");
+    },
+    onError: (error: any) => {
+      console.error("Reset password error:", error);
+      toast.error(error.message || "ไม่สามารถรีเซ็ตรหัสผ่านได้");
+      setResetPasswordDialogOpen(false);
+    },
+  });
+
+  const confirmResetPassword = () => {
+    if (resetPasswordUser) {
+      resetPasswordMutation.mutate({
+        userId: resetPasswordUser.id,
+        password: newPassword,
+      });
+    }
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -634,6 +705,14 @@ const AdminUsers = () => {
                                 </Button>
                               )}
                               <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResetPasswordClick(user)}
+                                title="รีเซ็ตรหัสผ่าน"
+                              >
+                                <KeyRound className="w-4 h-4" />
+                              </Button>
+                              <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteClick(user)}
@@ -722,6 +801,64 @@ const AdminUsers = () => {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 ยืนยันการลบทั้งหมด
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Reset Password Dialog */}
+        <AlertDialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+          <AlertDialogContent className="max-w-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5" />
+                รีเซ็ตรหัสผ่าน
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-4">
+                <div>
+                  <p className="mb-2">คุณกำลังจะรีเซ็ตรหัสผ่านสำหรับ:</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <p className="font-semibold">{resetPasswordUser?.name}</p>
+                    <p className="text-sm font-mono">{resetPasswordUser?.public_id}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                  <p className="text-sm font-semibold mb-2">รหัสผ่านใหม่:</p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={newPassword}
+                      readOnly
+                      className="font-mono bg-background"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(newPassword);
+                        toast.success("คัดลอกรหัสผ่านแล้ว!");
+                      }}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ⚠️ กรุณาบันทึกรหัสผ่านนี้ในที่ปลอดภัย คุณจะไม่สามารถดูรหัสผ่านนี้อีกครั้ง
+                  </p>
+                </div>
+                
+                <p className="text-sm">
+                  ผู้ใช้จะต้องเปลี่ยนรหัสผ่านในการเข้าสู่ระบบครั้งแรก
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmResetPassword}
+                disabled={resetPasswordMutation.isPending}
+              >
+                {resetPasswordMutation.isPending ? "กำลังดำเนินการ..." : "ยืนยันรีเซ็ตรหัสผ่าน"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
