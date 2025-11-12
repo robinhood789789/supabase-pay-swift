@@ -245,30 +245,32 @@ export default function PlatformPartners() {
                 </TableBody>
               </Table>
 
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">แสดง</span>
-                    <Select 
-                      value={pageSize.toString()} 
-                      onValueChange={(value) => {
-                        setPageSize(Number(value));
-                        setPage(1);
-                      }}
-                    >
-                      <SelectTrigger className="w-20 border-gray-300 bg-white text-black">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50 text-black">
-                        <SelectItem value="20" className="text-black">20</SelectItem>
-                        <SelectItem value="50" className="text-black">50</SelectItem>
-                        <SelectItem value="100" className="text-black">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">รายการ</span>
-                  </div>
+              {/* Pagination Controls */}
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200 pt-6">
+                {/* Items per page selector */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">แสดง</span>
+                  <Select 
+                    value={pageSize.toString()} 
+                    onValueChange={(value) => {
+                      setPageSize(Number(value));
+                      setPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-20 border-gray-300 bg-white text-black">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50 text-black">
+                      <SelectItem value="20" className="text-black">20</SelectItem>
+                      <SelectItem value="50" className="text-black">50</SelectItem>
+                      <SelectItem value="100" className="text-black">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">รายการต่อหน้า</span>
+                </div>
 
+                {/* Page navigation - only show if more than one page */}
+                {pagination.totalPages > 1 && (
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -336,12 +338,17 @@ export default function PlatformPartners() {
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
+                )}
 
-                  <div className="text-xs text-gray-600">
-                    แสดง {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, pagination.total)} จาก {pagination.total} รายการ
-                  </div>
+                {/* Item count summary */}
+                <div className="text-xs text-gray-600">
+                  {pagination.total > 0 ? (
+                    <>แสดง {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, pagination.total)} จาก {pagination.total} รายการ</>
+                  ) : (
+                    <>0 รายการ</>
+                  )}
                 </div>
-              )}
+              </div>
             </>
           ) : (
             <div className="text-center py-8 text-gray-500">
