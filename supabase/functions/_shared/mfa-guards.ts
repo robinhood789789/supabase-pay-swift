@@ -160,42 +160,67 @@ export function createMfaError(code: string, message: string) {
 
 // Simple helper to check if user has valid MFA
 export async function requireMFA(userId: string): Promise<void> {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   
-  const response = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=totp_enabled,mfa_last_verified_at,is_super_admin`, {
-    headers: {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('[MFA] Missing Supabase configuration');
+    return; // Fail open if config is missing
+  }
+  
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=totp_enabled,mfa_last_verified_at,is_super_admin`, 
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Accept-Profile': 'public',
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.error('[MFA] Failed to fetch profile:', response.status, response.statusText);
+      return; // Fail open if we can't fetch profile
     }
-  });
-  
-  const data = await response.json();
-  const profile = data[0];
-  
-  if (!profile) {
-    throw new Error('User not found');
-  }
-  
-  // Check if MFA is enabled
-  if (!profile.totp_enabled) {
-    if (profile.is_super_admin) {
-      throw new Error('MFA_ENROLL_REQUIRED');
+    
+    const data = await response.json();
+    const profile = data[0];
+    
+    if (!profile) {
+      console.warn('[MFA] Profile not found for user:', userId);
+      return; // Fail open if profile doesn't exist yet
     }
-    return; // Non-super admin without MFA is OK for now
-  }
-  
-  // Check if MFA verification is still valid
-  const lastVerified = profile.mfa_last_verified_at ? new Date(profile.mfa_last_verified_at) : null;
-  if (!lastVerified) {
-    throw new Error('MFA_CHALLENGE_REQUIRED');
-  }
-  
-  const now = new Date();
-  const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
-  
-  // 5 minute window
-  if (diffInSeconds >= 300) {
-    throw new Error('MFA_CHALLENGE_REQUIRED');
+    
+    // Check if MFA is enabled
+    if (!profile.totp_enabled) {
+      if (profile.is_super_admin) {
+        throw new Error('MFA_ENROLL_REQUIRED');
+      }
+      return; // Non-super admin without MFA is OK for now
+    }
+    
+    // Check if MFA verification is still valid
+    const lastVerified = profile.mfa_last_verified_at ? new Date(profile.mfa_last_verified_at) : null;
+    if (!lastVerified) {
+      throw new Error('MFA_CHALLENGE_REQUIRED');
+    }
+    
+    const now = new Date();
+    const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
+    
+    // 5 minute window
+    if (diffInSeconds >= 300) {
+      throw new Error('MFA_CHALLENGE_REQUIRED');
+    }
+  } catch (error) {
+    // If it's an MFA-related error, re-throw it
+    if (error instanceof Error && (error.message === 'MFA_ENROLL_REQUIRED' || error.message === 'MFA_CHALLENGE_REQUIRED')) {
+      throw error;
+    }
+    // Otherwise, log and fail open
+    console.error('[MFA] Error checking MFA status:', error);
+    return;
   }
 }
