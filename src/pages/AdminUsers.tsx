@@ -442,13 +442,14 @@ const AdminUsers = () => {
 
   const confirmResetPassword = () => {
     if (resetPasswordUser) {
-      resetPasswordMutation.mutate({
-        userId: resetPasswordUser.id,
-        password: newPassword,
-      });
+      checkAndChallenge(() =>
+        resetPasswordMutation.mutate({
+          userId: resetPasswordUser.id,
+          password: newPassword,
+        })
+      );
     }
   };
-
   const toggleUserSelection = (userId: string) => {
     setSelectedUserIds((prev) =>
       prev.includes(userId)
