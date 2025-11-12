@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Shield, User, ShieldCheck, Eye, Trash2, UserX, Edit, Code, Edit2, Copy } from "lucide-react";
+import { Search, Shield, User, ShieldCheck, Eye, Trash2, UserX, Edit, Code, Edit2, Copy, Calendar, Filter } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +45,8 @@ import { EditMemberDialog } from "@/components/EditMemberDialog";
 const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -194,12 +196,45 @@ const AdminUsers = () => {
   });
 
   const filteredUsers = users?.filter((user) => {
+    // Search filter
     const matchesSearch = user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.public_id?.toLowerCase().includes(searchQuery.toLowerCase());
     
+    // Role filter
     const matchesRole = selectedRole === "all" || user.role === selectedRole;
     
-    return matchesSearch && matchesRole;
+    // Status filter
+    const matchesStatus = selectedStatus === "all" || user.status === selectedStatus;
+    
+    // Date filter
+    let matchesDate = true;
+    if (dateFilter !== "all" && user.created_at) {
+      const userDate = new Date(user.created_at);
+      const now = new Date();
+      
+      switch (dateFilter) {
+        case "today":
+          matchesDate = userDate.toDateString() === now.toDateString();
+          break;
+        case "week":
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          matchesDate = userDate >= weekAgo;
+          break;
+        case "month":
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          matchesDate = userDate >= monthAgo;
+          break;
+        case "3months":
+          const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          matchesDate = userDate >= threeMonthsAgo;
+          break;
+        default:
+          matchesDate = true;
+      }
+    }
+    
+    return matchesSearch && matchesRole && matchesStatus && matchesDate;
   });
 
   const handleViewDetails = (userId: string) => {
@@ -366,45 +401,96 @@ const AdminUsers = () => {
 
           <Card>
           <CardHeader>
-            <CardTitle>รายชื่อผู้ใช้ทั้งหมด</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="w-5 h-5" />
+              รายชื่อผู้ใช้ทั้งหมด
+            </CardTitle>
             <CardDescription>
               จำนวนผู้ใช้: {filteredUsers?.length || 0} / {users?.length || 0} คน
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
+            {/* Search Bar */}
+            <div className="flex flex-col gap-4">
+              <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="ค้นหาด้วยอีเมลหรือชื่อ..."
+                  placeholder="ค้นหาด้วย ชื่อ, อีเมล หรือ Public ID..."
                   className="pl-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="กรองตาม Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.name}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <PermissionGate allowOwner={true}>
-                <Button
-                  variant="destructive"
-                  onClick={handleBulkDeleteClick}
-                  disabled={selectedUserIds.length === 0}
-                >
-                  <UserX className="w-4 h-4 mr-2" />
-                  ลบที่เลือก ({selectedUserIds.length})
-                </Button>
-              </PermissionGate>
+              
+              {/* Filters Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="บทบาท" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทุกบทบาท</SelectItem>
+                    {roles.map((role) => (
+                      <SelectItem key={role.id} value={role.name}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="สถานะ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทุกสถานะ</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="วันที่สร้าง" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทุกช่วงเวลา</SelectItem>
+                    <SelectItem value="today">วันนี้</SelectItem>
+                    <SelectItem value="week">7 วันที่แล้ว</SelectItem>
+                    <SelectItem value="month">30 วันที่แล้ว</SelectItem>
+                    <SelectItem value="3months">90 วันที่แล้ว</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {(searchQuery || selectedRole !== "all" || selectedStatus !== "all" || dateFilter !== "all") && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedRole("all");
+                      setSelectedStatus("all");
+                      setDateFilter("all");
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    ล้างตัวกรอง
+                  </Button>
+                )}
+                
+                <PermissionGate allowOwner={true}>
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDeleteClick}
+                    disabled={selectedUserIds.length === 0}
+                    className="w-full sm:w-auto ml-auto"
+                  >
+                    <UserX className="w-4 h-4 mr-2" />
+                    ลบที่เลือก ({selectedUserIds.length})
+                  </Button>
+                </PermissionGate>
+              </div>
             </div>
 
             {isLoading ? (
