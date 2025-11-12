@@ -1,141 +1,172 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-csrf-token',
-};
-
-interface AlertUpdateData {
-  alertId: string;
-  action: 'acknowledge' | 'resolve' | 'mark_false_positive';
-  notes?: string;
-}
+import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
+import { requireMFA } from '../_shared/mfa-guards.ts';
+import { validateFields, validateString, ValidationException, sanitizeErrorMessage } from '../_shared/validation.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflight(req);
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get auth token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verify user session
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-    if (authError || !user) {
+    // Create Supabase clients
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if user is admin or owner
-    const { data: membership } = await supabase
-      .from('memberships')
-      .select('role_id, roles!inner(name)')
-      .eq('user_id', user.id)
+    // Check MFA
+    await requireMFA(user.id);
+
+    // Parse request
+    const { alert_id, action, notes } = await req.json();
+
+    // Validate inputs
+    validateFields([
+      () => validateString('alert_id', alert_id, { required: true }),
+      () => validateString('action', action, { required: true, maxLength: 50 }),
+    ]);
+
+    if (!['acknowledge', 'resolve', 'false_positive'].includes(action)) {
+      throw new Error('Invalid action');
+    }
+
+    // Get alert
+    const { data: alert, error: alertError } = await supabaseAdmin
+      .from('security_alerts')
+      .select('*')
+      .eq('id', alert_id)
       .single();
 
-    const roleName = (membership?.roles as any)?.name;
-    if (!roleName || !['owner', 'admin'].includes(roleName)) {
+    if (alertError || !alert) {
       return new Response(
-        JSON.stringify({ error: 'Insufficient permissions' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Alert not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const updateData: AlertUpdateData = await req.json();
+    // Check permissions
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single();
 
-    if (!updateData.alertId || !updateData.action) {
+    const isSuperAdmin = profile?.is_super_admin || false;
+
+    // If not super admin, check if user has admin role in alert's tenant
+    if (!isSuperAdmin && alert.tenant_id) {
+      const { data: membership } = await supabaseClient
+        .from('memberships')
+        .select('role_id, roles!inner(name)')
+        .eq('user_id', user.id)
+        .eq('tenant_id', alert.tenant_id)
+        .single();
+
+      const hasAdminRole = Array.isArray(membership?.roles) 
+        ? membership.roles.some((r: any) => r.name === 'owner' || r.name === 'admin')
+        : (membership?.roles as any)?.name === 'owner' || (membership?.roles as any)?.name === 'admin';
+      
+      if (!hasAdminRole) {
+        return new Response(
+          JSON.stringify({ error: 'Insufficient permissions' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Update alert based on action
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (action === 'acknowledge') {
+      updateData.status = 'acknowledged';
+      updateData.acknowledged_by = user.id;
+      updateData.acknowledged_at = new Date().toISOString();
+    } else if (action === 'resolve') {
+      updateData.status = 'resolved';
+      updateData.resolved_by = user.id;
+      updateData.resolved_at = new Date().toISOString();
+    } else if (action === 'false_positive') {
+      updateData.status = 'false_positive';
+      updateData.resolved_by = user.id;
+      updateData.resolved_at = new Date().toISOString();
+    }
+
+    if (notes) {
+      updateData.resolution_notes = notes;
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('security_alerts')
+      .update(updateData)
+      .eq('id', alert_id);
+
+    if (updateError) {
+      console.error('Error updating alert:', updateError);
+      throw new Error(`Failed to update alert: ${updateError.message}`);
+    }
+
+    // Log the action
+    await supabaseAdmin.from('audit_logs').insert({
+      actor_user_id: user.id,
+      action: `security_alert_${action}`,
+      target: 'security_alert',
+      tenant_id: alert.tenant_id,
+      before: { status: alert.status },
+      after: { status: updateData.status, notes },
+    });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Alert updated successfully',
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.error('Error in security-alerts-manage:', error);
+    
+    if (error instanceof ValidationException) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: alertId, action' }),
+        JSON.stringify({ 
+          error: 'Validation failed', 
+          details: error.errors 
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Prepare update based on action
-    let updateFields: any = {
-      updated_at: new Date().toISOString(),
-    };
-
-    switch (updateData.action) {
-      case 'acknowledge':
-        updateFields = {
-          ...updateFields,
-          status: 'acknowledged',
-          acknowledged_by: user.id,
-          acknowledged_at: new Date().toISOString(),
-        };
-        break;
-      case 'resolve':
-        updateFields = {
-          ...updateFields,
-          status: 'resolved',
-          resolved_by: user.id,
-          resolved_at: new Date().toISOString(),
-          resolution_notes: updateData.notes || null,
-        };
-        break;
-      case 'mark_false_positive':
-        updateFields = {
-          ...updateFields,
-          status: 'false_positive',
-          resolved_by: user.id,
-          resolved_at: new Date().toISOString(),
-          resolution_notes: updateData.notes || 'Marked as false positive',
-        };
-        break;
-      default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-    }
-
-    // Update the alert
-    const { data: alert, error: updateError } = await supabase
-      .from('security_alerts')
-      .update(updateFields)
-      .eq('id', updateData.alertId)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Error updating alert:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to update alert' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('[Security Alert Updated]', {
-      alertId: alert.id,
-      action: updateData.action,
-      userId: user.id,
-    });
-
+    const errorMessage = error instanceof Error ? sanitizeErrorMessage(error) : 'An error occurred';
     return new Response(
-      JSON.stringify({ success: true, alert }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Alert management error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: errorMessage }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
     );
   }
 });

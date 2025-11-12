@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
-import { verifyJWT, requireMFA } from '../_shared/mfa-guards.ts';
+import { requireMFA } from '../_shared/mfa-guards.ts';
 import { validateFields, validateString, ValidationException, sanitizeErrorMessage } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 
@@ -13,29 +13,30 @@ Deno.serve(async (req) => {
     // Verify JWT and MFA
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    const payload = await verifyJWT(token);
-    await requireMFA(payload.sub);
-
-    // Create Supabase clients
+    
+    // Verify authentication via Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Get current user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Check MFA
+    await requireMFA(user.id);
+
+    // Create admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     // Check if user is super admin or has user management permission
     const { data: profile } = await supabaseClient
