@@ -19,6 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { RotateCcw } from "lucide-react";
@@ -45,6 +54,8 @@ const IncomingTransactions = () => {
   const [endDate, setEndDate] = useState(today);
   const [bankCodeFilter, setBankCodeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const { data: allTransactions = [], isLoading } = useQuery({
     queryKey: ["incoming-transactions", startDate, endDate],
@@ -74,7 +85,7 @@ const IncomingTransactions = () => {
   }, [allTransactions]);
 
   // Apply filters
-  const transactions = useMemo(() => {
+  const filteredTransactions = useMemo(() => {
     return allTransactions.filter((transaction) => {
       const bankMatch = bankCodeFilter === "all" || transaction.bank_code === bankCodeFilter;
       const statusMatch = statusFilter === "all" || transaction.status === statusFilter;
@@ -82,9 +93,30 @@ const IncomingTransactions = () => {
     });
   }, [allTransactions, bankCodeFilter, statusFilter]);
 
+  // Pagination
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const transactions = filteredTransactions.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [bankCodeFilter, statusFilter, itemsPerPage]);
+
   const handleResetFilters = () => {
     setBankCodeFilter("all");
     setStatusFilter("all");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
   };
 
   return (
@@ -165,6 +197,32 @@ const IncomingTransactions = () => {
           </div>
         </div>
 
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              แสดง
+            </Label>
+            <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="w-20 border-gray-300 bg-white text-black">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="40">40</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+            <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              รายการ
+            </Label>
+          </div>
+          <div className="text-xs text-gray-600">
+            แสดง {startIndex + 1}-{Math.min(endIndex, filteredTransactions.length)} จาก {filteredTransactions.length} รายการ
+          </div>
+        </div>
+
         <div className="border border-gray-200 rounded overflow-x-auto">
           <Table className="min-w-full">
             <TableHeader className="bg-gray-50 border-b border-gray-200">
@@ -241,6 +299,59 @@ const IncomingTransactions = () => {
             </TableBody>
           </Table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNumber;
+                  if (totalPages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + i;
+                  } else {
+                    pageNumber = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(pageNumber)}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </div>
   );
