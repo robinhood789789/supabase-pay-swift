@@ -99,6 +99,7 @@ export default function PlatformAudit() {
     if (action.includes('create') || action.includes('invite')) return 'default';
     if (action.includes('update')) return 'secondary';
     if (action.includes('delete') || action.includes('revoke')) return 'destructive';
+    if (action.includes('password_reset')) return 'destructive';
     return 'outline';
   };
 
@@ -261,6 +262,7 @@ export default function PlatformAudit() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All actions</SelectItem>
+                    <SelectItem value="password_reset">Password Reset</SelectItem>
                     <SelectItem value="tenant.create">Tenant Created</SelectItem>
                     <SelectItem value="user.invite">User Invited</SelectItem>
                     <SelectItem value="approval.create">Approval Created</SelectItem>

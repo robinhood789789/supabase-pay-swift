@@ -87,6 +87,7 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
     if (action.includes('create') || action.includes('invite')) return 'default';
     if (action.includes('update')) return 'secondary';
     if (action.includes('delete') || action.includes('revoke')) return 'destructive';
+    if (action.includes('password_reset')) return 'destructive';
     return 'outline';
   };
 
@@ -197,6 +198,7 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('activityLog.allActions')}</SelectItem>
+                  <SelectItem value="password_reset">Password Reset</SelectItem>
                   <SelectItem value="payment:create">{t('activityLog.paymentCreated')}</SelectItem>
                   <SelectItem value="payment:update">{t('activityLog.paymentUpdated')}</SelectItem>
                   <SelectItem value="refund:create">{t('activityLog.refundCreated')}</SelectItem>
