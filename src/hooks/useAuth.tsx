@@ -177,10 +177,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('Attempting sign in with email:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      let data: any, error: any;
+
+      // First attempt with looked-up email
+      ({ data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      });
+      }));
+
+      // If credentials invalid and the user used Public ID, retry with system.local fallback
+      if (
+        error &&
+        error.message === 'Invalid login credentials' &&
+        /^[A-Z0-9]{2,6}-\d{6}$/.test(publicIdOrEmail)
+      ) {
+        const fallbackEmail = `${publicIdOrEmail}@system.local`;
+        if (fallbackEmail.toLowerCase() !== email.toLowerCase()) {
+          console.log('Retrying sign in with fallback email:', fallbackEmail);
+          ({ data, error } = await supabase.auth.signInWithPassword({
+            email: fallbackEmail,
+            password,
+          }));
+        }
+      }
 
       if (error) {
         console.error('Sign in error:', error);
