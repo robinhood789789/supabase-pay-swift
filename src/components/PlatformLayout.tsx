@@ -57,6 +57,7 @@ const PlatformSidebar = () => {
     { title: "ตั้งค่าพาร์ทเนอร์", url: "/platform/partner-settings", icon: Settings },
     { title: "Tenants", url: "/admin/tenants", icon: Users },
     { title: "จัดการธนาคาร(ลูกค้า)", url: "/admin/customer-bank-accounts", icon: Building2 },
+    { title: "รายการเงินเข้า", url: "/admin/incoming-transactions", icon: Wallet },
     { title: "Providers", url: "/platform/providers", icon: KeyRound },
     { title: "Events", url: "/platform/events", icon: Activity },
     { title: "Webhooks", url: "/platform/webhooks", icon: Webhook },
