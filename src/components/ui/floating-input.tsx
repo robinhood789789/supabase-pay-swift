@@ -9,7 +9,7 @@ export interface FloatingInputProps extends Omit<InputProps, "placeholder"> {
 }
 
 const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
-  ({ className, label, error, success, variant = "glass", ...props }, ref) => {
+  ({ className, label, error, success, ...props }, ref) => {
     const [isFocused, setIsFocused] = React.useState(false);
     const [hasValue, setHasValue] = React.useState(false);
 
@@ -20,18 +20,16 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
       props.onBlur?.(e);
     };
 
-    const validationState = error ? "error" : success ? "success" : "none";
-
     return (
       <div className="relative w-full">
         <Input
           ref={ref}
           className={cn(
             "peer pt-6 pb-2",
+            error && "border-destructive",
+            success && "border-success",
             className
           )}
-          variant={variant}
-          validationState={validationState}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...props}
@@ -43,8 +41,7 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
             isFocused || hasValue || props.value || props.defaultValue
               ? "top-2 text-xs"
               : "top-1/2 -translate-y-1/2 text-sm",
-            isFocused && variant === "glass" && "text-primary",
-            isFocused && variant === "glass-nebula" && "text-nebula-orange",
+            isFocused && "text-foreground",
             error && "text-destructive",
             success && "text-success"
           )}
@@ -52,16 +49,13 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
           {label}
         </label>
         
-        {/* Validation messages with cosmic glow */}
         {error && (
-          <p className="mt-1.5 text-xs text-destructive flex items-center gap-1.5 animate-fade-in">
-            <span className="inline-block w-1 h-1 rounded-full bg-destructive shadow-[0_0_8px_currentColor]" />
+          <p className="mt-1.5 text-xs text-destructive animate-fade-in">
             {error}
           </p>
         )}
         {success && (
-          <p className="mt-1.5 text-xs text-success flex items-center gap-1.5 animate-fade-in">
-            <span className="inline-block w-1 h-1 rounded-full bg-success shadow-[0_0_8px_currentColor]" />
+          <p className="mt-1.5 text-xs text-success animate-fade-in">
             {success}
           </p>
         )}

@@ -2,398 +2,150 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
-  :root {
-    --background: 220 25% 97%;
-    --foreground: 220 15% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
-
-    --primary: 189 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 189 100% 60%;
-
-    --secondary: 45 85% 55%;
-    --secondary-foreground: 0 0% 10%;
-
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 20% 30%;
-
-    --accent: 142 70% 45%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 189 100% 50%;
-
-    --radius: 0.75rem;
-
-    --success: 167 70% 50%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    /* Red Spider Nebula colors */
-    --nebula-red: 0 95% 55%;
-    --nebula-orange: 15 100% 60%;
-    --nebula-pink: 340 95% 65%;
-    --nebula-deep-red: 355 85% 45%;
-    
-    /* Glassmorphism cosmic theme */
-    --glass-background: 220 25% 97% / 0.05;
-    --glass-border: 189 100% 50% / 0.2;
-    --glass-hover-background: 220 25% 97% / 0.1;
-    --glass-hover-border: 189 100% 50% / 0.4;
-    
-    /* Futuristic cyberpunk gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(189 100% 45%) 0%, hsl(280 100% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(158 64% 52%) 100%);
-    --gradient-deposit: linear-gradient(135deg, hsl(189 100% 50%) 0%, hsl(230 100% 60%) 100%);
-    --gradient-withdrawal: linear-gradient(135deg, hsl(280 100% 60%) 0%, hsl(326 100% 55%) 100%);
-    --gradient-balance: linear-gradient(135deg, hsl(43 96% 56%) 0%, hsl(27 98% 60%) 100%);
-    --gradient-activity: linear-gradient(135deg, hsl(326 100% 55%) 0%, hsl(350 100% 60%) 100%);
-    --gradient-info: linear-gradient(135deg, hsl(189 100% 50%) 0%, hsl(200 100% 55%) 100%);
-    --gradient-users: linear-gradient(135deg, hsl(280 100% 60%) 0%, hsl(300 100% 65%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(230 45% 35%) 0%, hsl(280 55% 40%) 30%, hsl(160 45% 38%) 60%, hsl(230 50% 37%) 100%);
-    --gradient-subtle: linear-gradient(135deg, hsl(160 60% 50% / 0.2) 0%, hsl(280 70% 60% / 0.2) 50%, hsl(230 60% 55% / 0.2) 100%);
-    --gradient-radial: radial-gradient(circle at 50% 50%, hsl(160 80% 50% / 0.35) 0%, hsl(280 80% 60% / 0.3) 50%, transparent 100%);
-    --gradient-radial-bright: radial-gradient(ellipse at center, hsl(160 85% 60% / 0.5) 0%, hsl(280 85% 70% / 0.45) 40%, hsl(230 80% 65% / 0.4) 100%);
-    --gradient-neon: linear-gradient(90deg, hsl(189 100% 50%) 0%, hsl(280 100% 60%) 50%, hsl(326 100% 55%) 100%);
-    --gradient-aurora: linear-gradient(135deg, hsl(160 65% 60%) 0%, hsl(280 70% 70%) 25%, hsl(230 65% 65%) 50%, hsl(326 65% 70%) 75%, hsl(160 65% 60%) 100%);
-    
-    /* Red Spider Nebula + Aurora gradients */
-    --gradient-nebula: radial-gradient(ellipse at 30% 50%, hsl(var(--nebula-red) / 0.4) 0%, hsl(var(--nebula-orange) / 0.3) 30%, hsl(var(--nebula-pink) / 0.2) 60%, transparent 100%);
-    --gradient-nebula-dust: radial-gradient(circle at 70% 40%, hsl(var(--nebula-deep-red) / 0.25) 0%, hsl(15 85% 50% / 0.15) 40%, transparent 70%);
-    --gradient-cosmic: linear-gradient(135deg, hsl(0 90% 50% / 0.3) 0%, hsl(280 100% 60% / 0.25) 30%, hsl(189 100% 50% / 0.2) 60%, hsl(340 95% 65% / 0.25) 100%);
-    
-    /* Role-specific colors */
-    --color-finance: hsl(142 76% 45%);
-    --color-manager: hsl(189 100% 50%);
-    --color-developer: hsl(280 100% 60%);
-    --color-owner: hsl(27 98% 60%);
-
-    /* Futuristic shadows with neon glow */
-    --shadow-sm: 0 1px 2px 0 hsl(220 15% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 15% 15% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(220 15% 15% / 0.1);
-    --shadow-glow: 0 0 40px hsl(189 100% 50% / 0.6), 0 0 80px hsl(189 100% 50% / 0.3);
-    --shadow-glow-success: 0 0 35px hsl(142 76% 45% / 0.4);
-    --shadow-glow-info: 0 0 40px hsl(189 100% 50% / 0.5);
-    --shadow-glow-warning: 0 0 35px hsl(43 96% 56% / 0.4);
-    --shadow-elegant: 0 20px 60px -10px hsl(189 100% 50% / 0.7), 0 0 40px hsl(280 100% 60% / 0.5);
-    --shadow-neon: 0 0 20px hsl(189 100% 50%), 0 0 40px hsl(189 100% 50% / 0.5), 0 0 60px hsl(189 100% 50% / 0.3);
-
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .dark {
-    --background: 230 45% 8%;
-    --foreground: 220 15% 95%;
-
-    --card: 230 35% 12%;
-    --card-foreground: 189 50% 98%;
-
-    --popover: 220 30% 10%;
-    --popover-foreground: 189 50% 98%;
-
-    --primary: 189 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 189 100% 60%;
-
-    --secondary: 45 85% 60%;
-    --secondary-foreground: 0 0% 10%;
-
-    --muted: 220 30% 12%;
-    --muted-foreground: 189 30% 85%;
-
-    --accent: 142 70% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 200 60% 35%;
-    --input: 200 60% 35%;
-    --ring: 189 100% 50%;
-
-    --success: 167 70% 50%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    /* Red Spider Nebula colors */
-    --nebula-red: 0 95% 55%;
-    --nebula-orange: 15 100% 60%;
-    --nebula-pink: 340 95% 65%;
-    --nebula-deep-red: 355 85% 45%;
-    
-    /* Glassmorphism cosmic theme - dark mode */
-    --glass-background: 230 45% 8% / 0.4;
-    --glass-border: 189 100% 50% / 0.3;
-    --glass-hover-background: 230 45% 8% / 0.6;
-    --glass-hover-border: 189 100% 50% / 0.5;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(189 100% 45%) 0%, hsl(280 100% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(158 64% 52%) 100%);
-    --gradient-deposit: linear-gradient(135deg, hsl(189 100% 50%) 0%, hsl(230 100% 60%) 100%);
-    --gradient-withdrawal: linear-gradient(135deg, hsl(280 100% 60%) 0%, hsl(326 100% 55%) 100%);
-    --gradient-balance: linear-gradient(135deg, hsl(43 96% 56%) 0%, hsl(27 98% 60%) 100%);
-    --gradient-activity: linear-gradient(135deg, hsl(326 100% 55%) 0%, hsl(350 100% 60%) 100%);
-    --gradient-info: linear-gradient(135deg, hsl(189 100% 50%) 0%, hsl(200 100% 55%) 100%);
-    --gradient-users: linear-gradient(135deg, hsl(280 100% 60%) 0%, hsl(300 100% 65%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(230 45% 30%) 0%, hsl(280 55% 35%) 30%, hsl(160 45% 33%) 60%, hsl(230 50% 32%) 100%);
-    --gradient-subtle: linear-gradient(135deg, hsl(160 60% 50% / 0.22) 0%, hsl(280 70% 60% / 0.22) 50%, hsl(230 60% 55% / 0.22) 100%);
-    --gradient-radial: radial-gradient(circle at 50% 50%, hsl(160 80% 50% / 0.4) 0%, hsl(280 80% 60% / 0.35) 50%, transparent 100%);
-    --gradient-radial-bright: radial-gradient(ellipse at center, hsl(160 85% 60% / 0.55) 0%, hsl(280 85% 70% / 0.5) 40%, hsl(230 80% 65% / 0.45) 100%);
-    --gradient-neon: linear-gradient(90deg, hsl(189 100% 50%) 0%, hsl(280 100% 60%) 50%, hsl(326 100% 55%) 100%);
-    --gradient-aurora: linear-gradient(135deg, hsl(160 65% 60%) 0%, hsl(280 70% 70%) 25%, hsl(230 65% 65%) 50%, hsl(326 65% 70%) 75%, hsl(160 65% 60%) 100%);
-    
-    /* Red Spider Nebula + Aurora gradients */
-    --gradient-nebula: radial-gradient(ellipse at 30% 50%, hsl(var(--nebula-red) / 0.4) 0%, hsl(var(--nebula-orange) / 0.3) 30%, hsl(var(--nebula-pink) / 0.2) 60%, transparent 100%);
-    --gradient-nebula-dust: radial-gradient(circle at 70% 40%, hsl(var(--nebula-deep-red) / 0.25) 0%, hsl(15 85% 50% / 0.15) 40%, transparent 70%);
-    --gradient-cosmic: linear-gradient(135deg, hsl(0 90% 50% / 0.3) 0%, hsl(280 100% 60% / 0.25) 30%, hsl(189 100% 50% / 0.2) 60%, hsl(340 95% 65% / 0.25) 100%);
-
-    --shadow-glow: 0 0 40px hsl(189 100% 50% / 0.6), 0 0 80px hsl(189 100% 50% / 0.3);
-    --shadow-glow-success: 0 0 35px hsl(142 76% 45% / 0.4);
-    --shadow-glow-info: 0 0 40px hsl(189 100% 50% / 0.5);
-    --shadow-glow-warning: 0 0 35px hsl(43 96% 56% / 0.4);
-    --shadow-elegant: 0 20px 60px -10px hsl(189 100% 50% / 0.7), 0 0 40px hsl(280 100% 60% / 0.5);
-    --shadow-neon: 0 0 20px hsl(189 100% 50%), 0 0 40px hsl(189 100% 50% / 0.5), 0 0 60px hsl(189 100% 50% / 0.3);
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+:root {
+  /* ============================================
+     MINIMALISM LIGHT THEME
+     Clean, professional, grayscale design
+     ============================================ */
+  
+  /* Core Colors - Grayscale Palette */
+  --background: 0 0% 100%;              /* #FFFFFF - pure white */
+  --foreground: 0 0% 7%;                /* #111111 - near black */
+  
+  --card: 0 0% 98%;                     /* #F9F9F9 - light gray card */
+  --card-foreground: 0 0% 7%;           /* #111111 - dark text */
+  
+  --popover: 0 0% 100%;                 /* #FFFFFF - white */
+  --popover-foreground: 0 0% 7%;        /* #111111 - dark text */
+  
+  --primary: 0 0% 0%;                   /* #000000 - pure black */
+  --primary-foreground: 0 0% 100%;      /* #FFFFFF - white text on black */
+  
+  --secondary: 0 0% 97%;                /* #F7F7F7 - light gray */
+  --secondary-foreground: 0 0% 7%;      /* #111111 - dark text */
+  
+  --muted: 0 0% 94%;                    /* #F0F0F0 - muted gray */
+  --muted-foreground: 0 0% 47%;         /* #777777 - muted text */
+  
+  --accent: 0 0% 0%;                    /* #000000 - black accent */
+  --accent-foreground: 0 0% 100%;       /* #FFFFFF - white on black */
+  
+  --destructive: 0 84% 60%;             /* Red for errors */
+  --destructive-foreground: 0 0% 100%;  /* White text */
+  
+  --border: 0 0% 88%;                   /* #E0E0E0 - light border */
+  --input: 0 0% 88%;                    /* #E0E0E0 - input border */
+  --ring: 0 0% 0%;                      /* #000000 - black focus ring */
+  
+  /* Extended Colors */
+  --text-secondary: 0 0% 27%;           /* #444444 - secondary text */
+  --text-muted: 0 0% 47%;               /* #777777 - muted text */
+  --hover: 0 0% 94%;                    /* #F0F0F0 - hover state */
+  --disabled-bg: 0 0% 92%;              /* #EAEAEA - disabled background */
+  --disabled-text: 0 0% 63%;            /* #A1A1A1 - disabled text */
+  
+  /* Chart Colors - Grayscale variations */
+  --chart-1: 0 0% 20%;
+  --chart-2: 0 0% 35%;
+  --chart-3: 0 0% 50%;
+  --chart-4: 0 0% 65%;
+  --chart-5: 0 0% 80%;
+  
+  /* Success & Warning Colors - Minimalist version */
+  --success: 120 50% 40%;               /* Dark green */
+  --success-foreground: 0 0% 100%;
+  --warning: 40 90% 50%;                /* Amber */
+  --warning-foreground: 0 0% 0%;
+  
+  /* Typography */
+  --font-family-base: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Layout */
+  --radius: 0.5rem;                     /* 8px rounded corners */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-none: none;
+  
+  /* Transitions */
+  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  body {
-    @apply bg-background text-foreground;
-  }
+.dark {
+  /* Dark Mode - Minimalism Dark (inverted grayscale) */
+  --background: 0 0% 7%;                /* #111111 - dark background */
+  --foreground: 0 0% 100%;              /* #FFFFFF - white text */
   
-  /* Enhanced text readability on glass surfaces */
-  .glass-text {
-    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
-  }
+  --card: 0 0% 10%;                     /* Slightly lighter than bg */
+  --card-foreground: 0 0% 100%;
   
-  .glass-text-light {
-    text-shadow: 0 1px 2px hsl(0 0% 100% / 0.5);
-  }
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 0 0% 100%;                 /* White primary in dark mode */
+  --primary-foreground: 0 0% 0%;        /* Black text on white */
+  
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 0 0% 20%;
+  --muted-foreground: 0 0% 70%;
+  
+  --accent: 0 0% 100%;
+  --accent-foreground: 0 0% 0%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 0 0% 25%;
+  --input: 0 0% 25%;
+  --ring: 0 0% 100%;
+  
+  --text-secondary: 0 0% 85%;
+  --text-muted: 0 0% 60%;
+  --hover: 0 0% 18%;
+  --disabled-bg: 0 0% 20%;
+  --disabled-text: 0 0% 50%;
+  
+  --chart-1: 0 0% 80%;
+  --chart-2: 0 0% 65%;
+  --chart-3: 0 0% 50%;
+  --chart-4: 0 0% 35%;
+  --chart-5: 0 0% 20%;
+  
+  --success: 120 50% 50%;
+  --success-foreground: 0 0% 0%;
+  --warning: 40 90% 55%;
+  --warning-foreground: 0 0% 0%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-family: var(--font-family-base);
+  line-height: 1.5;
 }
 
 @layer utilities {
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient 8s ease infinite;
+  /* Minimalism Utilities - Simple, clean, no glow effects */
+  
+  /* Hover Scale - Subtle */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-[1.02];
   }
-
-  @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    25% { background-position: 50% 75%; }
-    50% { background-position: 100% 50%; }
-    75% { background-position: 50% 25%; }
-    100% { background-position: 0% 50%; }
+  
+  /* Focus Ring - Clean black outline */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
-
-  .animate-in {
-    animation: fadeIn 0.8s ease-in;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 2s ease-in-out infinite;
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { 
-      box-shadow: 0 0 20px hsl(189 100% 50% / 0.3), 0 0 40px hsl(189 100% 50% / 0.2);
-    }
-    50% { 
-      box-shadow: 0 0 40px hsl(189 100% 50% / 0.6), 0 0 80px hsl(189 100% 50% / 0.4);
-    }
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-  }
-
-  .grid-pattern {
-    background-image: 
-      linear-gradient(hsl(189 100% 50% / 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(189 100% 50% / 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-
-  .scan-line {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .scan-line::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(189 100% 50% / 0.3),
-      transparent
-    );
-    animation: scan 3s linear infinite;
-  }
-
-  @keyframes scan {
-    to { left: 100%; }
-  }
-
-  .shooting-star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 0 4px 2px hsl(189 100% 50%), 0 0 8px 4px hsl(189 100% 50% / 0.5);
-    animation: shootingStar 3s linear infinite;
-  }
-
-  @keyframes shootingStar {
-    0% {
-      opacity: 0;
-      transform: translateX(0) translateY(0) scale(0.5);
-    }
-    10% {
-      opacity: 1;
-      transform: translateX(0) translateY(0) scale(1);
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translateX(800px) translateY(800px) scale(0.8);
-    }
-  }
-
-  .shooting-star::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50px;
-    height: 1px;
-    background: linear-gradient(90deg, hsl(189 100% 50%), transparent);
-  }
-
-  .glow-text {
-    text-shadow: 0 0 10px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
-  }
-
-  /* 3D Tilt Effect and Glow Pulse for Menu Items */
-  @keyframes glow-pulse-menu {
-    0%, 100% {
-      box-shadow: 0 0 15px hsl(189 100% 50% / 0.3), 0 0 30px hsl(189 100% 50% / 0.2);
-      filter: brightness(1);
-    }
-    50% {
-      box-shadow: 0 0 30px hsl(189 100% 50% / 0.6), 0 0 60px hsl(189 100% 50% / 0.4), 0 0 90px hsl(280 100% 60% / 0.3);
-      filter: brightness(1.2);
-    }
-  }
-
-  .menu-item-3d {
-    transform-style: preserve-3d;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-  }
-
-  .menu-item-3d:hover {
-    transform: perspective(1000px) rotateY(-8deg) rotateX(4deg) translateZ(10px) scale(1.05);
-    animation: glow-pulse-menu 2s ease-in-out infinite;
-    z-index: 10;
-  }
-
-  .menu-item-3d:hover::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    background: linear-gradient(135deg, hsl(189 100% 50% / 0.3), hsl(280 100% 60% / 0.3));
-    border-radius: inherit;
-    z-index: -1;
-    filter: blur(8px);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  .menu-item-3d:hover::before {
-    opacity: 1;
-  }
-
-  /* Float animation for orbs */
-  @keyframes float {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-    }
-    33% {
-      transform: translate(30px, -50px) scale(1.1);
-    }
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
-    }
-  }
-
-  .animate-float {
-    animation: float 20s ease-in-out infinite;
-  }
-
-  /* Star twinkle animation */
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
-
-  .animate-twinkle {
-    animation: twinkle 3s ease-in-out infinite;
-  }
-
-  /* Nebula pulse animation */
-  @keyframes nebulaPulse {
-    0%, 100% { 
-      opacity: 0.3;
-      transform: scale(1);
-    }
-    50% { 
-      opacity: 0.6;
-      transform: scale(1.05);
-    }
-  }
-
-  .animate-nebula-pulse {
-    animation: nebulaPulse 8s ease-in-out infinite;
+  
+  /* Clean Transitions */
+  .transition-smooth {
+    transition: var(--transition-smooth);
   }
 }
