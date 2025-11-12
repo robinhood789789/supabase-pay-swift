@@ -17,14 +17,18 @@ import { format } from "date-fns";
 
 interface IncomingTransaction {
   id: string;
-  created_at: string;
-  account_type: string;
-  transaction_type: string;
+  txn_time: string;
+  to_account: string;
+  to_name: string;
+  trans_name_th: string;
   amount: number;
-  account_details: string;
-  channel: string;
-  depositor_code: string;
-  status: "success" | "pending" | "failed";
+  slip_bank_from: string;
+  from_account: string;
+  from_name: string;
+  bank_code: string;
+  ref_id: string;
+  adminbank_id: string;
+  status: string;
 }
 
 const IncomingTransactions = () => {
@@ -35,29 +39,16 @@ const IncomingTransactions = () => {
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["incoming-transactions", startDate, endDate],
     queryFn: async () => {
-      // ดึงข้อมูลจากตาราง payments ที่เป็นประเภท deposit และมี status = paid_at
       const { data, error } = await supabase
-        .from("payments")
+        .from("incoming_transfers" as any)
         .select("*")
-        .eq("type", "deposit")
-        .gte("created_at", `${startDate}T00:00:00`)
-        .lte("created_at", `${endDate}T23:59:59`)
-        .order("created_at", { ascending: false });
+        .gte("txn_time", `${startDate}T00:00:00`)
+        .lte("txn_time", `${endDate}T23:59:59`)
+        .order("txn_time", { ascending: false });
 
       if (error) throw error;
 
-      // แปลงข้อมูลให้ตรงกับรูปแบบที่ต้องการ
-      return (data || []).map((payment) => ({
-        id: payment.id,
-        created_at: payment.created_at,
-        account_type: payment.bank_name || "",
-        transaction_type: "รับโอนเงิน",
-        amount: payment.amount / 100, // แปลงจาก satoshi เป็น บาท
-        account_details: `${payment.bank_account_number || ""} - ${payment.provider || ""}`,
-        channel: payment.provider || "SCB",
-        depositor_code: payment.provider_payment_id || `T-${payment.id.substring(0, 13)}`,
-        status: payment.status === "succeeded" ? "success" : payment.status === "pending" ? "pending" : "failed",
-      })) as IncomingTransaction[];
+      return (data || []) as unknown as IncomingTransaction[];
     },
   });
 
@@ -125,38 +116,42 @@ const IncomingTransactions = () => {
                 transactions.map((transaction) => (
                   <TableRow key={transaction.id} className="text-sm border-b border-gray-100 hover:bg-gray-50">
                     <TableCell className="text-xs text-gray-700 whitespace-nowrap">
-                      {format(new Date(transaction.created_at), "dd-MMM-yyyy HH:mm")}
+                      {transaction.txn_time ? format(new Date(transaction.txn_time), "dd-MMM-yyyy HH:mm") : "-"}
                     </TableCell>
-                    <TableCell className="text-xs text-black">{transaction.account_type || "-"}</TableCell>
-                    <TableCell className="text-xs text-gray-700">{transaction.transaction_type}</TableCell>
+                    <TableCell className="text-xs text-black">
+                      {transaction.to_account ? `${transaction.to_account}${transaction.to_name ? ` (${transaction.to_name})` : ""}` : "-"}
+                    </TableCell>
+                    <TableCell className="text-xs text-gray-700">{transaction.trans_name_th || "รับโอนเงิน"}</TableCell>
                     <TableCell className="text-xs text-right font-mono text-black font-medium">
-                      {transaction.amount.toLocaleString("en-US", {
+                      {transaction.amount ? Number(transaction.amount).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
-                      })}
+                      }) : "0.00"}
                     </TableCell>
-                    <TableCell className="text-xs text-gray-700">{transaction.account_details}</TableCell>
-                    <TableCell className="text-xs font-medium text-black">{transaction.channel}</TableCell>
+                    <TableCell className="text-xs text-gray-700">
+                      {transaction.from_account ? `${transaction.slip_bank_from || ""} ${transaction.from_account}${transaction.from_name ? ` (${transaction.from_name})` : ""}` : "-"}
+                    </TableCell>
+                    <TableCell className="text-xs font-medium text-black">{transaction.bank_code || "-"}</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
                         className="bg-white text-black border-gray-300 text-xs font-mono"
                       >
-                        {transaction.depositor_code}
+                        {transaction.ref_id || transaction.adminbank_id || "-"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {transaction.status === "success" ? (
+                      {transaction.status === "success" || transaction.status === "completed" ? (
                         <Badge className="bg-black text-white hover:bg-gray-800 text-xs border-0">
-                          ปรับเครดิตสำเร็จ
+                          สำเร็จ
                         </Badge>
                       ) : transaction.status === "failed" ? (
                         <Badge className="bg-gray-200 text-black hover:bg-gray-300 text-xs border border-gray-300">
-                          ปรับเครดิตไม่สำเร็จ
+                          ล้มเหลว
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-xs border-gray-300 text-gray-700">
-                          รอดำเนินการ
+                          {transaction.status || "รอดำเนินการ"}
                         </Badge>
                       )}
                     </TableCell>
