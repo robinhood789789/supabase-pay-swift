@@ -276,12 +276,12 @@ const CustomerBankAccounts = () => {
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-full overflow-hidden">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className="p-6 space-y-6 max-w-full overflow-hidden bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-200 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">จัดการรายชื่อธนาคาร(ลูกค้า)</h1>
+          <h1 className="text-2xl font-medium text-black tracking-tight">จัดการรายชื่อธนาคาร(ลูกค้า)</h1>
         </div>
-        <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700 whitespace-nowrap">
+        <Button onClick={handleOpenAddDialog} className="bg-black text-white hover:bg-gray-800 whitespace-nowrap border-0">
           <Building2 className="w-4 h-4 mr-2" />
           เพิ่มธนาคาร
         </Button>
@@ -289,21 +289,21 @@ const CustomerBankAccounts = () => {
 
       <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end">
         <div className="flex-1 min-w-0">
-          <Label className="text-xs">หัวหมด</Label>
+          <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">หัวหมด</Label>
           <Input
             placeholder="กรอง ตามสถานะ:"
             value={codeFilter}
             onChange={(e) => setCodeFilter(e.target.value)}
-            className="w-full"
+            className="w-full border-gray-300 bg-white text-black"
           />
         </div>
         <div className="flex-1 min-w-0">
-          <Label className="text-xs">ค้นหา</Label>
+          <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ค้นหา</Label>
           <Input
             placeholder="ค้นหา ตามชื่อ"
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
-            className="w-full"
+            className="w-full border-gray-300 bg-white text-black"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -311,6 +311,7 @@ const CustomerBankAccounts = () => {
             size="sm"
             variant={statusFilter === "all" ? "default" : "outline"}
             onClick={() => setStatusFilter("all")}
+            className={statusFilter === "all" ? "bg-black text-white hover:bg-gray-800 border-0" : "border-gray-300 text-black hover:bg-gray-100"}
           >
             ทั้งหมด
           </Button>
@@ -318,6 +319,7 @@ const CustomerBankAccounts = () => {
             size="sm"
             variant={statusFilter === "online" ? "default" : "outline"}
             onClick={() => setStatusFilter("online")}
+            className={statusFilter === "online" ? "bg-black text-white hover:bg-gray-800 border-0" : "border-gray-300 text-black hover:bg-gray-100"}
           >
             Online
           </Button>
@@ -325,64 +327,65 @@ const CustomerBankAccounts = () => {
             size="sm"
             variant={statusFilter === "offline" ? "default" : "outline"}
             onClick={() => setStatusFilter("offline")}
+            className={statusFilter === "offline" ? "bg-black text-white hover:bg-gray-800 border-0" : "border-gray-300 text-black hover:bg-gray-100"}
           >
             Offline
           </Button>
         </div>
       </div>
 
-      <div className="border rounded-lg overflow-x-auto">
+      <div className="border border-gray-200 rounded overflow-x-auto">
         <Table className="min-w-full">
-          <TableHeader className="bg-destructive">
-            <TableRow className="hover:bg-destructive/90">
-              <TableHead className="text-destructive-foreground font-bold text-xs w-12">#</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs">ธนาคาร</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs">รหัส</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs">ชื่อผู้ใช้</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs">เลขบัญชี</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs max-w-[150px]">หมายเหตุ</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs text-center">รหัสผ่าน</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs text-center">ฝาก/ถอน</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs text-center">สถานะ</TableHead>
-              <TableHead className="text-destructive-foreground font-bold text-xs text-center w-24">จัดการ</TableHead>
+          <TableHeader className="bg-gray-50 border-b border-gray-200">
+            <TableRow className="hover:bg-gray-50">
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider w-12">#</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ธนาคาร</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">รหัส</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ชื่อผู้ใช้</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">เลขบัญชี</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider max-w-[150px]">หมายเหตุ</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider text-center">รหัสผ่าน</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider text-center">ฝาก/ถอน</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider text-center">สถานะ</TableHead>
+              <TableHead className="text-black font-semibold text-xs uppercase tracking-wider text-center w-24">จัดการ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-sm">
+                <TableCell colSpan={10} className="text-center text-sm text-gray-500">
                   กำลังโหลด...
                 </TableCell>
               </TableRow>
             ) : accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-sm">
+                <TableCell colSpan={10} className="text-center text-sm text-gray-500">
                   ไม่พบข้อมูล
                 </TableCell>
               </TableRow>
             ) : (
               accounts.map((account, index) => (
-                <TableRow key={account.id} className="text-sm">
-                  <TableCell className="font-medium">{index + 1}</TableCell>
+                <TableRow key={account.id} className="text-sm border-b border-gray-100 hover:bg-gray-50">
+                  <TableCell className="font-medium text-black">{index + 1}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 min-w-[140px]">
-                      <Avatar className="w-7 h-7 flex-shrink-0">
-                        <AvatarFallback className="text-base">
+                      <Avatar className="w-7 h-7 flex-shrink-0 border border-gray-200">
+                        <AvatarFallback className="text-base bg-gray-100">
                           {BANK_LOGOS[account.bank_code] || "🏦"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium text-xs">{account.bank_code}</span>
-                        <span className="text-destructive font-semibold text-xs">
+                        <span className="font-medium text-xs text-black">{account.bank_code}</span>
+                        <span className="text-black font-semibold text-xs">
                           {account.bank_short_name}
                         </span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs">{account.bank_name}</TableCell>
-                  <TableCell className="text-xs">{account.account_holder || "-"}</TableCell>
-                  <TableCell className="font-mono text-xs">{account.account_number}</TableCell>
-                  <TableCell className="max-w-[150px] truncate text-xs" title={account.notes || ""}>
+                  <TableCell className="text-xs text-gray-700">{account.bank_name}</TableCell>
+                  <TableCell className="text-xs text-black">{account.account_holder || "-"}</TableCell>
+                  <TableCell className="font-mono text-xs text-black">{account.account_number}</TableCell>
+                  <TableCell className="max-w-[150px] truncate text-xs text-gray-700" title={account.notes || ""}>
                     {account.notes || "-"}
                   </TableCell>
                   <TableCell className="text-center">
@@ -391,7 +394,7 @@ const CustomerBankAccounts = () => {
                       onCheckedChange={(checked) =>
                         handleToggle(account.id, "password_visible", checked)
                       }
-                      className={account.password_visible ? "bg-destructive" : ""}
+                      className={account.password_visible ? "bg-black" : "bg-gray-300"}
                     />
                   </TableCell>
                   <TableCell>
@@ -401,25 +404,25 @@ const CustomerBankAccounts = () => {
                         onCheckedChange={(checked) =>
                           handleToggle(account.id, "deposit_enabled", checked)
                         }
-                        className={account.deposit_enabled ? "bg-destructive scale-75" : "scale-75"}
+                        className={account.deposit_enabled ? "bg-black scale-75" : "bg-gray-300 scale-75"}
                       />
-                      <span className="text-[10px] text-muted-foreground">/</span>
+                      <span className="text-[10px] text-gray-400">/</span>
                       <Switch
                         checked={account.withdrawal_enabled}
                         onCheckedChange={(checked) =>
                           handleToggle(account.id, "withdrawal_enabled", checked)
                         }
-                        className={account.withdrawal_enabled ? "bg-destructive scale-75" : "scale-75"}
+                        className={account.withdrawal_enabled ? "bg-black scale-75" : "bg-gray-300 scale-75"}
                       />
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
-                      variant={account.status === "online" ? "default" : "destructive"}
+                      variant={account.status === "online" ? "default" : "outline"}
                       className={
                         account.status === "online"
-                          ? "bg-green-600 hover:bg-green-700 text-[10px]"
-                          : "text-[10px]"
+                          ? "bg-black text-white hover:bg-gray-800 text-[10px] border-0"
+                          : "text-[10px] border-gray-300 text-gray-700"
                       }
                     >
                       {account.status === "online" ? "Online" : "Offline"}
@@ -430,15 +433,15 @@ const CustomerBankAccounts = () => {
                       <Button
                         size="sm"
                         onClick={() => handleOpenEditDialog(account)}
-                        className="bg-blue-600 hover:bg-blue-700 h-7 w-7 p-0"
+                        className="bg-black text-white hover:bg-gray-800 h-7 w-7 p-0 border-0"
                       >
                         <Pencil className="w-3 h-3" />
                       </Button>
                       <Button
                         size="sm"
-                        variant="destructive"
+                        variant="outline"
                         onClick={() => setDeleteAccount(account)}
-                        className="h-7 w-7 p-0"
+                        className="h-7 w-7 p-0 border-gray-300 text-black hover:bg-gray-100"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -452,75 +455,81 @@ const CustomerBankAccounts = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white border-gray-300">
+          <DialogHeader className="border-b border-gray-200 pb-4">
+            <DialogTitle className="text-xl font-medium text-black tracking-tight">
               {editingAccount ? "แก้ไขธนาคาร" : "เพิ่มธนาคาร"}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div>
-              <Label className="text-sm">รหัสธนาคาร *</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">รหัสธนาคาร *</Label>
               <Input
                 value={formData.bank_code}
                 onChange={(e) =>
                   setFormData({ ...formData, bank_code: e.target.value })
                 }
                 placeholder="เช่น GSB, KBANK"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div>
-              <Label className="text-sm">ชื่อย่อธนาคาร *</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ชื่อย่อธนาคาร *</Label>
               <Input
                 value={formData.bank_short_name}
                 onChange={(e) =>
                   setFormData({ ...formData, bank_short_name: e.target.value })
                 }
                 placeholder="เช่น GSB-01"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div className="md:col-span-2">
-              <Label className="text-sm">ชื่อธนาคาร *</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ชื่อธนาคาร *</Label>
               <Input
                 value={formData.bank_name}
                 onChange={(e) =>
                   setFormData({ ...formData, bank_name: e.target.value })
                 }
                 placeholder="เช่น ธนาคารออมสิน"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div>
-              <Label className="text-sm">ชื่อผู้ใช้</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ชื่อผู้ใช้</Label>
               <Input
                 value={formData.account_holder}
                 onChange={(e) =>
                   setFormData({ ...formData, account_holder: e.target.value })
                 }
                 placeholder="ชื่อเจ้าของบัญชี"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div>
-              <Label className="text-sm">เลขบัญชี *</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">เลขบัญชี *</Label>
               <Input
                 value={formData.account_number}
                 onChange={(e) =>
                   setFormData({ ...formData, account_number: e.target.value })
                 }
                 placeholder="เลขที่บัญชี"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div>
-              <Label className="text-sm">Public ID</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">Public ID</Label>
               <Input
                 value={formData.public_id}
                 onChange={(e) =>
                   setFormData({ ...formData, public_id: e.target.value })
                 }
                 placeholder="รหัส Public ID"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div>
-              <Label className="text-sm">Password</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">Password</Label>
               <Input
                 type="password"
                 value={formData.password}
@@ -528,20 +537,22 @@ const CustomerBankAccounts = () => {
                   setFormData({ ...formData, password: e.target.value })
                 }
                 placeholder="รหัสผ่าน"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div>
-              <Label className="text-sm">Company Code</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">Company Code</Label>
               <Input
                 value={formData.company_code}
                 onChange={(e) =>
                   setFormData({ ...formData, company_code: e.target.value })
                 }
                 placeholder="รหัสบริษัท"
+                className="border-gray-300 bg-white text-black mt-1"
               />
             </div>
             <div className="md:col-span-2">
-              <Label className="text-sm">หมายเหตุ</Label>
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">หมายเหตุ</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) =>
@@ -549,19 +560,20 @@ const CustomerBankAccounts = () => {
                 }
                 placeholder="หมายเหตุเพิ่มเติม"
                 rows={2}
-                className="resize-none"
+                className="resize-none border-gray-300 bg-white text-black mt-1"
               />
             </div>
-            <div className="flex items-center gap-2 p-2 border rounded">
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded bg-gray-50">
               <Switch
                 checked={formData.password_visible}
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, password_visible: checked })
                 }
+                className={formData.password_visible ? "bg-black" : "bg-gray-300"}
               />
-              <Label className="text-sm cursor-pointer">แสดงรหัสผ่าน</Label>
+              <Label className="text-xs font-medium text-gray-700 cursor-pointer">แสดงรหัสผ่าน</Label>
             </div>
-            <div className="flex items-center gap-2 p-2 border rounded">
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded bg-gray-50">
               <Switch
                 checked={formData.status === "online"}
                 onCheckedChange={(checked) =>
@@ -570,30 +582,37 @@ const CustomerBankAccounts = () => {
                     status: checked ? "online" : "offline",
                   })
                 }
+                className={formData.status === "online" ? "bg-black" : "bg-gray-300"}
               />
-              <Label className="text-sm cursor-pointer">สถานะ Online</Label>
+              <Label className="text-xs font-medium text-gray-700 cursor-pointer">สถานะ Online</Label>
             </div>
-            <div className="flex items-center gap-2 p-2 border rounded">
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded bg-gray-50">
               <Switch
                 checked={formData.deposit_enabled}
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, deposit_enabled: checked })
                 }
+                className={formData.deposit_enabled ? "bg-black" : "bg-gray-300"}
               />
-              <Label className="text-sm cursor-pointer">เปิดใช้งานฝาก</Label>
+              <Label className="text-xs font-medium text-gray-700 cursor-pointer">เปิดใช้งานฝาก</Label>
             </div>
-            <div className="flex items-center gap-2 p-2 border rounded">
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded bg-gray-50">
               <Switch
                 checked={formData.withdrawal_enabled}
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, withdrawal_enabled: checked })
                 }
+                className={formData.withdrawal_enabled ? "bg-black" : "bg-gray-300"}
               />
-              <Label className="text-sm cursor-pointer">เปิดใช้งานถอน</Label>
+              <Label className="text-xs font-medium text-gray-700 cursor-pointer">เปิดใช้งานถอน</Label>
             </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          <DialogFooter className="gap-2 border-t border-gray-200 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+              className="border-gray-300 text-black hover:bg-gray-100"
+            >
               ยกเลิก
             </Button>
             <Button
@@ -604,6 +623,7 @@ const CustomerBankAccounts = () => {
                 !formData.bank_name ||
                 !formData.account_number
               }
+              className="bg-black text-white hover:bg-gray-800 border-0"
             >
               {editingAccount ? "บันทึก" : "เพิ่ม"}
             </Button>
@@ -615,19 +635,19 @@ const CustomerBankAccounts = () => {
         open={!!deleteAccount}
         onOpenChange={() => setDeleteAccount(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white border-gray-300">
           <AlertDialogHeader>
-            <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-xl font-medium text-black">ยืนยันการลบ</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-700">
               คุณต้องการลบธนาคาร {deleteAccount?.bank_name} (
               {deleteAccount?.bank_short_name}) ใช่หรือไม่?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="border-gray-300 text-black hover:bg-gray-100">ยกเลิก</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteAccount && deleteMutation.mutate(deleteAccount.id)}
-              className="bg-destructive hover:bg-destructive/90"
+              className="bg-black text-white hover:bg-gray-800 border-0"
             >
               ลบ
             </AlertDialogAction>
