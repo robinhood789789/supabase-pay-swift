@@ -44,11 +44,13 @@ export function TwoFactorChallenge({
       if (!user) throw new Error('Not authenticated');
 
       // Delegate verification to Edge Function (handles TOTP or recovery)
-      const { data, error } = await supabase.functions.invoke('mfa-verify', {
-        body: { code }
+      const { data, error } = await supabase.functions.invoke('mfa-challenge', {
+        body: { code, type: code.includes('-') ? 'recovery' : 'totp' }
       });
+      
       if (error) throw new Error(error.message || 'Verification failed');
-      if (!data) throw new Error('Verification failed');
+      if (data?.error) throw new Error(data.error);
+      if (!data?.ok) throw new Error('Verification failed');
 
       toast.success('Verification successful');
       onSuccess();
