@@ -59,21 +59,21 @@ export function useSecurityGuard() {
         return;
       }
 
-      // CRITICAL: Password change MUST come BEFORE MFA enrollment
-      // Users created by admin need to set their password first
-      if (securityStatus.requires_password_change) {
-        console.log('[Security Guard] Password change required, redirecting');
-        navigate('/auth/password-change', { 
+      // CRITICAL: MFA enrollment MUST come BEFORE password change
+      // All users must enable MFA first for security
+      if (!securityStatus.totp_enabled) {
+        console.log('[Security Guard] MFA not enrolled, redirecting to enrollment');
+        navigate('/auth/mfa-enroll', { 
           state: { returnTo: location.pathname },
           replace: true 
         });
         return;
       }
 
-      // Check MFA enrollment (required for ALL users)
-      if (!securityStatus.totp_enabled) {
-        console.log('[Security Guard] MFA not enrolled, redirecting to enrollment');
-        navigate('/auth/mfa-enroll', { 
+      // After MFA is enabled, check password change requirement
+      if (securityStatus.requires_password_change) {
+        console.log('[Security Guard] Password change required, redirecting');
+        navigate('/auth/password-change', { 
           state: { returnTo: location.pathname },
           replace: true 
         });

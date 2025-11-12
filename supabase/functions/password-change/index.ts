@@ -63,16 +63,23 @@ serve(async (req) => {
       );
     }
 
-    // Update password using admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Verify current password by attempting to sign in
+    const { error: verifyError } = await supabaseClient.auth.signInWithPassword({
+      email: user.email!,
+      password: currentPassword,
+    });
 
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
-      { password: newPassword }
-    );
+    if (verifyError) {
+      return new Response(
+        JSON.stringify({ error: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Update password using user's own session (preserves session)
+    const { error: updateError } = await supabaseClient.auth.updateUser({
+      password: newPassword
+    });
 
     if (updateError) {
       console.error('Password update error:', updateError);
@@ -83,6 +90,11 @@ serve(async (req) => {
     }
 
     // Update profile to mark password as changed
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({

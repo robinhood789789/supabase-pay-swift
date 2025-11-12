@@ -38,22 +38,16 @@ export default function MfaEnroll() {
       return;
     }
 
-    // Check if already enrolled
+    // Check if already enrolled and has password change requirement
     const { data: profile } = await supabase
       .from("profiles")
-      .select("totp_enabled")
+      .select("totp_enabled, requires_password_change")
       .eq("id", user.id)
       .single();
 
     if (profile?.totp_enabled) {
-      // Already enrolled, check password change requirement
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("requires_password_change")
-        .eq("id", user.id)
-        .single();
-
-      if (profileData?.requires_password_change) {
+      // MFA already enabled, check if password change is required
+      if (profile?.requires_password_change) {
         navigate("/auth/password-change");
       } else {
         navigate(location.state?.returnTo || "/dashboard");
@@ -61,7 +55,7 @@ export default function MfaEnroll() {
       return;
     }
 
-    // Start enrollment
+    // Start enrollment (MFA not enabled yet)
     await initEnrollment();
   };
 
@@ -244,8 +238,10 @@ export default function MfaEnroll() {
       .single();
 
     if (profile?.requires_password_change) {
+      // After MFA setup, go to password change
       navigate("/auth/password-change");
     } else {
+      // No password change required, go to dashboard
       navigate(location.state?.returnTo || "/dashboard");
     }
   };

@@ -40,12 +40,19 @@ export default function PasswordChange() {
       return;
     }
 
-    // Check if password change is required
+    // Check if password change is required and MFA is enabled
     const { data: profile } = await supabase
       .from("profiles")
       .select("requires_password_change, totp_enabled")
       .eq("id", user.id)
       .single();
+
+    // MFA must be enabled before password change
+    if (!profile?.totp_enabled) {
+      console.log('[Password Change] MFA not enabled, redirecting to enrollment');
+      navigate("/auth/mfa-enroll");
+      return;
+    }
 
     if (!profile?.requires_password_change) {
       // Not required, redirect
@@ -92,9 +99,8 @@ export default function PasswordChange() {
       if (data.success) {
         toast.success("เปลี่ยนรหัสผ่านสำเร็จ!");
         
-        // Sign out and redirect to login
-        await supabase.auth.signOut();
-        navigate("/auth", { state: { message: "เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบอีกครั้ง" } });
+        // Don't sign out - keep the session and redirect to dashboard
+        navigate(location.state?.returnTo || "/dashboard");
       } else {
         setError(data.error || "ไม่สามารถเปลี่ยนรหัสผ่านได้");
       }
