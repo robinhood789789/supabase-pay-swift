@@ -196,7 +196,7 @@ body {
       transparent, 
       hsl(188, 86%, 53%), 
       transparent);
-    animation: scan 3s linear infinite;
+    animation: scan 15s linear infinite;
   }
   
   @keyframes scan {
@@ -213,7 +213,7 @@ body {
     background: hsl(188, 86%, 53%);
     border-radius: 50%;
     box-shadow: 0 0 10px 2px hsl(188, 86%, 53%);
-    animation: shoot 3s linear infinite;
+    animation: shoot 15s linear infinite;
   }
   
   .shooting-star::before {
@@ -256,7 +256,7 @@ body {
   
   /* Text Shimmer Animation */
   .animate-shimmer {
-    animation: shimmer 3s linear infinite;
+    animation: shimmer 15s linear infinite;
   }
   
   @keyframes shimmer {
