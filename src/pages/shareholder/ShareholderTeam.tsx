@@ -329,6 +329,11 @@ export default function ShareholderTeam() {
           {shareholder && (
             <div className="flex flex-col gap-1 mt-3 text-sm">
               <div className="text-muted-foreground">
+                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-semibold">
+                  Public ID: {shareholder.public_id || '-'}
+                </span>
+              </div>
+              <div className="text-muted-foreground">
                 <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-semibold">
                   Shareholder ID: {shareholder.id}
                 </span>
