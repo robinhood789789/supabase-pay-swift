@@ -86,6 +86,7 @@ import TransactionDashboard from "./pages/TransactionDashboard";
 import StyleGuide from "./pages/StyleGuide";
 import SecurityMonitoring from "./pages/SecurityMonitoring";
 import SecurityAlerts from "./pages/SecurityAlerts";
+import MfaTroubleshooting from "./pages/MfaTroubleshooting";
 
 const queryClient = new QueryClient();
 
@@ -190,6 +191,14 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/mfa-troubleshooting"
+        element={
+          <ProtectedRoute>
+            <MfaTroubleshooting />
           </ProtectedRoute>
         }
       />

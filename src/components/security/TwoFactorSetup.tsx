@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useI18n } from '@/lib/i18n';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Copy, CheckCircle2, AlertCircle, Download, Printer, RefreshCw } from 'lucide-react';
+import { Shield, Copy, CheckCircle2, AlertCircle, Download, Printer, RefreshCw, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateTOTPSecret, generateBackupCodes, getTOTPQRCodeUrl } from '@/lib/security/totp';
 import QRCode from 'qrcode';
@@ -432,27 +433,43 @@ export function TwoFactorSetup() {
                 Two-factor authentication is currently enabled on your account.
               </AlertDescription>
             </Alert>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => regenerateMutation.mutate()}
-                disabled={regenerateMutation.isPending}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Regenerate Recovery Codes
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setShowDisableDialog(true)}
-              >
-                Disable 2FA
-              </Button>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => regenerateMutation.mutate()}
+                  disabled={regenerateMutation.isPending}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Regenerate Recovery Codes
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDisableDialog(true)}
+                >
+                  Disable 2FA
+                </Button>
+              </div>
+              <Link to="/settings/mfa-troubleshooting" className="w-full">
+                <Button variant="outline" className="w-full">
+                  <HelpCircle className="w-4 h-4 mr-2" />
+                  แก้ไขปัญหา 2FA
+                </Button>
+              </Link>
             </div>
           </div>
         ) : (
-          <Button onClick={startSetup}>
-            Enable Two-Factor Authentication
-          </Button>
+          <div className="space-y-3">
+            <Button onClick={startSetup}>
+              Enable Two-Factor Authentication
+            </Button>
+            <Link to="/settings/mfa-troubleshooting" className="block">
+              <Button variant="ghost" size="sm" className="w-full">
+                <HelpCircle className="w-4 h-4 mr-2" />
+                มีปัญหาในการตั้งค่า 2FA?
+              </Button>
+            </Link>
+          </div>
         )}
       </CardContent>
     </Card>
