@@ -39,26 +39,46 @@ import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
 import { CredentialsDialog } from "@/components/admin/CredentialsDialog";
 
 const createUserSchema = z.object({
-  prefix: z.string().min(1, "กรุณาใส่ Prefix").max(10, "Prefix ต้องไม่เกิน 10 ตัวอักษร"),
+  prefix: z.string()
+    .length(3, "Prefix ต้องเป็น 3 ตัวอักษรเท่านั้น")
+    .regex(/^[A-Z]{3}$/, "Prefix ต้องเป็นตัวพิมพ์ใหญ่ 3 ตัวเท่านั้น (เช่น ACA, MGR, FIN)"),
   user_number: z.string()
     .length(6, "ตัวเลขต้องเป็น 6 หลักเท่านั้น")
     .regex(/^\d{6}$/, "กรุณาใส่ตัวเลข 6 หลักเท่านั้น"),
-  password: z.string().min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร"),
-  full_name: z.string().min(1, "กรุณาใส่ชื่อ"),
+  password: z.string()
+    .min(12, "รหัสผ่านต้องมีอย่างน้อย 12 ตัวอักษร")
+    .regex(/[A-Z]/, "รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว")
+    .regex(/[a-z]/, "รหัสผ่านต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว")
+    .regex(/[0-9]/, "รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว")
+    .regex(/[!@#$%^&*]/, "รหัสผ่านต้องมีอักขระพิเศษ (!@#$%^&*) อย่างน้อย 1 ตัว"),
+  full_name: z.string().min(1, "กรุณาใส่ชื่อ").max(100, "ชื่อต้องไม่เกิน 100 ตัวอักษร"),
   role: z.string().min(1, "กรุณาเลือกบทบาท"),
 });
 
 type CreateUserFormData = z.infer<typeof createUserSchema>;
 
-// Generate random password
+// Generate random password with guaranteed complexity
 const generateRandomPassword = () => {
-  const length = 12;
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numbers = "0123456789";
+  const special = "!@#$%^&*";
+  
+  // Ensure at least one character from each required set
   let password = "";
-  for (let i = 0; i < length; i++) {
-    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+  password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+  password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  password += special.charAt(Math.floor(Math.random() * special.length));
+  
+  // Fill remaining characters randomly
+  const allChars = lowercase + uppercase + numbers + special;
+  for (let i = password.length; i < 16; i++) {
+    password += allChars.charAt(Math.floor(Math.random() * allChars.length));
   }
-  return password;
+  
+  // Shuffle the password to avoid predictable patterns
+  return password.split('').sort(() => Math.random() - 0.5).join('');
 };
 
 export const CreateUserDialog = () => {
@@ -353,10 +373,11 @@ export const CreateUserDialog = () => {
                   name="prefix"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prefix</FormLabel>
+                      <FormLabel>Prefix (3 ตัวอักษร)</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="ACA" 
+                          maxLength={3}
                           {...field}
                           onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                         />
