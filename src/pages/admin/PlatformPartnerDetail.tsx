@@ -110,11 +110,11 @@ export default function PlatformPartnerDetail() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 space-y-8">
-        <Skeleton className="h-12 w-64" />
+      <div className="container mx-auto py-8 space-y-8 bg-white min-h-screen">
+        <Skeleton className="h-12 w-64 bg-gray-200" />
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32" />
+            <Skeleton key={i} className="h-32 bg-gray-200" />
           ))}
         </div>
       </div>
@@ -129,66 +129,66 @@ export default function PlatformPartnerDetail() {
   const payouts = data?.payouts || [];
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="container mx-auto py-8 space-y-8 bg-white min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/platform/partners")}>
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={() => navigate("/platform/partners")} className="hover:bg-gray-100">
+            <ArrowLeft className="h-5 w-5 text-black" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{partner?.full_name}</h1>
-            <p className="text-muted-foreground">{partner?.email}</p>
+            <h1 className="text-2xl font-medium text-black tracking-tight">{partner?.full_name}</h1>
+            <p className="text-gray-600">{partner?.email}</p>
           </div>
         </div>
-        <Badge variant={partner?.status === "active" ? "default" : "secondary"}>
+        <Badge variant={partner?.status === "active" ? "default" : "secondary"} className={partner?.status === "active" ? "bg-black text-white" : "bg-gray-200 text-gray-700"}>
           {partner?.status === "active" ? "ใช้งาน" : "ไม่ใช้งาน"}
         </Badge>
       </div>
 
       {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">รายได้เดือนนี้</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">รายได้เดือนนี้</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(kpis.monthly_commission || 0)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <div className="text-2xl font-semibold text-black">{formatCurrency(kpis.monthly_commission || 0)}</div>
+            <p className="text-xs text-gray-600 mt-1">
               ฐาน: {formatCurrency(kpis.monthly_base || 0)}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">รายได้ปีนี้</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">รายได้ปีนี้</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(kpis.yearly_commission || 0)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <div className="text-2xl font-semibold text-black">{formatCurrency(kpis.yearly_commission || 0)}</div>
+            <p className="text-xs text-gray-600 mt-1">
               ฐาน: {formatCurrency(kpis.yearly_base || 0)}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">ยอดคงเหลือ</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">ยอดคงเหลือ</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(kpis.balance || 0)}</div>
+            <div className="text-2xl font-semibold text-black">{formatCurrency(kpis.balance || 0)}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">การตั้งค่า</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">การตั้งค่า</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-1 text-sm">
-              <div>ประเภท: <Badge variant="outline">{partner?.default_commission_type}</Badge></div>
-              <div>% เริ่มต้น: <span className="font-semibold">{partner?.default_commission_value}%</span></div>
+            <div className="space-y-1 text-sm text-gray-700">
+              <div>ประเภท: <Badge variant="outline" className="border-gray-300 text-gray-700">{partner?.default_commission_type}</Badge></div>
+              <div>% เริ่มต้น: <span className="font-semibold text-black">{partner?.default_commission_value}%</span></div>
             </div>
           </CardContent>
         </Card>
@@ -196,19 +196,19 @@ export default function PlatformPartnerDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="tenants" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="tenants">Tenants ที่ผูก ({linkedTenants.length})</TabsTrigger>
-          <TabsTrigger value="requests">คำขอปรับ % ({adjustRequests.length})</TabsTrigger>
-          <TabsTrigger value="events">Commission Events</TabsTrigger>
-          <TabsTrigger value="payouts">Payouts ({payouts.length})</TabsTrigger>
+        <TabsList className="bg-gray-50 border border-gray-200">
+          <TabsTrigger value="tenants" className="data-[state=active]:bg-white data-[state=active]:text-black">Tenants ที่ผูก ({linkedTenants.length})</TabsTrigger>
+          <TabsTrigger value="requests" className="data-[state=active]:bg-white data-[state=active]:text-black">คำขอปรับ % ({adjustRequests.length})</TabsTrigger>
+          <TabsTrigger value="events" className="data-[state=active]:bg-white data-[state=active]:text-black">Commission Events</TabsTrigger>
+          <TabsTrigger value="payouts" className="data-[state=active]:bg-white data-[state=active]:text-black">Payouts ({payouts.length})</TabsTrigger>
         </TabsList>
 
         {/* Linked Tenants */}
         <TabsContent value="tenants">
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle>Tenants ที่ผูก</CardTitle>
-              <CardDescription>รายชื่อ Owner ที่พาร์ทเนอร์แนะนำมา</CardDescription>
+              <CardTitle className="text-black font-medium tracking-tight">Tenants ที่ผูก</CardTitle>
+              <CardDescription className="text-gray-600">รายชื่อ Owner ที่พาร์ทเนอร์แนะนำมา</CardDescription>
             </CardHeader>
             <CardContent>
               {linkedTenants.length > 0 ? (
@@ -227,18 +227,18 @@ export default function PlatformPartnerDetail() {
                   <TableBody>
                     {linkedTenants.map((link: any) => (
                       <TableRow key={link.id}>
-                        <TableCell>{maskTenantName(link.tenants?.name || "N/A")}</TableCell>
+                           <TableCell className="text-gray-700">{maskTenantName(link.tenants?.name || "N/A")}</TableCell>
                         <TableCell>
-                          <Badge variant={link.status === "active" ? "default" : "secondary"}>
+                          <Badge variant={link.status === "active" ? "default" : "secondary"} className={link.status === "active" ? "bg-black text-white" : "bg-gray-200 text-gray-700"}>
                             {link.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{link.commission_type}</Badge>
+                          <Badge variant="outline" className="border-gray-300 text-gray-700">{link.commission_type}</Badge>
                         </TableCell>
-                        <TableCell className="font-semibold">{link.commission_rate}%</TableCell>
-                        <TableCell>{link.bounty_amount > 0 ? formatCurrency(link.bounty_amount) : "-"}</TableCell>
-                        <TableCell>{new Date(link.referred_at).toLocaleDateString("th-TH")}</TableCell>
+                        <TableCell className="font-semibold text-black">{link.commission_rate}%</TableCell>
+                        <TableCell className="text-gray-700">{link.bounty_amount > 0 ? formatCurrency(link.bounty_amount) : "-"}</TableCell>
+                        <TableCell className="text-gray-700">{new Date(link.referred_at).toLocaleDateString("th-TH")}</TableCell>
                         <TableCell>
                           <Dialog>
                             <DialogTrigger asChild>
@@ -249,6 +249,7 @@ export default function PlatformPartnerDetail() {
                                   setSelectedTenant(link);
                                   setNewCommissionRate(link.commission_rate.toString());
                                 }}
+                                className="hover:bg-gray-100 text-gray-700"
                               >
                                 <Edit className="h-4 w-4 mr-1" />
                                 ปรับ %
@@ -285,6 +286,7 @@ export default function PlatformPartnerDetail() {
                                     updateCommissionMutation.mutate({ tenantId: link.tenant_id, rate });
                                   }}
                                   disabled={updateCommissionMutation.isPending}
+                                  className="bg-black text-white hover:bg-gray-800 border-0"
                                 >
                                   {updateCommissionMutation.isPending && (
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -300,7 +302,7 @@ export default function PlatformPartnerDetail() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">ยังไม่มี Tenant</div>
+                <div className="text-center py-8 text-gray-600">ยังไม่มี Tenant</div>
               )}
             </CardContent>
           </Card>
@@ -308,27 +310,27 @@ export default function PlatformPartnerDetail() {
 
         {/* Adjust Requests */}
         <TabsContent value="requests">
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle>คำขอปรับเปอร์เซ็นต์</CardTitle>
-              <CardDescription>คำขอที่รออนุมัติจากพาร์ทเนอร์</CardDescription>
+              <CardTitle className="text-black font-medium tracking-tight">คำขอปรับเปอร์เซ็นต์</CardTitle>
+              <CardDescription className="text-gray-600">คำขอที่รออนุมัติจากพาร์ทเนอร์</CardDescription>
             </CardHeader>
             <CardContent>
               {adjustRequests.length > 0 ? (
                 <div className="space-y-4">
                   {adjustRequests.map((req: any) => (
-                    <Card key={req.id}>
+                    <Card key={req.id} className="border border-gray-200 bg-white">
                       <CardContent className="pt-6">
                         <div className="flex items-start justify-between">
                           <div className="space-y-2">
-                            <div className="font-medium">
+                            <div className="font-medium text-black">
                               Tenant: {maskTenantName(req.tenants?.name || "N/A")}
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              เปลี่ยนจาก <span className="font-semibold">{req.current_percent}%</span> เป็น{" "}
-                              <span className="font-semibold text-primary">{req.requested_percent}%</span>
+                            <div className="text-sm text-gray-600">
+                              เปลี่ยนจาก <span className="font-semibold text-black">{req.current_percent}%</span> เป็น{" "}
+                              <span className="font-semibold text-black">{req.requested_percent}%</span>
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-gray-600">
                               ขอเมื่อ: {new Date(req.requested_at).toLocaleString("th-TH")}
                             </div>
                           </div>
@@ -339,6 +341,7 @@ export default function PlatformPartnerDetail() {
                                   size="sm"
                                   variant="default"
                                   onClick={() => setSelectedRequest(req)}
+                                  className="bg-black text-white hover:bg-gray-800 border-0"
                                 >
                                   <CheckCircle className="h-4 w-4 mr-1" />
                                   อนุมัติ
@@ -369,6 +372,7 @@ export default function PlatformPartnerDetail() {
                                       });
                                     }}
                                     disabled={approveRequestMutation.isPending}
+                                    className="bg-black text-white hover:bg-gray-800 border-0"
                                   >
                                     {approveRequestMutation.isPending && (
                                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -381,14 +385,15 @@ export default function PlatformPartnerDetail() {
 
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => setSelectedRequest(req)}
-                                >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  ปฏิเสธ
-                                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setSelectedRequest(req)}
+                  className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  ปฏิเสธ
+                </Button>
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
@@ -421,6 +426,7 @@ export default function PlatformPartnerDetail() {
                                       });
                                     }}
                                     disabled={approveRequestMutation.isPending}
+                                    className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
                                   >
                                     {approveRequestMutation.isPending && (
                                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -437,7 +443,7 @@ export default function PlatformPartnerDetail() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">ไม่มีคำขอรออนุมัติ</div>
+                <div className="text-center py-8 text-gray-600">ไม่มีคำขอรออนุมัติ</div>
               )}
             </CardContent>
           </Card>
@@ -445,10 +451,10 @@ export default function PlatformPartnerDetail() {
 
         {/* Commission Events */}
         <TabsContent value="events">
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle>Commission Events</CardTitle>
-              <CardDescription>ประวัติรายการคอมมิชชัน (100 รายการล่าสุด)</CardDescription>
+              <CardTitle className="text-black font-medium tracking-tight">Commission Events</CardTitle>
+              <CardDescription className="text-gray-600">ประวัติรายการคอมมิชชัน (100 รายการล่าสุด)</CardDescription>
             </CardHeader>
             <CardContent>
               {commissionEvents.length > 0 ? (
@@ -466,16 +472,16 @@ export default function PlatformPartnerDetail() {
                   <TableBody>
                     {commissionEvents.map((event: any) => (
                       <TableRow key={event.id}>
-                        <TableCell className="text-xs">
+                        <TableCell className="text-xs text-gray-700">
                           {new Date(event.occurred_at).toLocaleString("th-TH")}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{event.event_type}</Badge>
+                          <Badge variant="outline" className="border-gray-300 text-gray-700">{event.event_type}</Badge>
                         </TableCell>
-                        <TableCell>{maskTenantName(event.tenants?.name || "N/A")}</TableCell>
-                        <TableCell>{formatCurrency(event.base_value)}</TableCell>
-                        <TableCell>{event.commission_percent}%</TableCell>
-                        <TableCell className="font-semibold text-primary">
+                        <TableCell className="text-gray-700">{maskTenantName(event.tenants?.name || "N/A")}</TableCell>
+                        <TableCell className="text-gray-700">{formatCurrency(event.base_value)}</TableCell>
+                        <TableCell className="text-gray-700">{event.commission_percent}%</TableCell>
+                        <TableCell className="font-semibold text-black">
                           {formatCurrency(event.commission_amount)}
                         </TableCell>
                       </TableRow>
@@ -483,7 +489,7 @@ export default function PlatformPartnerDetail() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">ยังไม่มีรายการ</div>
+                <div className="text-center py-8 text-gray-600">ยังไม่มีรายการ</div>
               )}
             </CardContent>
           </Card>
@@ -491,10 +497,10 @@ export default function PlatformPartnerDetail() {
 
         {/* Payouts */}
         <TabsContent value="payouts">
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle>Payouts</CardTitle>
-              <CardDescription>ประวัติการขอถอนเงิน (50 รายการล่าสุด)</CardDescription>
+              <CardTitle className="text-black font-medium tracking-tight">Payouts</CardTitle>
+              <CardDescription className="text-gray-600">ประวัติการขอถอนเงิน (50 รายการล่าสุด)</CardDescription>
             </CardHeader>
             <CardContent>
               {payouts.length > 0 ? (
@@ -512,12 +518,12 @@ export default function PlatformPartnerDetail() {
                   <TableBody>
                     {payouts.map((payout: any) => (
                       <TableRow key={payout.id}>
-                        <TableCell className="text-xs">
+                        <TableCell className="text-xs text-gray-700">
                           {new Date(payout.requested_at).toLocaleString("th-TH")}
                         </TableCell>
-                        <TableCell className="font-semibold">{formatCurrency(payout.amount)}</TableCell>
-                        <TableCell>{payout.bank_name}</TableCell>
-                        <TableCell className="font-mono">{payout.bank_account_number}</TableCell>
+                        <TableCell className="font-semibold text-black">{formatCurrency(payout.amount)}</TableCell>
+                        <TableCell className="text-gray-700">{payout.bank_name}</TableCell>
+                        <TableCell className="font-mono text-gray-700">{payout.bank_account_number}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
@@ -525,11 +531,16 @@ export default function PlatformPartnerDetail() {
                               payout.status === "pending" ? "secondary" :
                               "destructive"
                             }
+                            className={
+                              payout.status === "completed" ? "bg-black text-white" :
+                              payout.status === "pending" ? "bg-gray-200 text-gray-700" :
+                              "bg-gray-100 text-gray-700 border border-gray-300"
+                            }
                           >
                             {payout.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs">
+                        <TableCell className="text-xs text-gray-700">
                           {payout.paid_at ? new Date(payout.paid_at).toLocaleString("th-TH") : "-"}
                         </TableCell>
                       </TableRow>
@@ -537,7 +548,7 @@ export default function PlatformPartnerDetail() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">ยังไม่มีประวัติ Payout</div>
+                <div className="text-center py-8 text-gray-600">ยังไม่มีประวัติ Payout</div>
               )}
             </CardContent>
           </Card>

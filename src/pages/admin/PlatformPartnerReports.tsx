@@ -99,24 +99,24 @@ export default function PlatformPartnerReports() {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">รายงานพาร์ทเนอร์</h1>
-          <Button onClick={handleExport} disabled={isLoading}>
+      <div className="space-y-6 bg-white min-h-screen p-6">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <h1 className="text-2xl font-medium text-black tracking-tight">รายงานพาร์ทเนอร์</h1>
+          <Button onClick={handleExport} disabled={isLoading} className="bg-black text-white hover:bg-gray-800 border-0">
             <Download className="w-4 h-4 mr-2" />
             ส่งออก CSV
           </Button>
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader>
-            <CardTitle>ตัวกรอง</CardTitle>
+            <CardTitle className="text-black font-medium tracking-tight">ตัวกรอง</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-4">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
                   <CalendarIcon className="mr-2 w-4 h-4" />
                   {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
                 </Button>
@@ -159,54 +159,54 @@ export default function PlatformPartnerReports() {
               </SelectContent>
             </Select>
 
-            <Button onClick={() => refetch()}>รีเฟรช</Button>
+            <Button onClick={() => refetch()} className="bg-black text-white hover:bg-gray-800 border-0">รีเฟรช</Button>
           </CardContent>
         </Card>
 
         {/* KPI Summary */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">รายได้รวม (Base)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-700">รายได้รวม (Base)</CardTitle>
+              <TrendingUp className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-semibold text-black">
                 ฿{(summary.total_base_value || 0).toLocaleString()}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">คอมมิชันจ่าย</CardTitle>
-              <TrendingDown className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-sm font-medium text-gray-700">คอมมิชันจ่าย</CardTitle>
+              <TrendingDown className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">
+              <div className="text-2xl font-semibold text-black">
                 ฿{(summary.total_commission || 0).toLocaleString()}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">สุทธิแพลตฟอร์ม</CardTitle>
-              <TrendingUp className="h-4 w-4 text-success" />
+              <CardTitle className="text-sm font-medium text-gray-700">สุทธิแพลตฟอร์ม</CardTitle>
+              <TrendingUp className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">
+              <div className="text-2xl font-semibold text-black">
                 ฿{(summary.net_to_platform || 0).toLocaleString()}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ค้างจ่าย</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-700">ค้างจ่าย</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">
+              <div className="text-2xl font-semibold text-black">
                 ฿{(summary.total_pending || 0).toLocaleString()}
               </div>
             </CardContent>
@@ -215,26 +215,26 @@ export default function PlatformPartnerReports() {
 
         {/* Charts */}
         <Tabs defaultValue="line" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="line">กราฟเส้น</TabsTrigger>
-            <TabsTrigger value="bar">กราฟแท่ง</TabsTrigger>
+          <TabsList className="bg-gray-50 border border-gray-200">
+            <TabsTrigger value="line" className="data-[state=active]:bg-white data-[state=active]:text-black">กราฟเส้น</TabsTrigger>
+            <TabsTrigger value="bar" className="data-[state=active]:bg-white data-[state=active]:text-black">กราฟแท่ง</TabsTrigger>
           </TabsList>
 
           <TabsContent value="line" className="space-y-4">
-            <Card>
+            <Card className="border border-gray-200 bg-white">
               <CardHeader>
-                <CardTitle>รายได้ vs คอมมิชัน</CardTitle>
+                <CardTitle className="text-black font-medium tracking-tight">รายได้ vs คอมมิชัน</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={groupBy === "partner" ? "partner_name" : "date"} />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey={groupBy === "partner" ? "partner_name" : "date"} stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="base_value" stroke="hsl(var(--primary))" name="รายได้ Base" />
-                    <Line type="monotone" dataKey="commission" stroke="hsl(var(--destructive))" name="คอมมิชัน" />
+                    <Line type="monotone" dataKey="base_value" stroke="#000000" strokeWidth={2} name="รายได้ Base" />
+                    <Line type="monotone" dataKey="commission" stroke="#6b7280" strokeWidth={2} name="คอมมิชัน" />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -242,20 +242,20 @@ export default function PlatformPartnerReports() {
           </TabsContent>
 
           <TabsContent value="bar" className="space-y-4">
-            <Card>
+            <Card className="border border-gray-200 bg-white">
               <CardHeader>
-                <CardTitle>เปรียบเทียบรายได้</CardTitle>
+                <CardTitle className="text-black font-medium tracking-tight">เปรียบเทียบรายได้</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={groupBy === "partner" ? "partner_name" : "date"} />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey={groupBy === "partner" ? "partner_name" : "date"} stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="base_value" fill="hsl(var(--primary))" name="รายได้ Base" />
-                    <Bar dataKey="commission" fill="hsl(var(--destructive))" name="คอมมิชัน" />
+                    <Bar dataKey="base_value" fill="#000000" name="รายได้ Base" />
+                    <Bar dataKey="commission" fill="#9ca3af" name="คอมมิชัน" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
