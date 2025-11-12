@@ -14,7 +14,7 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1280px", // Max container width for minimalism
+        "2xl": "1400px",
       },
     },
     extend: {
@@ -60,12 +60,6 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
-        // Minimalism extended colors
-        "text-secondary": "hsl(var(--text-secondary))",
-        "text-muted": "hsl(var(--text-muted))",
-        hover: "hsl(var(--hover))",
-        "disabled-bg": "hsl(var(--disabled-bg))",
-        "disabled-text": "hsl(var(--disabled-text))",
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
@@ -73,37 +67,31 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        // Aurora theme specific colors
+        "text-secondary": "hsl(var(--text-secondary, 180 40% 70%))",
+        "text-muted": "hsl(var(--text-muted, 180 40% 70%))",
+        hover: "hsl(var(--hover, 222 47% 20%))",
+        "disabled-bg": "hsl(var(--disabled-bg, 222 47% 15%))",
+        "disabled-text": "hsl(var(--disabled-text, 180 20% 50%))",
       },
       boxShadow: {
-        "soft": "var(--shadow-soft)",
-        "none": "var(--shadow-none)",
+        "glow": "0 0 20px hsl(188 86% 53% / 0.5), 0 0 40px hsl(188 86% 53% / 0.3)",
+        "glow-info": "0 0 20px hsl(188 86% 53% / 0.6)",
+        "neon": "0 0 30px hsl(188 86% 53% / 0.8), 0 0 60px hsl(271 81% 56% / 0.5)",
+        "soft": "0 2px 8px rgba(0, 0, 0, 0.1)",
       },
       transitionTimingFunction: {
         smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
       },
       borderRadius: {
-        lg: "var(--radius)",           // 8px
-        md: "calc(var(--radius) - 2px)", // 6px
-        sm: "calc(var(--radius) - 4px)", // 4px
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-family-base)", "Inter", "Roboto", "sans-serif"],
+        sans: ["var(--font-family-base)", "Inter", "sans-serif"],
         inter: ["Inter", "sans-serif"],
-        roboto: ["Roboto", "sans-serif"],
-      },
-      fontSize: {
-        'h1': ['24px', { lineHeight: '1.5', fontWeight: '600' }],
-        'h2': ['20px', { lineHeight: '1.5', fontWeight: '600' }],
-        'h3': ['18px', { lineHeight: '1.5', fontWeight: '600' }],
-        'body': ['16px', { lineHeight: '1.5', fontWeight: '400' }],
-        'small': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
-      },
-      spacing: {
-        'xs': '4px',
-        'sm': '8px',
-        'md': '16px',
-        'lg': '24px',
-        'xl': '32px',
+        orbitron: ["Orbitron", "Inter", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
@@ -126,6 +114,30 @@ export default {
           "0%": { transform: "scale(0.95)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "scale-out": {
+          from: { transform: "scale(1)", opacity: "1" },
+          to: { transform: "scale(0.95)", opacity: "0" },
+        },
+        "slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+        gradient: {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "0.8" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -133,6 +145,17 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "fade-out": "fade-out 0.3s ease-out",
         "scale-in": "scale-in 0.2s ease-out",
+        "scale-out": "scale-out 0.2s ease-out",
+        "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-out-right": "slide-out-right 0.3s ease-out",
+        gradient: "gradient 15s ease infinite",
+        float: "float 6s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        enter: "fade-in 0.3s ease-out, scale-in 0.2s ease-out",
+        exit: "fade-out 0.3s ease-out, scale-out 0.2s ease-out",
+      },
+      backgroundSize: {
+        "200%": "200% 200%",
       },
     },
   },
