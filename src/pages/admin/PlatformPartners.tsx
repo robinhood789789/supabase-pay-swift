@@ -17,7 +17,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 export default function PlatformPartners() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [commissionTypeFilter, setCommissionTypeFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -158,7 +158,7 @@ export default function PlatformPartners() {
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white z-50">
                 <SelectItem value="all">สถานะทั้งหมด</SelectItem>
                 <SelectItem value="active">ใช้งาน</SelectItem>
                 <SelectItem value="inactive">ไม่ใช้งาน</SelectItem>
@@ -168,28 +168,11 @@ export default function PlatformPartners() {
               <SelectTrigger className="w-48 border-gray-300 bg-white text-black">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white z-50">
                 <SelectItem value="all">ประเภททั้งหมด</SelectItem>
                 <SelectItem value="revenue_share">Revenue Share</SelectItem>
                 <SelectItem value="bounty">Bounty</SelectItem>
                 <SelectItem value="hybrid">Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select 
-              value={pageSize.toString()} 
-              onValueChange={(value) => {
-                setPageSize(Number(value));
-                setPage(1); // Reset to first page when changing page size
-              }}
-            >
-              <SelectTrigger className="w-40 border-gray-300 bg-white text-black">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="10">10 แถว</SelectItem>
-                <SelectItem value="20">20 แถว</SelectItem>
-                <SelectItem value="30">30 แถว</SelectItem>
-                <SelectItem value="50">50 แถว</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -264,71 +247,82 @@ export default function PlatformPartners() {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-muted-foreground">
-                    แสดง {((page - 1) * pageSize) + 1} ถึง {Math.min(page * pageSize, pagination.total)} จาก {pagination.total} รายการ
+                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">แสดง</span>
+                    <Select 
+                      value={pageSize.toString()} 
+                      onValueChange={(value) => {
+                        setPageSize(Number(value));
+                        setPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-20 border-gray-300 bg-white text-black">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50 text-black">
+                        <SelectItem value="20" className="text-black">20</SelectItem>
+                        <SelectItem value="50" className="text-black">50</SelectItem>
+                        <SelectItem value="100" className="text-black">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">รายการ</span>
                   </div>
+
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious 
                           onClick={() => page > 1 && setPage(page - 1)}
-                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          className={`${page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-black hover:bg-black hover:text-white`}
                         />
                       </PaginationItem>
                       
-                      {/* Show first page */}
                       {page > 2 && (
                         <PaginationItem>
-                          <PaginationLink onClick={() => setPage(1)} className="cursor-pointer">
+                          <PaginationLink onClick={() => setPage(1)} className="cursor-pointer text-black hover:bg-gray-100">
                             1
                           </PaginationLink>
                         </PaginationItem>
                       )}
                       
-                      {/* Show ellipsis if needed */}
                       {page > 3 && (
                         <PaginationItem>
-                          <span className="px-4">...</span>
+                          <span className="px-4 text-black">...</span>
                         </PaginationItem>
                       )}
                       
-                      {/* Show previous page */}
                       {page > 1 && (
                         <PaginationItem>
-                          <PaginationLink onClick={() => setPage(page - 1)} className="cursor-pointer">
+                          <PaginationLink onClick={() => setPage(page - 1)} className="cursor-pointer text-black hover:bg-gray-100">
                             {page - 1}
                           </PaginationLink>
                         </PaginationItem>
                       )}
                       
-                      {/* Current page */}
                       <PaginationItem>
-                        <PaginationLink isActive>
+                        <PaginationLink isActive className="bg-black text-white hover:bg-gray-800">
                           {page}
                         </PaginationLink>
                       </PaginationItem>
                       
-                      {/* Show next page */}
                       {page < pagination.totalPages && (
                         <PaginationItem>
-                          <PaginationLink onClick={() => setPage(page + 1)} className="cursor-pointer">
+                          <PaginationLink onClick={() => setPage(page + 1)} className="cursor-pointer text-black hover:bg-gray-100">
                             {page + 1}
                           </PaginationLink>
                         </PaginationItem>
                       )}
                       
-                      {/* Show ellipsis if needed */}
                       {page < pagination.totalPages - 2 && (
                         <PaginationItem>
-                          <span className="px-4">...</span>
+                          <span className="px-4 text-black">...</span>
                         </PaginationItem>
                       )}
                       
-                      {/* Show last page */}
                       {page < pagination.totalPages - 1 && (
                         <PaginationItem>
-                          <PaginationLink onClick={() => setPage(pagination.totalPages)} className="cursor-pointer">
+                          <PaginationLink onClick={() => setPage(pagination.totalPages)} className="cursor-pointer text-black hover:bg-gray-100">
                             {pagination.totalPages}
                           </PaginationLink>
                         </PaginationItem>
@@ -337,11 +331,15 @@ export default function PlatformPartners() {
                       <PaginationItem>
                         <PaginationNext 
                           onClick={() => page < pagination.totalPages && setPage(page + 1)}
-                          className={page === pagination.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          className={`${page === pagination.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} text-black hover:bg-black hover:text-white`}
                         />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
+
+                  <div className="text-xs text-gray-600">
+                    แสดง {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, pagination.total)} จาก {pagination.total} รายการ
+                  </div>
                 </div>
               )}
             </>
