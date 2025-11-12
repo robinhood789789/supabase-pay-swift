@@ -2198,6 +2198,10 @@ export type Database = {
         Args: { _email: string }
         Returns: undefined
       }
+      can_view_tenant_memberships: {
+        Args: { _tenant_id: string; _uid: string }
+        Returns: boolean
+      }
       check_and_block_ip: {
         Args: {
           block_duration_minutes?: number
