@@ -43,9 +43,24 @@ export function TwoFactorChallenge({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Delegate verification to Edge Function (handles TOTP or recovery)
+      // Prepare code and type
+      const isRecovery = code.includes('-');
+      const type = isRecovery ? 'recovery' : 'totp';
+      const payloadCode = isRecovery 
+        ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '') // keep A-Z,0-9 and dashes
+        : code.replace(/\D/g, '').slice(0, 6); // digits only, max 6
+
+      if (!payloadCode) throw new Error('Missing verification code');
+      if (type === 'totp' && payloadCode.length !== 6) {
+        throw new Error('Please enter a 6-digit code');
+      }
+
+      // Include auth header explicitly for reliability
+      const { data: { session } } = await supabase.auth.getSession();
+
       const { data, error } = await supabase.functions.invoke('mfa-challenge', {
-        body: { code, type: code.includes('-') ? 'recovery' : 'totp' }
+        body: { code: payloadCode, type },
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
       });
       
       if (error) throw new Error(error.message || 'Verification failed');
@@ -58,8 +73,9 @@ export function TwoFactorChallenge({
       setCode('');
       return;
     } catch (err: any) {
-      setError(err.message || 'Verification failed');
-      toast.error('Verification failed');
+      const msg = err?.message || 'Verification failed';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsVerifying(false);
     }
