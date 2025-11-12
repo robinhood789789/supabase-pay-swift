@@ -48,6 +48,8 @@ interface BankAccount {
   deposit_enabled: boolean;
   withdrawal_enabled: boolean;
   status: "online" | "offline";
+  user_password: string | null;
+  company_code: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +65,8 @@ interface BankAccountFormData {
   deposit_enabled: boolean;
   withdrawal_enabled: boolean;
   status: "online" | "offline";
+  user_password: string;
+  company_code: string;
 }
 
 const BANK_LOGOS: Record<string, string> = {
@@ -92,6 +96,8 @@ const CustomerBankAccounts = () => {
     deposit_enabled: true,
     withdrawal_enabled: true,
     status: "offline",
+    user_password: "",
+    company_code: "",
   });
 
   const queryClient = useQueryClient();
@@ -222,6 +228,8 @@ const CustomerBankAccounts = () => {
       deposit_enabled: true,
       withdrawal_enabled: true,
       status: "offline",
+      user_password: "",
+      company_code: "",
     });
   };
 
@@ -244,6 +252,8 @@ const CustomerBankAccounts = () => {
       deposit_enabled: account.deposit_enabled,
       withdrawal_enabled: account.withdrawal_enabled,
       status: account.status,
+      user_password: account.user_password || "",
+      company_code: account.company_code || "",
     });
     setIsDialogOpen(true);
   };
@@ -492,6 +502,27 @@ const CustomerBankAccounts = () => {
                   setFormData({ ...formData, account_number: e.target.value })
                 }
                 placeholder="เลขที่บัญชี"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">User Password</Label>
+              <Input
+                type="password"
+                value={formData.user_password}
+                onChange={(e) =>
+                  setFormData({ ...formData, user_password: e.target.value })
+                }
+                placeholder="รหัสผ่านผู้ใช้งาน"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Company Code</Label>
+              <Input
+                value={formData.company_code}
+                onChange={(e) =>
+                  setFormData({ ...formData, company_code: e.target.value })
+                }
+                placeholder="รหัสบริษัท"
               />
             </div>
             <div className="md:col-span-2">

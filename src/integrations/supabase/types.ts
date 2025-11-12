@@ -342,6 +342,7 @@ export type Database = {
           bank_code: string
           bank_name: string
           bank_short_name: string
+          company_code: string | null
           created_at: string | null
           deposit_enabled: boolean | null
           id: string
@@ -349,6 +350,7 @@ export type Database = {
           password_visible: boolean | null
           status: string | null
           updated_at: string | null
+          user_password: string | null
           withdrawal_enabled: boolean | null
         }
         Insert: {
@@ -357,6 +359,7 @@ export type Database = {
           bank_code: string
           bank_name: string
           bank_short_name: string
+          company_code?: string | null
           created_at?: string | null
           deposit_enabled?: boolean | null
           id?: string
@@ -364,6 +367,7 @@ export type Database = {
           password_visible?: boolean | null
           status?: string | null
           updated_at?: string | null
+          user_password?: string | null
           withdrawal_enabled?: boolean | null
         }
         Update: {
@@ -372,6 +376,7 @@ export type Database = {
           bank_code?: string
           bank_name?: string
           bank_short_name?: string
+          company_code?: string | null
           created_at?: string | null
           deposit_enabled?: boolean | null
           id?: string
@@ -379,6 +384,7 @@ export type Database = {
           password_visible?: boolean | null
           status?: string | null
           updated_at?: string | null
+          user_password?: string | null
           withdrawal_enabled?: boolean | null
         }
         Relationships: []
