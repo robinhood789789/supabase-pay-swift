@@ -47,16 +47,46 @@ Deno.serve(async (req) => {
 
     if (!profile?.is_super_admin) {
       // Check if user has permission to manage users in their tenant
-      const { data: permission } = await supabaseClient
-        .from('user_permissions')
-        .select('permission:permissions(name)')
+      // First, get user's role from memberships
+      const { data: membership } = await supabaseClient
+        .from('memberships')
+        .select('role_id, tenant_id')
         .eq('user_id', user.id)
-        .eq('permission.name', 'users.manage')
-        .single();
+        .maybeSingle();
 
-      if (!permission) {
+      if (!membership) {
+        return new Response(
+          JSON.stringify({ error: 'No tenant membership found' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get permissions for this role
+      const { data: rolePerms } = await supabaseClient
+        .from('role_permissions')
+        .select('permission_id')
+        .eq('role_id', membership.role_id);
+
+      if (!rolePerms || rolePerms.length === 0) {
         return new Response(
           JSON.stringify({ error: 'Insufficient permissions' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const permissionIds = rolePerms.map((rp) => rp.permission_id).filter(Boolean);
+
+      // Check if any of these permissions is 'users.manage'
+      const { data: perms } = await supabaseClient
+        .from('permissions')
+        .select('name')
+        .in('id', permissionIds);
+
+      const hasManagePermission = perms?.some(p => p.name === 'users.manage');
+
+      if (!hasManagePermission) {
+        return new Response(
+          JSON.stringify({ error: 'Insufficient permissions - users.manage required' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
