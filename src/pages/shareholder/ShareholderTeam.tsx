@@ -564,7 +564,8 @@ export default function ShareholderTeam() {
               <thead className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
                 <tr className="border-b border-purple-100">
                   <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">Public ID</th>
-                  <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">ธุรกิจ</th>
+                  <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">ชื่อ</th>
+                  <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">User ID/ยอดเงินคงเหลือ</th>
                   <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">สถานะ</th>
                   <th className="text-center p-4 font-semibold text-purple-900 dark:text-purple-100">จัดการ</th>
                 </tr>
@@ -572,7 +573,7 @@ export default function ShareholderTeam() {
               <tbody>
                 {filteredOwners.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <td colSpan={5} className="text-center py-8 text-muted-foreground">
                       {searchQuery || statusFilter !== "all"
                         ? "ไม่พบ Owner ที่ตรงกับเงื่อนไขการค้นหา"
                         : "ยังไม่มี Owner user"}
@@ -583,6 +584,16 @@ export default function ShareholderTeam() {
                     <tr key={owner.ownerId} className="border-b border-purple-50 hover:bg-purple-50/50 dark:hover:bg-purple-950/10 transition-all">
                       <td className="p-3 font-mono font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{owner.publicId}</td>
                       <td className="p-3 font-medium">{owner.businessName}</td>
+                      <td className="p-3">
+                        <div className="space-y-1">
+                          <div className="text-xs text-muted-foreground font-mono">
+                            {owner.ownerId ? owner.ownerId.substring(0, 8) + '...' : '-'}
+                          </div>
+                          <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                            {owner.mrr ? `฿${owner.mrr.toLocaleString()}` : '-'}
+                          </div>
+                        </div>
+                      </td>
                       <td className="p-3">
                         <Badge
                           className={
