@@ -261,48 +261,53 @@ const CustomerBankAccounts = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 space-y-4 max-w-full overflow-hidden">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">จัดการรายชื่อธนาคาร(ลูกค้า)</h1>
+          <h1 className="text-2xl font-bold text-foreground">จัดการรายชื่อธนาคาร(ลูกค้า)</h1>
         </div>
-        <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700">
+        <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700 whitespace-nowrap">
           <Building2 className="w-4 h-4 mr-2" />
           เพิ่มธนาคาร
         </Button>
       </div>
 
-      <div className="flex gap-4 items-end">
-        <div className="flex-1">
-          <Label>หัวหมด</Label>
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end">
+        <div className="flex-1 min-w-0">
+          <Label className="text-xs">หัวหมด</Label>
           <Input
             placeholder="กรอง ตามสถานะ:"
             value={codeFilter}
             onChange={(e) => setCodeFilter(e.target.value)}
+            className="w-full"
           />
         </div>
-        <div className="flex-1">
-          <Label>ค้นหา</Label>
+        <div className="flex-1 min-w-0">
+          <Label className="text-xs">ค้นหา</Label>
           <Input
-            placeholder="ดีบหา ตามชื่อ"
+            placeholder="ค้นหา ตามชื่อ"
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
+            className="w-full"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
+            size="sm"
             variant={statusFilter === "all" ? "default" : "outline"}
             onClick={() => setStatusFilter("all")}
           >
             ทั้งหมด
           </Button>
           <Button
+            size="sm"
             variant={statusFilter === "online" ? "default" : "outline"}
             onClick={() => setStatusFilter("online")}
           >
             Online
           </Button>
           <Button
+            size="sm"
             variant={statusFilter === "offline" ? "default" : "outline"}
             onClick={() => setStatusFilter("offline")}
           >
@@ -311,62 +316,61 @@ const CustomerBankAccounts = () => {
         </div>
       </div>
 
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
+      <div className="border rounded-lg overflow-x-auto">
+        <Table className="min-w-full">
           <TableHeader className="bg-destructive">
             <TableRow className="hover:bg-destructive/90">
-              <TableHead className="text-destructive-foreground font-bold">#</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">รหัสธนาคาร</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ชื่อย่อธนาคาร</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ธนาคาร</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ชื่อผู้ใช้</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">เหรายเลขผู้ใช้</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ชื่อผู้ใช้</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">รหัสผ่าน</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ปิดขึ้นฝาก</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ปิดขึ้นถอน</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">สถานะ</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">แก้ไข</TableHead>
-              <TableHead className="text-destructive-foreground font-bold">ลบ</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs w-12">#</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs">ธนาคาร</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs">รหัส</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs">ชื่อผู้ใช้</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs">เลขบัญชี</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs max-w-[150px]">หมายเหตุ</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs text-center">รหัสผ่าน</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs text-center">ฝาก/ถอน</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs text-center">สถานะ</TableHead>
+              <TableHead className="text-destructive-foreground font-bold text-xs text-center w-24">จัดการ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center">
+                <TableCell colSpan={10} className="text-center text-sm">
                   กำลังโหลด...
                 </TableCell>
               </TableRow>
             ) : accounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center">
+                <TableCell colSpan={10} className="text-center text-sm">
                   ไม่พบข้อมูล
                 </TableCell>
               </TableRow>
             ) : (
               accounts.map((account, index) => (
-                <TableRow key={account.id}>
-                  <TableCell>{index + 1}</TableCell>
+                <TableRow key={account.id} className="text-sm">
+                  <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="text-lg">
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                      <Avatar className="w-7 h-7 flex-shrink-0">
+                        <AvatarFallback className="text-base">
                           {BANK_LOGOS[account.bank_code] || "🏦"}
                         </AvatarFallback>
                       </Avatar>
-                      <span>{account.bank_code}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-xs">{account.bank_code}</span>
+                        <span className="text-destructive font-semibold text-xs">
+                          {account.bank_short_name}
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-destructive font-medium">
-                    {account.bank_short_name}
-                  </TableCell>
-                  <TableCell>{account.bank_name}</TableCell>
-                  <TableCell>{account.account_holder || "-"}</TableCell>
-                  <TableCell>{account.account_number}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
+                  <TableCell className="text-xs">{account.bank_name}</TableCell>
+                  <TableCell className="text-xs">{account.account_holder || "-"}</TableCell>
+                  <TableCell className="font-mono text-xs">{account.account_number}</TableCell>
+                  <TableCell className="max-w-[150px] truncate text-xs" title={account.notes || ""}>
                     {account.notes || "-"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <Switch
                       checked={account.password_visible}
                       onCheckedChange={(checked) =>
@@ -376,52 +380,54 @@ const CustomerBankAccounts = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Switch
-                      checked={account.deposit_enabled}
-                      onCheckedChange={(checked) =>
-                        handleToggle(account.id, "deposit_enabled", checked)
-                      }
-                      className={account.deposit_enabled ? "bg-destructive" : ""}
-                    />
+                    <div className="flex gap-1 justify-center items-center">
+                      <Switch
+                        checked={account.deposit_enabled}
+                        onCheckedChange={(checked) =>
+                          handleToggle(account.id, "deposit_enabled", checked)
+                        }
+                        className={account.deposit_enabled ? "bg-destructive scale-75" : "scale-75"}
+                      />
+                      <span className="text-[10px] text-muted-foreground">/</span>
+                      <Switch
+                        checked={account.withdrawal_enabled}
+                        onCheckedChange={(checked) =>
+                          handleToggle(account.id, "withdrawal_enabled", checked)
+                        }
+                        className={account.withdrawal_enabled ? "bg-destructive scale-75" : "scale-75"}
+                      />
+                    </div>
                   </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={account.withdrawal_enabled}
-                      onCheckedChange={(checked) =>
-                        handleToggle(account.id, "withdrawal_enabled", checked)
-                      }
-                      className={account.withdrawal_enabled ? "bg-destructive" : ""}
-                    />
-                  </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <Badge
                       variant={account.status === "online" ? "default" : "destructive"}
                       className={
                         account.status === "online"
-                          ? "bg-green-600 hover:bg-green-700"
-                          : ""
+                          ? "bg-green-600 hover:bg-green-700 text-[10px]"
+                          : "text-[10px]"
                       }
                     >
                       {account.status === "online" ? "Online" : "Offline"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="sm"
-                      onClick={() => handleOpenEditDialog(account)}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => setDeleteAccount(account)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-1 justify-center">
+                      <Button
+                        size="sm"
+                        onClick={() => handleOpenEditDialog(account)}
+                        className="bg-blue-600 hover:bg-blue-700 h-7 w-7 p-0"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeleteAccount(account)}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -431,15 +437,15 @@ const CustomerBankAccounts = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAccount ? "แก้ไขธนาคาร" : "เพิ่มธนาคาร"}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label>รหัสธนาคาร *</Label>
+              <Label className="text-sm">รหัสธนาคาร *</Label>
               <Input
                 value={formData.bank_code}
                 onChange={(e) =>
@@ -449,7 +455,7 @@ const CustomerBankAccounts = () => {
               />
             </div>
             <div>
-              <Label>ชื่อย่อธนาคาร *</Label>
+              <Label className="text-sm">ชื่อย่อธนาคาร *</Label>
               <Input
                 value={formData.bank_short_name}
                 onChange={(e) =>
@@ -458,8 +464,8 @@ const CustomerBankAccounts = () => {
                 placeholder="เช่น GSB-01"
               />
             </div>
-            <div className="col-span-2">
-              <Label>ชื่อธนาคาร *</Label>
+            <div className="md:col-span-2">
+              <Label className="text-sm">ชื่อธนาคาร *</Label>
               <Input
                 value={formData.bank_name}
                 onChange={(e) =>
@@ -469,7 +475,7 @@ const CustomerBankAccounts = () => {
               />
             </div>
             <div>
-              <Label>ชื่อผู้ใช้</Label>
+              <Label className="text-sm">ชื่อผู้ใช้</Label>
               <Input
                 value={formData.account_holder}
                 onChange={(e) =>
@@ -479,7 +485,7 @@ const CustomerBankAccounts = () => {
               />
             </div>
             <div>
-              <Label>เลขบัญชี *</Label>
+              <Label className="text-sm">เลขบัญชี *</Label>
               <Input
                 value={formData.account_number}
                 onChange={(e) =>
@@ -488,45 +494,28 @@ const CustomerBankAccounts = () => {
                 placeholder="เลขที่บัญชี"
               />
             </div>
-            <div className="col-span-2">
-              <Label>หมายเหตุ</Label>
+            <div className="md:col-span-2">
+              <Label className="text-sm">หมายเหตุ</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) =>
                   setFormData({ ...formData, notes: e.target.value })
                 }
                 placeholder="หมายเหตุเพิ่มเติม"
-                rows={3}
+                rows={2}
+                className="resize-none"
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-2 border rounded">
               <Switch
                 checked={formData.password_visible}
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, password_visible: checked })
                 }
               />
-              <Label>แสดงรหัสผ่าน</Label>
+              <Label className="text-sm cursor-pointer">แสดงรหัสผ่าน</Label>
             </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={formData.deposit_enabled}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, deposit_enabled: checked })
-                }
-              />
-              <Label>เปิดใช้งานฝาก</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={formData.withdrawal_enabled}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, withdrawal_enabled: checked })
-                }
-              />
-              <Label>เปิดใช้งานถอน</Label>
-            </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-2 border rounded">
               <Switch
                 checked={formData.status === "online"}
                 onCheckedChange={(checked) =>
@@ -536,10 +525,28 @@ const CustomerBankAccounts = () => {
                   })
                 }
               />
-              <Label>สถานะ Online</Label>
+              <Label className="text-sm cursor-pointer">สถานะ Online</Label>
+            </div>
+            <div className="flex items-center gap-2 p-2 border rounded">
+              <Switch
+                checked={formData.deposit_enabled}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, deposit_enabled: checked })
+                }
+              />
+              <Label className="text-sm cursor-pointer">เปิดใช้งานฝาก</Label>
+            </div>
+            <div className="flex items-center gap-2 p-2 border rounded">
+              <Switch
+                checked={formData.withdrawal_enabled}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, withdrawal_enabled: checked })
+                }
+              />
+              <Label className="text-sm cursor-pointer">เปิดใช้งานถอน</Label>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               ยกเลิก
             </Button>
