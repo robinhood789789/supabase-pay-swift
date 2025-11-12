@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
@@ -35,8 +42,10 @@ const IncomingTransactions = () => {
   const today = format(new Date(), "yyyy-MM-dd");
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
+  const [bankCodeFilter, setBankCodeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const { data: transactions = [], isLoading } = useQuery({
+  const { data: allTransactions = [], isLoading } = useQuery({
     queryKey: ["incoming-transactions", startDate, endDate],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,6 +61,26 @@ const IncomingTransactions = () => {
     },
   });
 
+  // Get unique bank codes and statuses for filter options
+  const bankCodes = useMemo(() => {
+    const codes = new Set(allTransactions.map((t) => t.bank_code).filter(Boolean));
+    return Array.from(codes).sort();
+  }, [allTransactions]);
+
+  const statuses = useMemo(() => {
+    const statusSet = new Set(allTransactions.map((t) => t.status).filter(Boolean));
+    return Array.from(statusSet).sort();
+  }, [allTransactions]);
+
+  // Apply filters
+  const transactions = useMemo(() => {
+    return allTransactions.filter((transaction) => {
+      const bankMatch = bankCodeFilter === "all" || transaction.bank_code === bankCodeFilter;
+      const statusMatch = statusFilter === "all" || transaction.status === statusFilter;
+      return bankMatch && statusMatch;
+    });
+  }, [allTransactions, bankCodeFilter, statusFilter]);
+
   return (
     <div className="p-6 space-y-6 max-w-full overflow-hidden bg-white min-h-screen">
       <div className="border-b border-gray-200 pb-4">
@@ -61,28 +90,66 @@ const IncomingTransactions = () => {
       <div className="bg-white border border-gray-200 rounded p-6">
         <h2 className="text-lg font-medium text-black mb-6 tracking-tight">รายการเงินเข้า</h2>
         
-        <div className="flex flex-col sm:flex-row gap-3 items-end mb-6">
-          <div className="flex-1 min-w-0">
-            <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">วันที่</Label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border-gray-300 bg-white text-black"
-            />
+        <div className="space-y-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
+            <div className="flex-1 min-w-0">
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">วันที่</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border-gray-300 bg-white text-black"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ถึง</Label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border-gray-300 bg-white text-black"
+              />
+            </div>
+            <Button className="bg-black text-white hover:bg-gray-800 whitespace-nowrap border-0">
+              ค้นหา
+            </Button>
           </div>
-          <div className="flex-1 min-w-0">
-            <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ถึง</Label>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border-gray-300 bg-white text-black"
-            />
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 min-w-0">
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ธนาคาร</Label>
+              <Select value={bankCodeFilter} onValueChange={setBankCodeFilter}>
+                <SelectTrigger className="border-gray-300 bg-white text-black">
+                  <SelectValue placeholder="ทั้งหมด" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  {bankCodes.map((code) => (
+                    <SelectItem key={code} value={code}>
+                      {code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-0">
+              <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">สถานะ</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="border-gray-300 bg-white text-black">
+                  <SelectValue placeholder="ทั้งหมด" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  {statuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1" />
           </div>
-          <Button className="bg-black text-white hover:bg-gray-800 whitespace-nowrap border-0">
-            ค้นหา
-          </Button>
         </div>
 
         <div className="border border-gray-200 rounded overflow-x-auto">
