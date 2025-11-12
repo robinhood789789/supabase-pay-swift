@@ -629,15 +629,6 @@ export default function ShareholderTeam() {
                             <Edit className="h-4 w-4 mr-1" />
                             แก้ไข
                           </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-sm hover:shadow-md transition-all"
-                            onClick={() => handleDeleteClick(owner)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            ลบ
-                          </Button>
                         </div>
                       </td>
                     </tr>
