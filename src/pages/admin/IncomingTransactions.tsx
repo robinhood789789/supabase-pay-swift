@@ -300,7 +300,7 @@ const IncomingTransactions = () => {
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-black hover:text-black`}
+                    className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-black hover:bg-black hover:text-white active:bg-black active:text-white`}
                   />
                 </PaginationItem>
 
@@ -342,7 +342,7 @@ const IncomingTransactions = () => {
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} text-black hover:text-black`}
+                    className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} text-black hover:bg-black hover:text-white active:bg-black active:text-white`}
                   />
                 </PaginationItem>
               </PaginationContent>
