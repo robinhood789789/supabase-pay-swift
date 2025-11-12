@@ -5,7 +5,7 @@ import { validateFields, validateString, ValidationException, sanitizeErrorMessa
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return handleCorsPreflight(req);
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
