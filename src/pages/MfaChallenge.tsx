@@ -39,7 +39,7 @@ export default function MfaChallenge() {
     setError('');
 
     try {
-      const { data, error } = await supabase.functions.invoke('mfa-challenge', {
+      const { data, error } = await supabase.functions.invoke('mfa-verify', {
         body: { 
           code: code.toUpperCase(), 
           type: useRecovery ? 'recovery' : 'totp'
