@@ -13,21 +13,9 @@ export const MyActivityPanel = () => {
   const { activeTenantId } = useTenantSwitcher();
 
   const { data: todayActivities, isLoading } = useQuery({
-    queryKey: ["my-activity", "OWNR-000001", activeTenantId],
+    queryKey: ["my-activity", user?.id, activeTenantId],
     queryFn: async () => {
-      if (!activeTenantId) return [];
-
-      // First, get the user_id for OWNR-000001
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("public_id", "OWNR-000001")
-        .single();
-
-      if (profileError || !profile) {
-        console.error("Error finding user OWNR-000001:", profileError);
-        return [];
-      }
+      if (!user?.id || !activeTenantId) return [];
 
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
@@ -35,7 +23,7 @@ export const MyActivityPanel = () => {
       const { data, error } = await supabase
         .from("audit_logs")
         .select("*")
-        .eq("actor_user_id", profile.id)
+        .eq("actor_user_id", user.id)
         .eq("tenant_id", activeTenantId)
         .gte("created_at", todayStart.toISOString())
         .order("created_at", { ascending: false })
@@ -44,7 +32,7 @@ export const MyActivityPanel = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!activeTenantId,
+    enabled: !!user?.id && !!activeTenantId,
   });
 
   const getActionBadgeVariant = (action: string) => {
