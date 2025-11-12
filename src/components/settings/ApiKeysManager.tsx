@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -34,8 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Key, Copy, Trash2, Plus, AlertTriangle, Shield, Globe } from "lucide-react";
+import { Key, Copy, Trash2, Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { PermissionGate } from "../PermissionGate";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
@@ -44,22 +44,27 @@ import { sanitizeClientError } from "@/lib/security/errorHandling";
 
 interface CreateKeyForm {
   name: string;
-  key_type: 'internal' | 'external';
+  description: string;
   rate_limit_tier: string;
   ip_allowlist: string;
-  notes: string;
+  expires_in_days: number | null;
+}
+
+interface ApiCredentials {
+  api_key: string;
+  api_secret: string;
 }
 
 export const ApiKeysManager = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState<CreateKeyForm>({
     name: "",
-    key_type: "internal",
+    description: "",
     rate_limit_tier: "standard",
     ip_allowlist: "",
-    notes: ""
+    expires_in_days: null
   });
-  const [newApiKey, setNewApiKey] = useState<string | null>(null);
+  const [newCredentials, setNewCredentials] = useState<ApiCredentials | null>(null);
   const queryClient = useQueryClient();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
 
@@ -81,26 +86,29 @@ export const ApiKeysManager = () => {
     mutationFn: async (formData: CreateKeyForm) => {
       const body: any = { 
         name: formData.name,
-        key_type: formData.key_type,
+        description: formData.description || null,
         rate_limit_tier: formData.rate_limit_tier,
-        notes: formData.notes || null
+        expires_in_days: formData.expires_in_days
       };
 
-      // Parse IP allowlist if external key
-      if (formData.key_type === 'external' && formData.ip_allowlist) {
+      // Parse IP allowlist
+      if (formData.ip_allowlist) {
         body.ip_allowlist = formData.ip_allowlist.split(',').map(ip => ip.trim()).filter(Boolean);
       }
 
-      const { data, error } = await invokeFunctionWithTenant("api-keys-create", { body });
+      const { data, error } = await invokeFunctionWithTenant("api-credentials-create", { body });
 
       if (error) throw new Error(error.message);
       if (data.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
-      setNewApiKey(data.api_key.secret);
+      setNewCredentials({
+        api_key: data.credentials.api_key,
+        api_secret: data.credentials.api_secret
+      });
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
-      toast.success("API key created successfully");
+      toast.success("API credentials created successfully");
     },
     onError: (error: Error) => {
       toast.error("Failed to create API key", {
@@ -132,11 +140,7 @@ export const ApiKeysManager = () => {
 
   const handleCreateKey = () => {
     if (!formData.name.trim()) {
-      toast.error("Please enter a key name");
-      return;
-    }
-    if (formData.key_type === 'external' && !formData.ip_allowlist.trim()) {
-      toast.error("External keys require at least one IP address");
+      toast.error("กรุณาระบุชื่อ API Credentials");
       return;
     }
     checkAndChallenge(() => createKeyMutation.mutate(formData));
@@ -152,19 +156,18 @@ export const ApiKeysManager = () => {
   };
 
   const handleCloseNewKeyDialog = () => {
-    setNewApiKey(null);
+    setNewCredentials(null);
     setCreateDialogOpen(false);
     setFormData({
       name: "",
-      key_type: "internal",
+      description: "",
       rate_limit_tier: "standard",
       ip_allowlist: "",
-      notes: ""
+      expires_in_days: null
     });
   };
 
-  const internalKeys = apiKeys?.filter(k => k.key_type === 'secret') || [];
-  const externalKeys = apiKeys?.filter(k => k.key_type === 'public') || [];
+  const allCredentials = apiKeys || [];
 
   return (
     <PermissionGate
@@ -187,34 +190,34 @@ export const ApiKeysManager = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Key className="w-5 h-5" />
-                API Keys Management
+                จัดการ API Credentials
               </CardTitle>
               <CardDescription>
-                Manage Internal and External API keys for programmatic access
+                สร้างและจัดการ API Key และ API Secret สำหรับเข้าถึงระบบแบบโปรแกรม
               </CardDescription>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2">
                   <Plus className="w-4 h-4" />
-                  Create Key
+                  สร้าง Credentials
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Create API Key</DialogTitle>
+                  <DialogTitle>สร้าง API Credentials</DialogTitle>
                   <DialogDescription>
-                    Generate a new API key with customized access controls
+                    สร้าง API Key และ API Secret สำหรับเข้าถึงระบบแบบโปรแกรม
                   </DialogDescription>
                 </DialogHeader>
                 
-                {!newApiKey ? (
+                {!newCredentials ? (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="keyName">Key Name *</Label>
+                      <Label htmlFor="keyName">ชื่อ *</Label>
                       <Input
                         id="keyName"
-                        placeholder="Production API Key"
+                        placeholder="Production API Credentials"
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         disabled={createKeyMutation.isPending}
@@ -222,42 +225,15 @@ export const ApiKeysManager = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="keyType">Key Type *</Label>
-                      <Select
-                        value={formData.key_type}
-                        onValueChange={(value: 'internal' | 'external') => 
-                          setFormData({...formData, key_type: value})
-                        }
+                      <Label htmlFor="description">คำอธิบาย</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="ระบุวัตถุประสงค์การใช้งาน..."
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
                         disabled={createKeyMutation.isPending}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="internal">
-                            <div className="flex items-center gap-2">
-                              <Shield className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">Internal</div>
-                                <div className="text-xs text-muted-foreground">
-                                  For your own systems and applications
-                                </div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="external">
-                            <div className="flex items-center gap-2">
-                              <Globe className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">External</div>
-                                <div className="text-xs text-muted-foreground">
-                                  For partners and third-party integrations
-                                </div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                        rows={3}
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -279,32 +255,50 @@ export const ApiKeysManager = () => {
                       </Select>
                     </div>
 
-                    {formData.key_type === 'external' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="ipAllowlist">IP Allowlist (Required for External) *</Label>
-                        <Textarea
-                          id="ipAllowlist"
-                          placeholder="192.168.1.1, 10.0.0.0/24"
-                          value={formData.ip_allowlist}
-                          onChange={(e) => setFormData({...formData, ip_allowlist: e.target.value})}
-                          disabled={createKeyMutation.isPending}
-                          className="font-mono text-sm"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Comma-separated IP addresses or CIDR ranges
-                        </p>
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="ipAllowlist">IP Allowlist (ไม่บังคับ)</Label>
+                      <Textarea
+                        id="ipAllowlist"
+                        placeholder="192.168.1.1, 10.0.0.0/24"
+                        value={formData.ip_allowlist}
+                        onChange={(e) => setFormData({...formData, ip_allowlist: e.target.value})}
+                        disabled={createKeyMutation.isPending}
+                        className="font-mono text-sm"
+                        rows={2}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        ระบุ IP ที่อนุญาตให้เข้าถึง (คั่นด้วยจุลภาค)
+                      </p>
+                    </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="notes">Notes (Optional)</Label>
-                      <Textarea
-                        id="notes"
-                        placeholder="Description or usage notes..."
-                        value={formData.notes}
-                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                        disabled={createKeyMutation.isPending}
-                      />
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="expiration"
+                          checked={formData.expires_in_days !== null}
+                          onCheckedChange={(checked) => 
+                            setFormData({...formData, expires_in_days: checked ? 365 : null})
+                          }
+                        />
+                        <Label htmlFor="expiration">กำหนดวันหมดอายุ</Label>
+                      </div>
+                      {formData.expires_in_days !== null && (
+                        <Input
+                          type="number"
+                          min="1"
+                          max="3650"
+                          placeholder="365"
+                          value={formData.expires_in_days || ''}
+                          onChange={(e) => setFormData({
+                            ...formData, 
+                            expires_in_days: parseInt(e.target.value) || null
+                          })}
+                          disabled={createKeyMutation.isPending}
+                        />
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        จำนวนวันก่อนหมดอายุ (ไม่ระบุ = ไม่หมดอายุ)
+                      </p>
                     </div>
 
                     <Button
@@ -312,7 +306,7 @@ export const ApiKeysManager = () => {
                       disabled={createKeyMutation.isPending}
                       className="w-full"
                     >
-                      {createKeyMutation.isPending ? "Creating..." : "Generate Key"}
+                      {createKeyMutation.isPending ? "กำลังสร้าง..." : "สร้าง Credentials"}
                     </Button>
                   </div>
                 ) : (
@@ -321,34 +315,59 @@ export const ApiKeysManager = () => {
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="w-5 h-5 text-warning mt-0.5" />
                         <div className="text-sm">
-                          <p className="font-medium text-warning">Save this key now!</p>
+                          <p className="font-medium text-warning">บันทึกข้อมูลนี้เดี๋ยวนี้!</p>
                           <p className="text-muted-foreground mt-1">
-                            You won't be able to see it again. Store it in a secure location.
+                            คุณจะไม่สามารถดู API Secret ได้อีกครั้ง กรุณาเก็บไว้ในที่ปลอดภัย
                           </p>
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Your API Key</Label>
+                      <Label>API Key (Public)</Label>
                       <div className="flex gap-2">
                         <Input
-                          value={newApiKey}
+                          value={newCredentials.api_key}
                           readOnly
                           className="font-mono text-sm"
                         />
                         <Button
                           size="icon"
                           variant="outline"
-                          onClick={() => handleCopyKey(newApiKey)}
+                          onClick={() => handleCopyKey(newCredentials.api_key)}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        ใช้เป็น identifier สำหรับ API requests
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>API Secret (Private)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={newCredentials.api_secret}
+                          readOnly
+                          className="font-mono text-sm"
+                          type="password"
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => handleCopyKey(newCredentials.api_secret)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        ใช้สำหรับ authenticate API requests (เก็บเป็นความลับ)
+                      </p>
                     </div>
                     
                     <Button onClick={handleCloseNewKeyDialog} className="w-full">
-                      Done
+                      เสร็จสิ้น
                     </Button>
                   </div>
                 )}
@@ -357,46 +376,23 @@ export const ApiKeysManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="internal" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="internal" className="gap-2">
-                <Shield className="w-4 h-4" />
-                Internal ({internalKeys.length})
-              </TabsTrigger>
-              <TabsTrigger value="external" className="gap-2">
-                <Globe className="w-4 h-4" />
-                External ({externalKeys.length})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="internal" className="mt-4">
-              {isLoading ? (
-                <p className="text-muted-foreground text-center py-8">Loading...</p>
-              ) : internalKeys.length > 0 ? (
-                <div className="space-y-3">
-                  {internalKeys.map((key) => (
-                    <ApiKeyCard key={key.id} apiKey={key} onRevoke={handleRevokeKey} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState type="internal" />
-              )}
-            </TabsContent>
-
-            <TabsContent value="external" className="mt-4">
-              {isLoading ? (
-                <p className="text-muted-foreground text-center py-8">Loading...</p>
-              ) : externalKeys.length > 0 ? (
-                <div className="space-y-3">
-                  {externalKeys.map((key) => (
-                    <ApiKeyCard key={key.id} apiKey={key} onRevoke={handleRevokeKey} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState type="external" />
-              )}
-            </TabsContent>
-          </Tabs>
+          {isLoading ? (
+            <p className="text-muted-foreground text-center py-8">กำลังโหลด...</p>
+          ) : allCredentials.length > 0 ? (
+            <div className="space-y-3">
+              {allCredentials.map((credential) => (
+                <ApiCredentialCard key={credential.id} credential={credential} onRevoke={handleRevokeKey} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Key className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-medium mb-2">ยังไม่มี API Credentials</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                สร้าง API Key และ Secret เพื่อเข้าถึงระบบแบบโปรแกรม
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
       <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
@@ -404,37 +400,38 @@ export const ApiKeysManager = () => {
   );
 };
 
-const ApiKeyCard = ({ apiKey, onRevoke }: any) => {
+const ApiCredentialCard = ({ credential, onRevoke }: any) => {
   return (
     <div className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <p className="font-medium">{apiKey.name}</p>
-          <Badge variant={apiKey.key_type === 'internal' ? 'default' : 'secondary'} className="text-xs">
-            {apiKey.key_type === 'internal' ? (
-              <><Shield className="w-3 h-3 mr-1" /> Internal</>
-            ) : (
-              <><Globe className="w-3 h-3 mr-1" /> External</>
-            )}
-          </Badge>
+          <p className="font-medium">{credential.name}</p>
           <Badge variant="outline" className="text-xs">
-            {apiKey.rate_limit_tier}
+            {credential.rate_limit_tier}
           </Badge>
+          {credential.expires_at && (
+            <Badge variant="secondary" className="text-xs">
+              หมดอายุ {new Date(credential.expires_at).toLocaleDateString('th-TH')}
+            </Badge>
+          )}
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-mono text-muted-foreground">{apiKey.prefix}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">API Key:</span>
+            <p className="text-sm font-mono text-foreground">{credential.prefix}</p>
+          </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>Created {new Date(apiKey.created_at).toLocaleDateString()}</span>
-            {apiKey.last_used_at && (
-              <span>Last used {new Date(apiKey.last_used_at).toLocaleDateString()}</span>
+            <span>สร้างเมื่อ {new Date(credential.created_at).toLocaleDateString('th-TH')}</span>
+            {credential.last_used_at && (
+              <span>ใช้ล่าสุด {new Date(credential.last_used_at).toLocaleDateString('th-TH')}</span>
             )}
           </div>
-          {apiKey.notes && (
-            <p className="text-xs text-muted-foreground mt-1">{apiKey.notes}</p>
+          {credential.notes && (
+            <p className="text-xs text-muted-foreground mt-1">{credential.notes}</p>
           )}
-          {apiKey.key_type === 'external' && apiKey.ip_allowlist?.length > 0 && (
+          {credential.ip_allowlist?.length > 0 && (
             <div className="text-xs text-muted-foreground mt-1">
-              <span className="font-medium">IP Allowlist:</span> {apiKey.ip_allowlist.join(', ')}
+              <span className="font-medium">IP Allowlist:</span> {credential.ip_allowlist.join(', ')}
             </div>
           )}
         </div>
@@ -444,23 +441,23 @@ const ApiKeyCard = ({ apiKey, onRevoke }: any) => {
         <AlertDialogTrigger asChild>
           <Button variant="destructive" size="sm" className="gap-2">
             <Trash2 className="w-4 h-4" />
-            Revoke
+            เพิกถอน
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke API Key?</AlertDialogTitle>
+            <AlertDialogTitle>เพิกถอน API Credentials?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently revoke "{apiKey.name}". Any applications using this key will no longer be able to authenticate.
+              การกระทำนี้จะเพิกถอน "{credential.name}" อย่างถาวร แอปพลิเคชันที่ใช้ credentials นี้จะไม่สามารถยืนยันตัวตนได้อีกต่อไป
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => onRevoke(apiKey.id)}
+              onClick={() => onRevoke(credential.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Revoke Key
+              เพิกถอน
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -469,19 +466,3 @@ const ApiKeyCard = ({ apiKey, onRevoke }: any) => {
   );
 };
 
-const EmptyState = ({ type }: { type: 'internal' | 'external' }) => (
-  <div className="text-center py-8 text-muted-foreground">
-    {type === 'internal' ? (
-      <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
-    ) : (
-      <Globe className="w-12 h-12 mx-auto mb-4 opacity-50" />
-    )}
-    <p>No {type} API keys created yet</p>
-    <p className="text-sm mt-1">
-      {type === 'internal' 
-        ? 'Create an internal key for your own systems'
-        : 'Create an external key for partner integrations'
-      }
-    </p>
-  </div>
-);
