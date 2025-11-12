@@ -177,27 +177,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('Attempting sign in with email:', email);
-      let data: any, error: any;
+      let data: any | null = null;
+      let error: any | null = null;
 
-      // First attempt with looked-up email
-      ({ data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      }));
+      // If user typed Public ID, try multiple email candidates safely
+      const isPublicId = /^[A-Z0-9]{2,6}-\d{6}$/.test(publicIdOrEmail);
+      const candidates: string[] = [];
+      if (isPublicId) {
+        // Primary from RPC lookup
+        if (email) candidates.push(email.toLowerCase());
+        const pidUpper = publicIdOrEmail.toUpperCase();
+        const pidLower = publicIdOrEmail.toLowerCase();
+        candidates.push(`${pidLower}@system.local`, `${pidLower}@user.local`, `${pidUpper}@system.local`, `${pidUpper}@user.local`);
+      } else {
+        candidates.push(email.toLowerCase());
+      }
 
-      // If credentials invalid and the user used Public ID, retry with system.local fallback
-      if (
-        error &&
-        error.message === 'Invalid login credentials' &&
-        /^[A-Z0-9]{2,6}-\d{6}$/.test(publicIdOrEmail)
-      ) {
-        const fallbackEmail = `${publicIdOrEmail}@system.local`;
-        if (fallbackEmail.toLowerCase() !== email.toLowerCase()) {
-          console.log('Retrying sign in with fallback email:', fallbackEmail);
-          ({ data, error } = await supabase.auth.signInWithPassword({
-            email: fallbackEmail,
-            password,
-          }));
+      // Deduplicate while preserving order
+      const uniqueCandidates = Array.from(new Set(candidates));
+
+      for (const candidate of uniqueCandidates) {
+        console.log('Trying sign in with candidate:', candidate);
+        ({ data, error } = await supabase.auth.signInWithPassword({
+          email: candidate,
+          password,
+        }));
+        if (!error) {
+          email = candidate; // record the email that worked
+          break;
+        }
+        if (error?.message !== 'Invalid login credentials') {
+          // Non-credential errors: stop early
+          break;
         }
       }
 
@@ -213,7 +224,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
 
-      console.log('Sign in successful');
+      console.log('Sign in successful with email:', email);
       toast({
         title: "เข้าสู่ระบบสำเร็จ",
         description: "กำลังโหลดข้อมูล...",
