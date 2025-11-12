@@ -59,6 +59,7 @@ const AdminUsers = () => {
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; public_id: string } | null>(null);
+  const [passwordCopied, setPasswordCopied] = useState(false);
   const queryClient = useQueryClient();
   const { activeTenantId } = useTenantSwitcher();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
@@ -368,12 +369,48 @@ const AdminUsers = () => {
     
     const generatedPassword = generateRandomPassword();
     setNewPassword(generatedPassword);
+    setPasswordCopied(false);
     setResetPasswordUser({
       id: user.id,
       name: user.full_name || user.email,
       public_id: user.public_id,
     });
     setResetPasswordDialogOpen(true);
+  };
+
+  const handleCopyPassword = () => {
+    navigator.clipboard.writeText(newPassword);
+    setPasswordCopied(true);
+    toast.success("คัดลอกรหัสผ่านแล้ว!");
+    setTimeout(() => setPasswordCopied(false), 2000);
+  };
+
+  const handleDownloadCredentials = () => {
+    if (!resetPasswordUser) return;
+    
+    const content = `=== ข้อมูลผู้ใช้และรหัสผ่าน ===
+ชื่อผู้ใช้: ${resetPasswordUser.name}
+รหัสผู้ใช้ (Public ID): ${resetPasswordUser.public_id}
+รหัสผ่านใหม่: ${newPassword}
+
+วันที่รีเซ็ต: ${new Date().toLocaleString('th-TH')}
+
+⚠️ คำเตือน:
+- กรุณาเก็บรักษาข้อมูลนี้ไว้อย่างปลอดภัย
+- ห้ามแชร์รหัสผ่านให้ผู้อื่น
+- ผู้ใช้จะต้องเปลี่ยนรหัสผ่านนี้ในการเข้าสู่ระบบครั้งแรก
+- คุณจะไม่สามารถดูรหัสผ่านนี้อีกครั้ง`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `credentials_${resetPasswordUser.public_id}_${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("ดาวน์โหลดข้อมูลสำเร็จ!");
   };
 
   const resetPasswordMutation = useMutation({
@@ -836,14 +873,20 @@ const AdminUsers = () => {
                       className="font-mono bg-background"
                     />
                     <Button
-                      variant="outline"
+                      variant={passwordCopied ? "default" : "outline"}
                       size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText(newPassword);
-                        toast.success("คัดลอกรหัสผ่านแล้ว!");
-                      }}
+                      onClick={handleCopyPassword}
+                      className="min-w-[100px]"
                     >
-                      <Copy className="w-4 h-4" />
+                      {passwordCopied ? (
+                        <>
+                          <span className="mr-1">✓</span> คัดลอกแล้ว
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-1" /> คัดลอก
+                        </>
+                      )}
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -856,14 +899,27 @@ const AdminUsers = () => {
                 </p>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmResetPassword}
-                disabled={resetPasswordMutation.isPending}
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <Button
+                variant="secondary"
+                onClick={handleDownloadCredentials}
+                className="w-full sm:w-auto"
               >
-                {resetPasswordMutation.isPending ? "กำลังดำเนินการ..." : "ยืนยันรีเซ็ตรหัสผ่าน"}
-              </AlertDialogAction>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                ดาวน์โหลดข้อมูล
+              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <AlertDialogCancel className="flex-1 sm:flex-none">ยกเลิก</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmResetPassword}
+                  disabled={resetPasswordMutation.isPending}
+                  className="flex-1 sm:flex-none"
+                >
+                  {resetPasswordMutation.isPending ? "กำลังดำเนินการ..." : "ยืนยันรีเซ็ตรหัสผ่าน"}
+                </AlertDialogAction>
+              </div>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
