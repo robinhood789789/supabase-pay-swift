@@ -55,7 +55,7 @@ const IncomingTransactions = () => {
   const [bankCodeFilter, setBankCodeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const { data: allTransactions = [], isLoading } = useQuery({
     queryKey: ["incoming-transactions", startDate, endDate],
@@ -284,11 +284,9 @@ const IncomingTransactions = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
-                <SelectItem value="10">10</SelectItem>
                 <SelectItem value="20">20</SelectItem>
-                <SelectItem value="30">30</SelectItem>
-                <SelectItem value="40">40</SelectItem>
                 <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
             <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
