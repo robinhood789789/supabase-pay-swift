@@ -53,8 +53,6 @@ import {
   UserCheck,
   Wallet,
 } from "lucide-react";
-import { AnimatedBackground } from "@/components/ui/animated-background";
-import { ColorHarmonySelector } from "@/components/ui/color-harmony-selector";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -211,17 +209,17 @@ const DashboardSidebar = () => {
   ];
 
   return (
-    <Sidebar className="w-64 border-r-2 border-primary/20 backdrop-blur-3xl bg-card/98 shadow-elegant" collapsible="icon">
+    <Sidebar className="w-64 border-r border-border bg-card" collapsible="icon">
       <SidebarContent>
-        <div className="p-4 border-b-2 border-primary/10 backdrop-blur-3xl bg-background/90">
+        <div className="p-4 border-b border-border bg-background">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Shield className="w-4 h-4 text-primary-foreground drop-shadow-lg" />
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+              <Shield className="w-4 h-4 text-foreground" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-sm text-foreground glass-text">SaaS Platform</h2>
-                <p className="text-xs text-muted-foreground font-mono glass-text">
+                <h2 className="font-semibold text-sm text-foreground">SaaS Platform</h2>
+                <p className="text-xs text-muted-foreground font-mono">
                   ID: {publicId || "-"}
                 </p>
               </div>
@@ -231,8 +229,8 @@ const DashboardSidebar = () => {
 
         {/* Main Menu - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && userMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-primary/40 bg-primary/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-primary font-bold glass-text uppercase tracking-wider text-xs">{t('dashboard.overview')}</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">{t('dashboard.overview')}</SidebarGroupLabel>
             <SidebarGroupContent>
                 <SidebarMenu>
                 {userMenuItems.map((item) => (
@@ -243,12 +241,12 @@ const DashboardSidebar = () => {
                         end
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-primary/20 text-primary font-bold border-l-2 border-primary shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -260,8 +258,8 @@ const DashboardSidebar = () => {
 
         {/* Transaction Menu - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && (transactionMenuItems.length > 0 || showSystemDeposit) && (
-          <SidebarGroup className="border-l-[6px] border-secondary/40 bg-secondary/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-secondary font-bold glass-text uppercase tracking-wider text-xs">ธุรกรรม</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">ธุรกรรม</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {transactionMenuItems.map((item) => (
@@ -271,12 +269,12 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-secondary/20 text-secondary font-bold border-l-2 border-secondary shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-secondary/10 hover:text-secondary hover:border-l-2 hover:border-secondary/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -291,15 +289,15 @@ const DashboardSidebar = () => {
                   to="/system-deposit"
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-success/30 text-success font-bold shadow-md border-l-4 border-success"
-                      : "bg-success/10 hover:bg-success/20 border-l-4 border-success/70 font-semibold text-success shadow-sm hover:shadow-md transition-all"
+                      ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                      : "bg-muted/50 hover:bg-muted border-l-2 border-border font-medium text-foreground transition-smooth"
                   }
                 >
-                  <Wallet className="mr-2 h-5 w-5 text-success" />
+                  <Wallet className="mr-2 h-4 w-4" />
                   {!isCollapsed && (
-                    <span className="flex items-center gap-2 text-success">
+                    <span className="flex items-center gap-2">
                       เติมเงินเข้าระบบ
-                      <Badge variant="default" className="text-xs px-1.5 py-0 bg-success text-white">Owner</Badge>
+                      <Badge variant="default" className="text-xs px-1.5 py-0">Owner</Badge>
                     </span>
                   )}
                 </NavLink>
@@ -312,15 +310,15 @@ const DashboardSidebar = () => {
                   to="/system-withdrawal"
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-destructive/30 text-destructive font-bold shadow-md border-l-4 border-destructive"
-                      : "bg-destructive/10 hover:bg-destructive/20 border-l-4 border-destructive/70 font-semibold text-destructive shadow-sm hover:shadow-md transition-all"
+                      ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                      : "bg-muted/50 hover:bg-muted border-l-2 border-border font-medium text-foreground transition-smooth"
                   }
                 >
-                  <ArrowUpFromLine className="mr-2 h-5 w-5 text-destructive" />
+                  <ArrowUpFromLine className="mr-2 h-4 w-4" />
                   {!isCollapsed && (
-                    <span className="flex items-center gap-2 text-destructive">
+                    <span className="flex items-center gap-2">
                       ถอนเงินออกระบบ
-                      <Badge variant="default" className="text-xs px-1.5 py-0 bg-destructive text-white">Owner</Badge>
+                      <Badge variant="default" className="text-xs px-1.5 py-0">Owner</Badge>
                     </span>
                   )}
                 </NavLink>
@@ -335,8 +333,8 @@ const DashboardSidebar = () => {
 
         {/* Owner Menu (Tenant Management) - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && ownerMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-accent/40 bg-accent/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-accent font-bold glass-text uppercase tracking-wider text-xs">Organization</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">Organization</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {ownerMenuItems.map((item) => (
@@ -346,12 +344,12 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-accent/20 text-accent font-bold border-l-2 border-accent shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-accent/10 hover:text-accent hover:border-l-2 hover:border-accent/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -363,8 +361,8 @@ const DashboardSidebar = () => {
 
         {/* Management Menu - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && managementMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-warning/40 bg-warning/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-warning font-bold glass-text uppercase tracking-wider text-xs">Management</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">Management</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {managementMenuItems.map((item) => (
@@ -374,12 +372,12 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-warning/20 text-warning font-bold border-l-2 border-warning shadow-glow-warning glass-text"
-                            : "text-foreground/90 hover:bg-warning/10 hover:text-warning hover:border-l-2 hover:border-warning/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -391,8 +389,8 @@ const DashboardSidebar = () => {
 
         {/* Developers Menu - H-3: แยก API/Webhooks/Docs - Hidden for Shareholder */}
         {!isSuperAdmin && !isShareholder && developersMenuItems.length > 0 && (
-          <SidebarGroup className="border-l-[6px] border-primary/40 bg-primary/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-primary font-bold glass-text uppercase tracking-wider text-xs">Developers</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">Developers</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {developersMenuItems.map((item) => (
@@ -402,12 +400,12 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-primary/20 text-primary font-bold border-l-2 border-primary shadow-glow-info glass-text"
-                            : "text-foreground/90 hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -419,7 +417,7 @@ const DashboardSidebar = () => {
 
         {/* Settings & Docs - Hidden for Super Admin and Shareholder */}
         {!isSuperAdmin && !isShareholder && (settingsMenuItems.length > 0 || goLiveItems.length > 0) && (
-          <SidebarGroup className="border-l-[6px] border-accent/40 bg-accent/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
             <SidebarGroupContent>
               <SidebarMenu>
                 {[...settingsMenuItems, ...goLiveItems].map((item) => {
@@ -430,12 +428,12 @@ const DashboardSidebar = () => {
                           to={item.url}
                           className={({ isActive }) =>
                             isActive
-                              ? "bg-accent/20 text-accent font-bold border-l-2 border-accent shadow-glow-info glass-text"
-                              : "text-foreground/90 hover:bg-accent/10 hover:text-accent hover:border-l-2 hover:border-accent/50 transition-all duration-300 glass-text"
+                              ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                           }
                         >
-                          <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                          {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                          <item.icon className="mr-2 h-4 w-4" />
+                          {!isCollapsed && <span>{item.title}</span>}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -450,8 +448,8 @@ const DashboardSidebar = () => {
         )}
 
         {isSuperAdmin && (
-          <SidebarGroup className="border-l-[6px] border-destructive/40 bg-destructive/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-destructive font-bold glass-text uppercase tracking-wider text-xs">Super Admin</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">Super Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {superAdminMenuItems.map((item) => (
@@ -461,12 +459,12 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-destructive/20 text-destructive font-bold border-l-2 border-destructive shadow-glow-warning glass-text"
-                            : "text-foreground/90 hover:bg-destructive/10 hover:text-destructive hover:border-l-2 hover:border-destructive/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -478,8 +476,8 @@ const DashboardSidebar = () => {
 
         {/* Debug Menu - Available for testing (not for limited role users or shareholder) */}
         {!isSuperAdmin && !isShareholder && (isOwner || hasPermission("api_keys.view")) && (
-          <SidebarGroup className="border-l-[6px] border-warning/40 bg-warning/8 pl-3 py-2 rounded-r-lg shadow-glow-cosmic">
-            <SidebarGroupLabel className="text-warning font-bold glass-text uppercase tracking-wider text-xs">Debug</SidebarGroupLabel>
+          <SidebarGroup className="border-l-2 border-border pl-3 py-2">
+            <SidebarGroupLabel className="text-foreground font-semibold uppercase tracking-wider text-xs">Debug</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {debugMenuItems.map((item) => (
@@ -489,12 +487,12 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-warning/20 text-warning font-bold border-l-2 border-warning shadow-glow-warning glass-text"
-                            : "text-foreground/90 hover:bg-warning/10 hover:text-warning hover:border-l-2 hover:border-warning/50 transition-all duration-300 glass-text"
+                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
-                        <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
-                        {!isCollapsed && <span className="glass-text">{item.title}</span>}
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -504,13 +502,13 @@ const DashboardSidebar = () => {
           </SidebarGroup>
         )}
 
-        <div className="mt-auto p-4 border-t-2 border-primary/20 bg-card/90 backdrop-blur-xl space-y-3 shadow-glow-cosmic">
+        <div className="mt-auto p-4 border-t border-border bg-background space-y-3">
           {!isCollapsed && (
             <div className="space-y-2 mb-3">
-              <p className="text-xs text-muted-foreground glass-text uppercase tracking-wider">Logged in as:</p>
-              <p className="text-sm font-bold truncate text-foreground glass-text">{user?.email}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Logged in as:</p>
+              <p className="text-sm font-semibold truncate text-foreground">{user?.email}</p>
               {isSuperAdmin && (
-                <span className="inline-block px-2 py-1 text-xs font-bold rounded-full bg-destructive/20 text-destructive border border-destructive/30 shadow-glow-warning glass-text">
+                <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-muted text-foreground border border-border">
                   Super Admin
                 </span>
               )}
@@ -519,12 +517,12 @@ const DashboardSidebar = () => {
           {!isCollapsed && <LocaleSwitcher />}
           <Button
             onClick={signOut}
-            variant="destructive"
-            className="w-full justify-start glass-text font-bold shadow-glow-warning"
+            variant="ghost"
+            className="w-full justify-start font-medium"
             size={isCollapsed ? "icon" : "default"}
           >
             <LogOut className={isCollapsed ? "" : "mr-2 h-4 w-4"} />
-            {!isCollapsed && <span className="glass-text">{t('auth.signOut')}</span>}
+            {!isCollapsed && <span>{t('auth.signOut')}</span>}
           </Button>
         </div>
       </SidebarContent>
@@ -538,14 +536,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="flex min-h-screen w-full overflow-x-hidden">
         <DashboardSidebar />
         
-        <div className="flex-1 flex flex-col w-full transition-all duration-300 ease-in-out overflow-x-hidden relative">
-          <AnimatedBackground />
-          <ColorHarmonySelector />
-          <header className="h-14 border-b border-border bg-background flex items-center justify-between px-4 gap-4 sticky top-0 z-10 transition-all duration-300">
-            <SidebarTrigger className="ml-2" />
+        <div className="flex-1 flex flex-col w-full overflow-x-hidden relative">
+          <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 gap-4 sticky top-0 z-10 shadow-soft">
+            <SidebarTrigger />
           </header>
           
-          <main className="relative z-10 flex-1 w-full transition-all duration-300 overflow-x-hidden">
+          <main className="relative flex-1 w-full overflow-x-hidden bg-background">
             {children}
           </main>
         </div>

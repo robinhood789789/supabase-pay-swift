@@ -72,17 +72,17 @@ const PlatformSidebar = () => {
   ];
 
   return (
-    <Sidebar className="w-64 border-r bg-background" collapsible="icon">
+    <Sidebar className="w-64 border-r border-border bg-card" collapsible="icon">
       <SidebarContent>
-        <div className="p-5 border-b border-border bg-card">
+        <div className="p-4 border-b border-border bg-background">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+              <Shield className="w-5 h-5 text-foreground" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-base text-foreground tracking-wide">Platform Admin</h2>
-                <p className="text-sm text-primary font-mono font-semibold mt-0.5">
+                <h2 className="font-semibold text-sm text-foreground">Platform Admin</h2>
+                <p className="text-xs text-muted-foreground font-mono mt-0.5">
                   ID: {publicId || "-"}
                 </p>
               </div>
@@ -91,7 +91,7 @@ const PlatformSidebar = () => {
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 px-3">
+          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-3">
             Platform Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -104,11 +104,11 @@ const PlatformSidebar = () => {
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-primary/15 text-primary font-semibold border-l-2 border-primary text-sm"
-                          : "text-foreground hover:bg-primary/10 hover:text-primary hover:border-l-2 hover:border-primary/50 text-sm font-medium transition-all duration-300"
+                          ? "bg-muted text-foreground font-semibold border-l-2 border-foreground text-sm"
+                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground text-sm font-medium transition-smooth"
                       }
                     >
-                      <item.icon className="mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <item.icon className="mr-3 h-4 w-4" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -118,13 +118,13 @@ const PlatformSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-4 border-t border-border bg-card/50">
+        <div className="mt-auto p-4 border-t border-border bg-background">
           <Button
             variant="ghost"
             onClick={handleSignOut}
-            className="w-full justify-start hover:bg-destructive/10 hover:text-destructive text-sm font-medium transition-all duration-200"
+            className="w-full justify-start text-sm font-medium"
           >
-            <LogOut className="mr-3 h-5 w-5" />
+            <LogOut className="mr-3 h-4 w-4" />
             {!isCollapsed && <span>Sign Out</span>}
           </Button>
         </div>
@@ -138,11 +138,11 @@ export function PlatformLayout({ children }: PlatformLayoutProps) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full overflow-x-hidden">
         <PlatformSidebar />
-        <main className="flex-1 overflow-auto transition-all duration-300 ease-in-out overflow-x-hidden bg-gradient-hero">
-          <div className="sticky top-0 z-10 bg-card/80 backdrop-blur-sm border-b border-border/50 p-4 transition-all duration-300 shadow-sm">
-            <SidebarTrigger className="ml-2" />
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="sticky top-0 z-10 bg-card border-b border-border p-4 shadow-soft">
+            <SidebarTrigger />
           </div>
-          <div className="p-6 transition-all duration-300">{children}</div>
+          <div className="p-6">{children}</div>
         </main>
       </div>
     </SidebarProvider>
