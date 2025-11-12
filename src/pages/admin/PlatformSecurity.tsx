@@ -161,31 +161,31 @@ export default function PlatformSecurity() {
         onOpenChange={setMfaOpen}
         onSuccess={onSuccess}
       />
-      <div className="container mx-auto py-8 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="w-8 h-8" />
+      <div className="container mx-auto py-8 space-y-6 bg-white min-h-screen">
+        <div className="border-b border-gray-200 pb-4">
+          <h1 className="text-2xl font-medium text-black tracking-tight flex items-center gap-2">
+            <Shield className="w-8 h-8 text-gray-700" />
             Platform Security Settings
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-gray-600 mt-2">
             Configure security defaults for all tenants
           </p>
         </div>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader>
-            <CardTitle>Super Admin 2FA Requirement</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-black font-medium tracking-tight">Super Admin 2FA Requirement</CardTitle>
+            <CardDescription className="text-gray-600">
               Super administrators must always have 2FA enabled
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label htmlFor="super-admin-2fa" className="text-base">
+                <Label htmlFor="super-admin-2fa" className="text-base text-black">
                   Require 2FA for Super Admin
                 </Label>
-                <Info className="w-4 h-4 text-muted-foreground" />
+                <Info className="w-4 h-4 text-gray-400" />
               </div>
               <Switch
                 id="super-admin-2fa"
@@ -194,23 +194,23 @@ export default function PlatformSecurity() {
                 className="opacity-50"
               />
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-gray-500 mt-2">
               This setting is always enabled and cannot be changed for security reasons.
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader>
-            <CardTitle>Default Tenant Security Policy</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-black font-medium tracking-tight">Default Tenant Security Policy</CardTitle>
+            <CardDescription className="text-gray-600">
               These settings will be applied to all newly created tenants
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
+            <Alert className="border-gray-300 bg-white">
+              <Info className="h-4 w-4 text-gray-700" />
+              <AlertDescription className="text-gray-700">
                 Existing tenants will not be affected by these changes. Only new tenants will inherit these defaults.
               </AlertDescription>
             </Alert>
@@ -273,22 +273,21 @@ export default function PlatformSecurity() {
             <Button
               onClick={() => savePolicyMutation.mutate()}
               disabled={savePolicyMutation.isPending}
-              className="w-full"
+              className="w-full bg-black text-white hover:bg-gray-800 border-0"
             >
               <Save className="w-4 h-4 mr-2" />
               {savePolicyMutation.isPending ? "กำลังบันทึก..." : "บันทึกค่าเริ่มต้น"}
             </Button>
 
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>บังคับใช้กับทุก Tenant ที่มีอยู่</strong>
+            <Alert className="border-gray-300 bg-gray-50">
+              <AlertTriangle className="h-4 w-4 text-gray-700" />
+              <AlertDescription className="text-gray-700">
+                <strong className="text-black">บังคับใช้กับทุก Tenant ที่มีอยู่</strong>
                 <p className="mt-2 text-sm">
                   การกดปุ่มนี้จะอัปเดตนโยบายความปลอดภัยของทุก Tenant ให้ตรงกับค่าเริ่มต้นข้างต้นทันที
                 </p>
                 <Button
-                  variant="destructive"
-                  className="mt-3 w-full"
+                  className="mt-3 w-full bg-black text-white hover:bg-gray-800 border-0"
                   onClick={() => enforceNowMutation.mutate()}
                   disabled={enforceNowMutation.isPending}
                 >

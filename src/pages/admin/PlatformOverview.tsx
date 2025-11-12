@@ -145,95 +145,95 @@ export default function PlatformOverview() {
   ];
 
   return (
-    <main className="w-full">
-      <header className="px-6 pt-6 pb-2">
-        <h1 className="text-3xl font-bold text-foreground">Platform Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">ภาพรวมระบบและกิจกรรมล่าสุด</p>
+    <main className="w-full bg-white min-h-screen">
+      <header className="px-6 pt-6 pb-4 border-b border-gray-200">
+        <h1 className="text-2xl font-medium text-black tracking-tight">Platform Dashboard</h1>
+        <p className="text-sm text-gray-600 mt-1">ภาพรวมระบบและกิจกรรมล่าสุด</p>
       </header>
 
       {/* KPI Cards */}
       <section className="p-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background">
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-400">Shareholders</CardTitle>
-            <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">Shareholders</CardTitle>
+            <Wallet className="h-5 w-5 text-gray-400" />
           </CardHeader>
           <CardContent>
             {loadingShareholders ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{shareholdersCount}</div>
+              <div className="text-3xl font-bold text-black">{shareholdersCount}</div>
             )}
-            <p className="text-xs text-muted-foreground mt-1">Active shareholders</p>
+            <p className="text-xs text-gray-500 mt-1">Active shareholders</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background">
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-400">Tenants</CardTitle>
-            <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">Tenants</CardTitle>
+            <Building2 className="h-5 w-5 text-gray-400" />
           </CardHeader>
           <CardContent>
             {loadingTenants ? (
               <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{tenantsData?.total}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-green-600 dark:text-green-400 font-semibold">{tenantsData?.active}</span> active
+                <div className="text-3xl font-bold text-black">{tenantsData?.total}</div>
+                <p className="text-xs text-gray-500 mt-1">
+                  <span className="text-black font-semibold">{tenantsData?.active}</span> active
                 </p>
               </>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background">
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Providers</CardTitle>
-            <KeyRound className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">Providers</CardTitle>
+            <KeyRound className="h-5 w-5 text-gray-400" />
           </CardHeader>
           <CardContent>
             {loadingProviders ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{providersCount}</div>
+              <div className="text-3xl font-bold text-black">{providersCount}</div>
             )}
-            <p className="text-xs text-muted-foreground mt-1">Configured providers</p>
+            <p className="text-xs text-gray-500 mt-1">Configured providers</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background">
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-400">System Health</CardTitle>
-            <Activity className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">System Health</CardTitle>
+            <Activity className="h-5 w-5 text-gray-400" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-6 w-6 text-green-500" />
-              <span className="text-xl font-semibold text-green-600 dark:text-green-400">Operational</span>
+              <CheckCircle className="h-6 w-6 text-black" />
+              <span className="text-xl font-semibold text-black">Operational</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">All systems running</p>
+            <p className="text-xs text-gray-500 mt-1">All systems running</p>
           </CardContent>
         </Card>
       </section>
 
       {/* Quick Links */}
       <section className="px-6 pb-4">
-        <h2 className="text-lg font-semibold mb-3 text-foreground">Quick Access</h2>
+        <h2 className="text-lg font-medium mb-3 text-black tracking-tight">Quick Access</h2>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           {quickLinks.map((link) => (
             <Button
               key={link.url}
               asChild
               variant="outline"
-              className="h-auto p-4 justify-start hover:shadow-md transition-all"
+              className="h-auto p-4 justify-start border-gray-300 bg-white text-black hover:bg-gray-50 transition-all"
             >
               <Link to={link.url}>
-                <div className={`${link.bgColor} p-2 rounded-lg mr-3`}>
-                  <link.icon className={`h-5 w-5 ${link.color}`} />
+                <div className="bg-white border border-gray-200 p-2 rounded-lg mr-3">
+                  <link.icon className="h-5 w-5 text-gray-700" />
                 </div>
                 <span className="flex-1 text-left font-medium">{link.title}</span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <ArrowRight className="h-4 w-4 text-gray-400" />
               </Link>
             </Button>
           ))}
@@ -242,13 +242,13 @@ export default function PlatformOverview() {
 
       {/* Top Tenants by Volume */}
       <section className="px-6 pb-4">
-        <Card className="border-t-4 border-t-amber-500">
+        <Card className="border border-gray-200 bg-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-500" />
+            <CardTitle className="flex items-center gap-2 text-black font-medium tracking-tight">
+              <Trophy className="h-5 w-5 text-gray-700" />
               Top 5 Tenants (This Month)
             </CardTitle>
-            <CardDescription>Tenants with highest transaction volume</CardDescription>
+            <CardDescription className="text-gray-600">Tenants with highest transaction volume</CardDescription>
           </CardHeader>
           <CardContent>
             {loadingTopTenants ? (
@@ -292,21 +292,21 @@ export default function PlatformOverview() {
                 </div>
 
                 {/* Table */}
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border border-gray-200 rounded overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-muted">
+                    <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="text-left p-3 font-semibold">Rank</th>
-                        <th className="text-left p-3 font-semibold">Tenant</th>
-                        <th className="text-right p-3 font-semibold">Transactions</th>
-                        <th className="text-right p-3 font-semibold">Volume (THB)</th>
+                        <th className="text-left p-3 font-semibold text-black text-xs uppercase tracking-wider">Rank</th>
+                        <th className="text-left p-3 font-semibold text-black text-xs uppercase tracking-wider">Tenant</th>
+                        <th className="text-right p-3 font-semibold text-black text-xs uppercase tracking-wider">Transactions</th>
+                        <th className="text-right p-3 font-semibold text-black text-xs uppercase tracking-wider">Volume (THB)</th>
                       </tr>
                     </thead>
                     <tbody>
                 {topTenants.map((tenant: any, index: number) => (
                   <tr 
                     key={tenant.tenant_id} 
-                    className="border-t hover:bg-muted/50 transition-colors"
+                    className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
                   >
                     <td className="p-3">
                       <Link 
@@ -314,26 +314,25 @@ export default function PlatformOverview() {
                         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                       >
                         <div 
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs"
-                          style={{ backgroundColor: chartColors[index] }}
+                          className="w-6 h-6 rounded-full flex items-center justify-center bg-black text-white font-bold text-xs"
                         >
                           {tenant.rank}
                         </div>
-                        {tenant.rank === 1 && <Trophy className="h-4 w-4 text-amber-500" />}
+                        {tenant.rank === 1 && <Trophy className="h-4 w-4 text-gray-700" />}
                       </Link>
                     </td>
                     <td className="p-3">
                       <Link 
                         to={`/admin/tenants/${tenant.tenant_id}`}
-                        className="font-medium hover:text-primary transition-colors"
+                        className="font-medium text-black hover:text-gray-700 transition-colors"
                       >
                         {tenant.tenant_name}
                       </Link>
                     </td>
                     <td className="p-3 text-right">
-                      <Badge variant="secondary">{tenant.transaction_count}</Badge>
+                      <Badge variant="outline" className="bg-white text-black border-gray-300">{tenant.transaction_count}</Badge>
                     </td>
-                    <td className="p-3 text-right font-semibold">
+                    <td className="p-3 text-right font-semibold text-black">
                       ฿{Number(tenant.total_volume_thb).toLocaleString()}
                     </td>
                   </tr>
@@ -344,8 +343,8 @@ export default function PlatformOverview() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Activity className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-sm text-muted-foreground">No transaction data for this month</p>
+                <Activity className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                <p className="text-sm text-gray-500">No transaction data for this month</p>
               </div>
             )}
           </CardContent>
@@ -355,13 +354,13 @@ export default function PlatformOverview() {
       {/* Recent Activities & Audit Logs */}
       <section className="px-6 pb-6 grid gap-6 lg:grid-cols-2">
         {/* Recent Admin Activities */}
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-black font-medium tracking-tight">
+              <Activity className="h-5 w-5 text-gray-700" />
               Admin Activities
             </CardTitle>
-            <CardDescription>กิจกรรมล่าสุดของผู้ดูแลระบบ</CardDescription>
+            <CardDescription className="text-gray-600">กิจกรรมล่าสุดของผู้ดูแลระบบ</CardDescription>
           </CardHeader>
           <CardContent>
             {loadingActivities ? (
@@ -373,20 +372,20 @@ export default function PlatformOverview() {
             ) : recentActivities && recentActivities.length > 0 ? (
               <div className="space-y-3">
                 {recentActivities.map((activity: any) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Shield className="h-4 w-4 text-primary" />
+                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 bg-white">
+                    <div className="p-2 rounded-full bg-gray-100">
+                      <Shield className="h-4 w-4 text-gray-700" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{activity.action}</span>
+                        <span className="font-medium text-sm text-black">{activity.action}</span>
                         {activity.profiles && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs bg-white text-black border-gray-300">
                             {activity.profiles.public_id}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-500">
                         {format(new Date(activity.created_at), "MMM dd, HH:mm")}
                       </p>
                     </div>
@@ -394,9 +393,9 @@ export default function PlatformOverview() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">ไม่มีกิจกรรมล่าสุด</p>
+              <p className="text-sm text-gray-500 text-center py-4">ไม่มีกิจกรรมล่าสุด</p>
             )}
-            <Button asChild variant="ghost" className="w-full mt-4">
+            <Button asChild variant="outline" className="w-full mt-4 border-gray-300 bg-white text-black hover:bg-gray-50">
               <Link to="/platform/audit">
                 View All Activities <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -405,13 +404,13 @@ export default function PlatformOverview() {
         </Card>
 
         {/* Recent Audit Logs */}
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-black font-medium tracking-tight">
+              <Clock className="h-5 w-5 text-gray-700" />
               Audit Trail
             </CardTitle>
-            <CardDescription>บันทึกการเปลี่ยนแปลงระบบ</CardDescription>
+            <CardDescription className="text-gray-600">บันทึกการเปลี่ยนแปลงระบบ</CardDescription>
           </CardHeader>
           <CardContent>
             {loadingAudits ? (

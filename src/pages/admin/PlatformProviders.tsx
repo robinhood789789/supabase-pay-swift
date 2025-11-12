@@ -175,33 +175,33 @@ const PlatformProviders = () => {
   }
 
   return (
-    <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">จัดการ Payment Providers</h1>
-          <p className="text-muted-foreground">จัดการ API credentials และ webhook secrets ของ payment providers</p>
+    <div className="space-y-6 bg-white min-h-screen p-6">
+        <div className="border-b border-gray-200 pb-4">
+          <h1 className="text-2xl font-medium text-black tracking-tight">จัดการ Payment Providers</h1>
+          <p className="text-gray-600">จัดการ API credentials และ webhook secrets ของ payment providers</p>
         </div>
 
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="border-gray-300 bg-white">
+          <AlertCircle className="h-4 w-4 text-gray-700" />
+          <AlertDescription className="text-gray-700">
             ⚠️ การบันทึกและหมุนเวียน credentials ต้องการ MFA ทุกครั้ง
           </AlertDescription>
         </Alert>
 
         <Tabs defaultValue="stripe" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="stripe">Stripe</TabsTrigger>
-            <TabsTrigger value="omise">Omise</TabsTrigger>
-            <TabsTrigger value="2c2p">2C2P</TabsTrigger>
-            <TabsTrigger value="kbank">KBank</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-gray-50 border border-gray-200">
+            <TabsTrigger value="stripe" className="data-[state=active]:bg-white data-[state=active]:text-black">Stripe</TabsTrigger>
+            <TabsTrigger value="omise" className="data-[state=active]:bg-white data-[state=active]:text-black">Omise</TabsTrigger>
+            <TabsTrigger value="2c2p" className="data-[state=active]:bg-white data-[state=active]:text-black">2C2P</TabsTrigger>
+            <TabsTrigger value="kbank" className="data-[state=active]:bg-white data-[state=active]:text-black">KBank</TabsTrigger>
           </TabsList>
 
           {providers.map((provider) => (
             <TabsContent key={provider.provider} value={provider.provider}>
-              <Card>
+              <Card className="border border-gray-200 bg-white">
                 <CardHeader>
-                  <CardTitle>{provider.provider.toUpperCase()} Configuration</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-black font-medium tracking-tight">{provider.provider.toUpperCase()} Configuration</CardTitle>
+                  <CardDescription className="text-gray-600">
                     {provider.last_rotated_at
                       ? `หมุนเวียนล่าสุด: ${new Date(provider.last_rotated_at).toLocaleString("th-TH")}`
                       : "ยังไม่เคยหมุนเวียน"}
@@ -209,7 +209,7 @@ const PlatformProviders = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>API Key</Label>
+                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">API Key</Label>
                     <div className="flex gap-2">
                       <Input
                         type={showSecrets[`${provider.provider}-api`] ? "text" : "password"}
@@ -221,10 +221,12 @@ const PlatformProviders = () => {
                           setProviders(newProviders);
                         }}
                         placeholder="sk_test_..."
+                        className="border-gray-300 bg-white text-black"
                       />
                       <Button
                         variant="outline"
                         size="icon"
+                        className="border-gray-300 bg-white text-black hover:bg-gray-50"
                         onClick={() => toggleShowSecret(`${provider.provider}-api`)}
                       >
                         {showSecrets[`${provider.provider}-api`] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -281,11 +283,11 @@ const PlatformProviders = () => {
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button onClick={() => handleSave(provider.provider)} disabled={saving}>
+                    <Button onClick={() => handleSave(provider.provider)} disabled={saving} className="bg-black text-white hover:bg-gray-800 border-0">
                       {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       บันทึก
                     </Button>
-                    <Button variant="outline" onClick={() => handleRotate(provider.provider)}>
+                    <Button variant="outline" onClick={() => handleRotate(provider.provider)} className="border-gray-300 bg-white text-black hover:bg-gray-50">
                       <RefreshCw className="mr-2 h-4 w-4" />
                       หมุนเวียน Credentials
                     </Button>

@@ -55,20 +55,20 @@ export default function PlatformPartners() {
     : partners;
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto py-8 space-y-8 bg-white min-h-screen">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold">จัดการพาร์ทเนอร์</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-medium text-black tracking-tight">จัดการพาร์ทเนอร์</h1>
+          <p className="text-gray-600 mt-2">
             ภาพรวมและจัดการพาร์ทเนอร์ (Shareholder) ทั้งหมดในระบบ
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={() => setCreateDialogOpen(true)} className="bg-black text-white hover:bg-gray-800 border-0">
             <Plus className="w-4 h-4 mr-2" />
             สร้างพาร์ทเนอร์
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="border-gray-300 bg-white text-black hover:bg-gray-50">
             <Download className="w-4 h-4 mr-2" />
             ส่งออก CSV
           </Button>
@@ -77,98 +77,98 @@ export default function PlatformPartners() {
 
       {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ฐานคำนวณเดือนนี้</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">ฐานคำนวณเดือนนี้</CardTitle>
+            <TrendingUp className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className="text-2xl font-bold">{formatCurrency(kpis.monthly_base || 0)}</div>
+              <div className="text-2xl font-bold text-black">{formatCurrency(kpis.monthly_base || 0)}</div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">คอมมิชชันจ่ายเดือนนี้</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">คอมมิชชันจ่ายเดือนนี้</CardTitle>
+            <Wallet className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className="text-2xl font-bold">{formatCurrency(kpis.monthly_commission || 0)}</div>
+              <div className="text-2xl font-bold text-black">{formatCurrency(kpis.monthly_commission || 0)}</div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ยอดค้างจ่าย</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">ยอดค้างจ่าย</CardTitle>
+            <Clock className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <div className="text-2xl font-bold text-orange-600">{formatCurrency(kpis.total_pending || 0)}</div>
+              <div className="text-2xl font-bold text-black">{formatCurrency(kpis.total_pending || 0)}</div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-gray-200 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Owner ที่ Active</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium text-gray-700 uppercase tracking-wider">Owner ที่ Active</CardTitle>
+            <Users className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{kpis.active_clients || 0}</div>
+              <div className="text-2xl font-bold text-black">{kpis.active_clients || 0}</div>
             )}
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="border border-gray-200 bg-white">
         <CardHeader>
-          <CardTitle>รายชื่อพาร์ทเนอร์</CardTitle>
-          <CardDescription>จัดการและติดตามผลงานของพาร์ทเนอร์</CardDescription>
+          <CardTitle className="text-black font-medium tracking-tight">รายชื่อพาร์ทเนอร์</CardTitle>
+          <CardDescription className="text-gray-600">จัดการและติดตามผลงานของพาร์ทเนอร์</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="ค้นหาชื่อหรืออีเมล..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-gray-300 bg-white text-black"
                 />
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 border-gray-300 bg-white text-black">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="all">สถานะทั้งหมด</SelectItem>
                 <SelectItem value="active">ใช้งาน</SelectItem>
                 <SelectItem value="inactive">ไม่ใช้งาน</SelectItem>
               </SelectContent>
             </Select>
             <Select value={commissionTypeFilter} onValueChange={setCommissionTypeFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48 border-gray-300 bg-white text-black">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="all">ประเภททั้งหมด</SelectItem>
                 <SelectItem value="revenue_share">Revenue Share</SelectItem>
                 <SelectItem value="bounty">Bounty</SelectItem>
@@ -182,10 +182,10 @@ export default function PlatformPartners() {
                 setPage(1); // Reset to first page when changing page size
               }}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 border-gray-300 bg-white text-black">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="10">10 แถว</SelectItem>
                 <SelectItem value="20">20 แถว</SelectItem>
                 <SelectItem value="30">30 แถว</SelectItem>
@@ -203,54 +203,55 @@ export default function PlatformPartners() {
           ) : filteredPartners.length > 0 ? (
             <>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>พาร์ทเนอร์</TableHead>
-                    <TableHead>สถานะ</TableHead>
-                    <TableHead>ประเภท</TableHead>
-                    <TableHead>% เริ่มต้น</TableHead>
-                    <TableHead>ฐานเดือนนี้</TableHead>
-                    <TableHead>คอมมิชชันเดือนนี้</TableHead>
-                    <TableHead>ค้างจ่าย</TableHead>
-                    <TableHead>ลูกค้า</TableHead>
-                    <TableHead>การดำเนินการ</TableHead>
+                <TableHeader className="bg-gray-50 border-b border-gray-200">
+                  <TableRow className="hover:bg-gray-50">
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">พาร์ทเนอร์</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">สถานะ</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ประเภท</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">% เริ่มต้น</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ฐานเดือนนี้</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">คอมมิชชันเดือนนี้</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ค้างจ่าย</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ลูกค้า</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">การดำเนินการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPartners.map((partner: any) => (
-                    <TableRow key={partner.id}>
+                    <TableRow key={partner.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <TableCell>
                         <div>
-                          <div className="font-medium">{partner.full_name}</div>
-                          <div className="text-sm text-muted-foreground">{partner.email}</div>
+                          <div className="font-medium text-black">{partner.full_name}</div>
+                          <div className="text-sm text-gray-600">{partner.email}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={partner.status === "active" ? "default" : "secondary"}>
+                        <Badge className={partner.status === "active" ? "bg-black text-white hover:bg-gray-800 border-0" : "bg-gray-200 text-black hover:bg-gray-300 border border-gray-300"}>
                           {partner.status === "active" ? "ใช้งาน" : "ไม่ใช้งาน"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="bg-white text-black border-gray-300">
                           {partner.default_commission_type === "revenue_share" ? "Revenue Share" :
                            partner.default_commission_type === "bounty" ? "Bounty" : "Hybrid"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-semibold">{partner.default_commission_value || 0}%</TableCell>
-                      <TableCell>{formatCurrency(partner.monthly_base || 0)}</TableCell>
-                      <TableCell className="font-semibold text-primary">
+                      <TableCell className="font-semibold text-black">{partner.default_commission_value || 0}%</TableCell>
+                      <TableCell className="text-black">{formatCurrency(partner.monthly_base || 0)}</TableCell>
+                      <TableCell className="font-semibold text-black">
                         {formatCurrency(partner.monthly_commission || 0)}
                       </TableCell>
-                      <TableCell className="text-orange-600">
+                      <TableCell className="text-black">
                         {formatCurrency(partner.balance || 0)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{partner.active_clients_count || 0}</Badge>
+                        <Badge variant="outline" className="bg-white text-black border-gray-300">{partner.active_clients_count || 0}</Badge>
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="text-black hover:bg-gray-100"
                           onClick={() => navigate(`/platform/partners/${partner.id}`)}
                         >
                           เปิดดู
@@ -345,7 +346,7 @@ export default function PlatformPartners() {
               )}
             </>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-gray-500">
               ไม่พบพาร์ทเนอร์
             </div>
           )}

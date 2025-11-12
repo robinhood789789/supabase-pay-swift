@@ -130,35 +130,35 @@ const PlatformSettings = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Platform Settings</h1>
-        <p className="text-muted-foreground">จัดการการตั้งค่า fees, feature flags, และ maintenance mode</p>
+    <div className="container mx-auto p-6 space-y-6 bg-white min-h-screen">
+      <div className="border-b border-gray-200 pb-4">
+        <h1 className="text-2xl font-medium text-black tracking-tight">Platform Settings</h1>
+        <p className="text-gray-600">จัดการการตั้งค่า fees, feature flags, และ maintenance mode</p>
       </div>
 
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="border-gray-300 bg-white">
+        <AlertCircle className="h-4 w-4 text-gray-700" />
+        <AlertDescription className="text-gray-700">
           ⚠️ การเปลี่ยนแปลงการตั้งค่าต้องการ MFA ทุกครั้ง
         </AlertDescription>
       </Alert>
 
       <Tabs defaultValue="fees" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="fees">Fees & Billing</TabsTrigger>
-          <TabsTrigger value="features">Feature Flags</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-gray-50 border border-gray-200">
+          <TabsTrigger value="fees" className="data-[state=active]:bg-white data-[state=active]:text-black">Fees & Billing</TabsTrigger>
+          <TabsTrigger value="features" className="data-[state=active]:bg-white data-[state=active]:text-black">Feature Flags</TabsTrigger>
+          <TabsTrigger value="maintenance" className="data-[state=active]:bg-white data-[state=active]:text-black">Maintenance</TabsTrigger>
         </TabsList>
 
         <TabsContent value="fees">
-          <Card>
+          <Card className="border border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle>Default Fee Structure</CardTitle>
-              <CardDescription>ค่า fees เริ่มต้นสำหรับ tenant ใหม่</CardDescription>
+              <CardTitle className="text-black font-medium tracking-tight">Default Fee Structure</CardTitle>
+              <CardDescription className="text-gray-600">ค่า fees เริ่มต้นสำหรับ tenant ใหม่</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Percentage Fee (%)</Label>
+                <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">Percentage Fee (%)</Label>
                 <Input
                   type="number"
                   step="0.1"
@@ -166,12 +166,13 @@ const PlatformSettings = () => {
                   onChange={(e) =>
                     setSettings({ ...settings, default_fee_percentage: parseFloat(e.target.value) })
                   }
+                  className="border-gray-300 bg-white text-black"
                 />
-                <p className="text-sm text-muted-foreground">ค่า fee เป็นเปอร์เซ็นต์ (เช่น 2.9%)</p>
+                <p className="text-sm text-gray-500">ค่า fee เป็นเปอร์เซ็นต์ (เช่น 2.9%)</p>
               </div>
 
               <div className="space-y-2">
-                <Label>Fixed Fee (THB)</Label>
+                <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">Fixed Fee (THB)</Label>
                 <Input
                   type="number"
                   step="0.1"
@@ -179,8 +180,9 @@ const PlatformSettings = () => {
                   onChange={(e) =>
                     setSettings({ ...settings, default_fee_fixed: parseFloat(e.target.value) })
                   }
+                  className="border-gray-300 bg-white text-black"
                 />
-                <p className="text-sm text-muted-foreground">ค่า fee คงที่ต่อ transaction (เช่น 3 บาท)</p>
+                <p className="text-sm text-gray-500">ค่า fee คงที่ต่อ transaction (เช่น 3 บาท)</p>
               </div>
 
               <Separator />
@@ -275,7 +277,7 @@ const PlatformSettings = () => {
       </Tabs>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} className="bg-black text-white hover:bg-gray-800 border-0">
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <Save className="mr-2 h-4 w-4" />
           บันทึกการตั้งค่า
