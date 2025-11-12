@@ -53,15 +53,24 @@ serve(async (req) => {
     const secret = generateTOTPSecret();
     const otpauthUrl = getTOTPQRCodeUrl(secret, user.email!, 'Payment Platform');
 
-    // Store temporary secret (not yet verified) using RPC to bypass cache issues
+    // Store temporary secret (encrypted) using RPC to bypass cache issues
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Encrypt the secret before storing
+    const { data: encryptedSecret, error: encryptError } = await supabaseAdmin
+      .rpc('encrypt_totp_secret', { secret_text: secret });
+
+    if (encryptError || !encryptedSecret) {
+      console.error('[MFA Enroll] Encryption error:', encryptError);
+      throw new Error('Failed to encrypt TOTP secret');
+    }
+
     const { error: updateError } = await supabaseAdmin.rpc('update_totp_secret', {
       user_id: user.id,
-      new_secret: secret
+      new_secret: encryptedSecret
     });
 
     if (updateError) {

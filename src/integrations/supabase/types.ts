@@ -502,6 +502,27 @@ export type Database = {
         }
         Relationships: []
       }
+      encryption_keys: {
+        Row: {
+          created_at: string | null
+          id: string
+          key_name: string
+          key_value: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key_name: string
+          key_value: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key_name?: string
+          key_value?: string
+        }
+        Relationships: []
+      }
       go_live_checklist: {
         Row: {
           completed: boolean | null
@@ -2330,10 +2351,15 @@ export type Database = {
       }
       cleanup_expired_codes: { Args: never; Returns: undefined }
       cleanup_replay_cache: { Args: never; Returns: undefined }
+      decrypt_totp_secret: {
+        Args: { encrypted_secret: string }
+        Returns: string
+      }
       enable_totp_with_codes: {
         Args: { backup_codes: string[]; user_id: string }
         Returns: undefined
       }
+      encrypt_totp_secret: { Args: { secret_text: string }; Returns: string }
       generate_public_id: { Args: { prefix_code: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_email_by_public_id: {

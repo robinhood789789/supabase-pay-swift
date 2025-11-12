@@ -78,8 +78,22 @@ serve(async (req) => {
     let isValid = false;
 
     if (type === 'totp' && code.length === 6) {
-      // Verify TOTP code
-      isValid = await verifyTOTP(profile.totp_secret || '', code);
+      // Decrypt the secret before verification
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      const { data: decryptedSecret, error: decryptError } = await supabaseAdmin
+        .rpc('decrypt_totp_secret', { encrypted_secret: profile.totp_secret || '' });
+
+      if (decryptError || !decryptedSecret) {
+        console.error('[MFA Disable] Decryption error:', decryptError);
+        throw new Error('Failed to decrypt TOTP secret');
+      }
+
+      // Verify TOTP code using decrypted secret
+      isValid = await verifyTOTP(decryptedSecret, code);
     } else if (type === 'recovery' || code.includes('-')) {
       // Verify recovery code
       const cleanCode = code.toUpperCase().replace(/-/g, '');

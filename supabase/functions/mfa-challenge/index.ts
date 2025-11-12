@@ -160,7 +160,28 @@ serve(async (req) => {
           }
         );
       }
-      isValid = await verifyTOTP(profile.totp_secret, code);
+
+      // Decrypt the secret before verification
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      const { data: decryptedSecret, error: decryptError } = await supabaseAdmin
+        .rpc('decrypt_totp_secret', { encrypted_secret: profile.totp_secret });
+
+      if (decryptError || !decryptedSecret) {
+        console.error('[MFA Challenge] Decryption error:', decryptError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to decrypt TOTP secret' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500 
+          }
+        );
+      }
+
+      isValid = await verifyTOTP(decryptedSecret, code);
       console.log(`[MFA Challenge] TOTP verification result: ${isValid}`);
     } else if (type === 'recovery' || code.includes('-')) {
       // Verify recovery code - hash and compare

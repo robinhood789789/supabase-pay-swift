@@ -23,6 +23,11 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error('Unauthorized');
@@ -67,7 +72,7 @@ serve(async (req) => {
 
     console.log(`[MFA Verify] User ${user.email} verifying 2FA`);
 
-    // Get user's TOTP secret
+    // Get user's TOTP secret (encrypted)
     const { data: profile } = await supabase
       .from('profiles')
       .select('totp_secret')
@@ -78,10 +83,19 @@ serve(async (req) => {
       throw new Error('TOTP secret not found. Please enroll first.');
     }
 
-    console.log(`[MFA Verify] Secret length: ${profile.totp_secret.length}, First 4 chars: ${profile.totp_secret.substring(0, 4)}...`);
+    // Decrypt the secret before verification
+    const { data: decryptedSecret, error: decryptError } = await supabaseAdmin
+      .rpc('decrypt_totp_secret', { encrypted_secret: profile.totp_secret });
 
-    // Verify the TOTP code
-    const isValid = await verifyTOTP(profile.totp_secret, code);
+    if (decryptError || !decryptedSecret) {
+      console.error('[MFA Verify] Decryption error:', decryptError);
+      throw new Error('Failed to decrypt TOTP secret');
+    }
+
+    console.log(`[MFA Verify] Secret decrypted successfully`);
+
+    // Verify the TOTP code using decrypted secret
+    const isValid = await verifyTOTP(decryptedSecret, code);
     if (!isValid) {
       console.log(`[MFA Verify] Verification failed for ${user.email}`);
       // Log failed verification attempt
@@ -106,11 +120,6 @@ serve(async (req) => {
     const hashedCodes = await Promise.all(recoveryCodes.map(c => hashCode(c.replace(/-/g, ''))));
 
     // Enable 2FA and store recovery codes using RPC to bypass cache
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     const { error: updateError } = await supabaseAdmin.rpc('enable_totp_with_codes', {
       user_id: user.id,
       backup_codes: hashedCodes
