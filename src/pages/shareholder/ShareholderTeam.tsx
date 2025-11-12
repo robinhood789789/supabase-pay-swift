@@ -565,8 +565,6 @@ export default function ShareholderTeam() {
                 <tr className="border-b border-purple-100">
                   <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">Public ID</th>
                   <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">ธุรกิจ</th>
-                  <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">อีเมล</th>
-                  <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">วันที่สร้าง</th>
                   <th className="text-left p-4 font-semibold text-purple-900 dark:text-purple-100">สถานะ</th>
                   <th className="text-center p-4 font-semibold text-purple-900 dark:text-purple-100">จัดการ</th>
                 </tr>
@@ -574,7 +572,7 @@ export default function ShareholderTeam() {
               <tbody>
                 {filteredOwners.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <td colSpan={4} className="text-center py-8 text-muted-foreground">
                       {searchQuery || statusFilter !== "all"
                         ? "ไม่พบ Owner ที่ตรงกับเงื่อนไขการค้นหา"
                         : "ยังไม่มี Owner user"}
@@ -585,17 +583,7 @@ export default function ShareholderTeam() {
                     <tr key={owner.ownerId} className="border-b border-purple-50 hover:bg-purple-50/50 dark:hover:bg-purple-950/10 transition-all">
                       <td className="p-3 font-mono font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{owner.publicId}</td>
                       <td className="p-3 font-medium">{owner.businessName}</td>
-                      <td className="p-3 text-sm text-muted-foreground">
-                        {owner.email || "-"}
-                      </td>
-                      <td className="p-3 text-sm text-muted-foreground">
-                        {new Date(owner.createdAt).toLocaleDateString("th-TH", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </td>
-                       <td className="p-3">
+                      <td className="p-3">
                         <Badge
                           className={
                             owner.status === "Active"
