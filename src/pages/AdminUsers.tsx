@@ -41,6 +41,7 @@ import { PermissionGate } from "@/components/PermissionGate";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
 import { EditMemberDialog } from "@/components/EditMemberDialog";
+import { PasswordResetReport } from "@/components/admin/PasswordResetReport";
 
 const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -732,6 +733,9 @@ const AdminUsers = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Password Reset Report */}
+        <PasswordResetReport />
 
         {selectedUserId && (
           <UserDetailDrawer
