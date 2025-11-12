@@ -172,9 +172,23 @@ export default function MfaEnroll() {
       // Get CSRF token and session for authentication
       const csrfToken = getCSRFToken();
       const { data: { session } } = await supabase.auth.getSession();
-      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!session || !user) throw new Error("Not authenticated");
+
+      // If using fallback (client-generated secret), persist it before verify
+      if (useFallback && secret) {
+        const { error: setSecretError } = await supabase.rpc('update_totp_secret', {
+          user_id: user.id,
+          new_secret: secret,
+        });
+        if (setSecretError) throw setSecretError;
+      }
+
+      // Sanitize code to digits-only
+      const cleaned = code.replace(/\D/g, '').slice(0, 6);
+
       const { data, error } = await supabase.functions.invoke("mfa-verify", {
-        body: { code },
+        body: { code: cleaned },
         headers: {
           ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
@@ -192,7 +206,7 @@ export default function MfaEnroll() {
       }
     } catch (err: any) {
       console.error("Verification error:", err);
-      setError("รหัสไม่ถูกต้อง กรุณาลองใหม่");
+      setError(err?.message || "รหัสไม่ถูกต้อง กรุณาลองใหม่");
     } finally {
       setEnrolling(false);
     }
