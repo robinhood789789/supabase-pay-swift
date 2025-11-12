@@ -347,10 +347,11 @@ export type Database = {
           deposit_enabled: boolean | null
           id: string
           notes: string | null
+          password: string | null
           password_visible: boolean | null
+          public_id: string | null
           status: string | null
           updated_at: string | null
-          user_password: string | null
           withdrawal_enabled: boolean | null
         }
         Insert: {
@@ -364,10 +365,11 @@ export type Database = {
           deposit_enabled?: boolean | null
           id?: string
           notes?: string | null
+          password?: string | null
           password_visible?: boolean | null
+          public_id?: string | null
           status?: string | null
           updated_at?: string | null
-          user_password?: string | null
           withdrawal_enabled?: boolean | null
         }
         Update: {
@@ -381,10 +383,11 @@ export type Database = {
           deposit_enabled?: boolean | null
           id?: string
           notes?: string | null
+          password?: string | null
           password_visible?: boolean | null
+          public_id?: string | null
           status?: string | null
           updated_at?: string | null
-          user_password?: string | null
           withdrawal_enabled?: boolean | null
         }
         Relationships: []

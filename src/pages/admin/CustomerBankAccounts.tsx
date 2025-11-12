@@ -48,7 +48,8 @@ interface BankAccount {
   deposit_enabled: boolean;
   withdrawal_enabled: boolean;
   status: "online" | "offline";
-  user_password: string | null;
+  public_id: string | null;
+  password: string | null;
   company_code: string | null;
   created_at: string;
   updated_at: string;
@@ -65,7 +66,8 @@ interface BankAccountFormData {
   deposit_enabled: boolean;
   withdrawal_enabled: boolean;
   status: "online" | "offline";
-  user_password: string;
+  public_id: string;
+  password: string;
   company_code: string;
 }
 
@@ -96,7 +98,8 @@ const CustomerBankAccounts = () => {
     deposit_enabled: true,
     withdrawal_enabled: true,
     status: "offline",
-    user_password: "",
+    public_id: "",
+    password: "",
     company_code: "",
   });
 
@@ -228,7 +231,8 @@ const CustomerBankAccounts = () => {
       deposit_enabled: true,
       withdrawal_enabled: true,
       status: "offline",
-      user_password: "",
+      public_id: "",
+      password: "",
       company_code: "",
     });
   };
@@ -252,7 +256,8 @@ const CustomerBankAccounts = () => {
       deposit_enabled: account.deposit_enabled,
       withdrawal_enabled: account.withdrawal_enabled,
       status: account.status,
-      user_password: account.user_password || "",
+      public_id: account.public_id || "",
+      password: account.password || "",
       company_code: account.company_code || "",
     });
     setIsDialogOpen(true);
@@ -505,14 +510,24 @@ const CustomerBankAccounts = () => {
               />
             </div>
             <div>
-              <Label className="text-sm">User Password</Label>
+              <Label className="text-sm">Public ID</Label>
+              <Input
+                value={formData.public_id}
+                onChange={(e) =>
+                  setFormData({ ...formData, public_id: e.target.value })
+                }
+                placeholder="รหัส Public ID"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Password</Label>
               <Input
                 type="password"
-                value={formData.user_password}
+                value={formData.password}
                 onChange={(e) =>
-                  setFormData({ ...formData, user_password: e.target.value })
+                  setFormData({ ...formData, password: e.target.value })
                 }
-                placeholder="รหัสผ่านผู้ใช้งาน"
+                placeholder="รหัสผ่าน"
               />
             </div>
             <div>
