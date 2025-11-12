@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { RotateCcw } from "lucide-react";
 
 interface IncomingTransaction {
   id: string;
@@ -81,6 +82,11 @@ const IncomingTransactions = () => {
     });
   }, [allTransactions, bankCodeFilter, statusFilter]);
 
+  const handleResetFilters = () => {
+    setBankCodeFilter("all");
+    setStatusFilter("all");
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-full overflow-hidden bg-white min-h-screen">
       <div className="border-b border-gray-200 pb-4">
@@ -115,14 +121,14 @@ const IncomingTransactions = () => {
             </Button>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
             <div className="flex-1 min-w-0">
               <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">ธนาคาร</Label>
               <Select value={bankCodeFilter} onValueChange={setBankCodeFilter}>
                 <SelectTrigger className="border-gray-300 bg-white text-black">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white z-50">
                   <SelectItem value="all">ทั้งหมด</SelectItem>
                   {bankCodes.map((code) => (
                     <SelectItem key={code} value={code}>
@@ -138,7 +144,7 @@ const IncomingTransactions = () => {
                 <SelectTrigger className="border-gray-300 bg-white text-black">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white z-50">
                   <SelectItem value="all">ทั้งหมด</SelectItem>
                   {statuses.map((status) => (
                     <SelectItem key={status} value={status}>
@@ -148,7 +154,14 @@ const IncomingTransactions = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex-1" />
+            <Button
+              onClick={handleResetFilters}
+              variant="outline"
+              className="border-gray-300 bg-white text-black hover:bg-gray-50 whitespace-nowrap"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              ล้างฟิลเตอร์
+            </Button>
           </div>
         </div>
 
