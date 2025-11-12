@@ -76,17 +76,17 @@ Deno.serve(async (req) => {
 
       const permissionIds = rolePerms.map((rp) => rp.permission_id).filter(Boolean);
 
-      // Check if any of these permissions is 'users.manage'
+      // Check if user has manage users permission (support legacy 'users.manage' and current 'manage_users')
       const { data: perms } = await supabaseClient
         .from('permissions')
         .select('name')
         .in('id', permissionIds);
 
-      const hasManagePermission = perms?.some(p => p.name === 'users.manage');
+      const hasManagePermission = perms?.some(p => p.name === 'manage_users' || p.name === 'users.manage');
 
       if (!hasManagePermission) {
         return new Response(
-          JSON.stringify({ error: 'Insufficient permissions - users.manage required' }),
+          JSON.stringify({ error: 'Insufficient permissions - manage_users required' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
