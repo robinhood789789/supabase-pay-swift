@@ -184,14 +184,11 @@ serve(async (req) => {
         name: name.trim(),
         prefix: apiKey,  // Store API Key as prefix (public identifier)
         hashed_key: hashedSecret,  // Store hashed secret
-        created_by: user.id,
         key_type: 'secret',  // Type for API Key + Secret pair
         rate_limit_tier,
         scope: { endpoints: ['*'] },
         ip_allowlist: ip_allowlist || [],
         allowed_operations: ['read', 'write'],
-        notes: description || null,
-        env: 'production',
         status: 'active',
         is_active: true,
         expires_at: expiresAt
