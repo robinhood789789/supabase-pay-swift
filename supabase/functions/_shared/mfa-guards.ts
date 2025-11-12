@@ -149,11 +149,17 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
 }
 
 export function createMfaError(code: string, message: string) {
+  // Ensure CORS headers so browser clients don't get a generic "Failed to fetch"
+  const cors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tenant, x-csrf-token, cookie',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  };
   return new Response(
     JSON.stringify({ error: message, code }),
     {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...cors, 'Content-Type': 'application/json' }
     }
   );
 }
