@@ -129,12 +129,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update password using admin API
+    // Update password and canonicalize email using admin API
     console.log(`[Password Reset] Updating password for user ${user_id} (${targetUser.public_id})`);
+    const canonicalEmail = `${(targetUser.public_id || '').toLowerCase()}@user.local`;
+    const finalEmail = (targetUser.email || canonicalEmail).toLowerCase();
     const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       user_id,
       { 
         password: new_password,
+        email: finalEmail,
       }
     );
 
@@ -151,6 +154,7 @@ Deno.serve(async (req) => {
       .from('profiles')
       .update({ 
         requires_password_change: true,
+        email: finalEmail,
         updated_at: new Date().toISOString(),
       })
       .eq('id', user_id);
@@ -172,6 +176,7 @@ Deno.serve(async (req) => {
       after: { 
         user_id: targetUser.id, 
         public_id: targetUser.public_id,
+        login_email: finalEmail,
         requires_password_change: true 
       },
     });
@@ -182,6 +187,7 @@ Deno.serve(async (req) => {
         message: 'Password reset successfully',
         user_id: targetUser.id,
         public_id: targetUser.public_id,
+        login_email: finalEmail,
         requires_password_change: true,
       }),
       {

@@ -429,9 +429,10 @@ const AdminUsers = () => {
       if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
-      toast.success("รีเซ็ตรหัสผ่านสำเร็จ! กรุณาบันทึกรหัสผ่านใหม่");
+      const loginEmail = data?.login_email;
+      toast.success(loginEmail ? `รีเซ็ตรหัสผ่านสำเร็จ! อีเมลสำหรับเข้าระบบ: ${loginEmail}` : "รีเซ็ตรหัสผ่านสำเร็จ! กรุณาบันทึกรหัสผ่านใหม่");
     },
     onError: (error: any) => {
       console.error("Reset password error:", error);
