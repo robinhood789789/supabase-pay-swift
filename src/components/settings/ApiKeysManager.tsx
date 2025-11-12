@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { PermissionGate } from "../PermissionGate";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "../security/TwoFactorChallenge";
+import { sanitizeClientError } from "@/lib/security/errorHandling";
 
 interface CreateKeyForm {
   name: string;
@@ -103,7 +104,7 @@ export const ApiKeysManager = () => {
     },
     onError: (error: Error) => {
       toast.error("Failed to create API key", {
-        description: error.message,
+        description: sanitizeClientError(error),
       });
     },
   });
@@ -124,7 +125,7 @@ export const ApiKeysManager = () => {
     },
     onError: (error: Error) => {
       toast.error("Failed to revoke API key", {
-        description: error.message,
+        description: sanitizeClientError(error),
       });
     },
   });

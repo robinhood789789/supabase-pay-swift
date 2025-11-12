@@ -35,6 +35,7 @@ import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { sanitizeClientError } from "@/lib/security/errorHandling";
 
 interface BankAccount {
   id: string;
@@ -147,7 +148,7 @@ const CustomerBankAccounts = () => {
       resetForm();
     },
     onError: (error) => {
-      toast.error("เกิดข้อผิดพลาด: " + error.message);
+      toast.error("เกิดข้อผิดพลาด: " + sanitizeClientError(error));
     },
   });
 
@@ -173,7 +174,7 @@ const CustomerBankAccounts = () => {
       resetForm();
     },
     onError: (error) => {
-      toast.error("เกิดข้อผิดพลาด: " + error.message);
+      toast.error("เกิดข้อผิดพลาด: " + sanitizeClientError(error));
     },
   });
 
@@ -191,7 +192,7 @@ const CustomerBankAccounts = () => {
       setDeleteAccount(null);
     },
     onError: (error) => {
-      toast.error("เกิดข้อผิดพลาด: " + error.message);
+      toast.error("เกิดข้อผิดพลาด: " + sanitizeClientError(error));
     },
   });
 
@@ -215,7 +216,7 @@ const CustomerBankAccounts = () => {
       queryClient.invalidateQueries({ queryKey: ["customer-bank-accounts"] });
     },
     onError: (error) => {
-      toast.error("เกิดข้อผิดพลาด: " + error.message);
+      toast.error("เกิดข้อผิดพลาด: " + sanitizeClientError(error));
     },
   });
 

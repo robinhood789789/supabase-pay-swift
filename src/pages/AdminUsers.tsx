@@ -34,6 +34,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sanitizeClientError } from "@/lib/security/errorHandling";
 import { CreateUserDialog } from "@/components/CreateUserDialog";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
 import { UserDetailDrawer } from "@/components/UserDetailDrawer";
@@ -162,7 +163,7 @@ const AdminUsers = () => {
       toast.success("User will be required to enable 2FA on next login");
     },
     onError: (error: any) => {
-      toast.error("Failed to enforce 2FA", { description: error.message });
+      toast.error("Failed to enforce 2FA", { description: sanitizeClientError(error) });
     },
   });
 
@@ -436,7 +437,7 @@ const AdminUsers = () => {
     },
     onError: (error: any) => {
       console.error("Reset password error:", error);
-      toast.error(error.message || "ไม่สามารถรีเซ็ตรหัสผ่านได้");
+      toast.error(sanitizeClientError(error) || "ไม่สามารถรีเซ็ตรหัสผ่านได้");
       setResetPasswordDialogOpen(false);
     },
   });
