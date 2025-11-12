@@ -283,10 +283,10 @@ const IncomingTransactions = () => {
               <SelectTrigger className="w-20 border-gray-300 bg-white text-black">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
+              <SelectContent className="bg-white z-50 text-black">
+                <SelectItem value="20" className="text-black">20</SelectItem>
+                <SelectItem value="50" className="text-black">50</SelectItem>
+                <SelectItem value="100" className="text-black">100</SelectItem>
               </SelectContent>
             </Select>
             <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
