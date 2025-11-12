@@ -40,7 +40,14 @@ export function useSecurityGuard() {
     }
 
     // Skip security checks on auth pages
-    const authPages = ['/auth', '/auth/mfa-enroll', '/auth/password-change', '/auth/mfa-challenge'];
+    const authPages = [
+      '/auth', 
+      '/auth/mfa-enroll', 
+      '/auth/password-change', 
+      '/auth/mfa-challenge',
+      '/auth/first-login-password-change',
+      '/auth/claim-code'
+    ];
     if (authPages.some(page => location.pathname.startsWith(page))) {
       setIsChecking(false);
       return;
@@ -52,20 +59,21 @@ export function useSecurityGuard() {
         return;
       }
 
-      // Check MFA enrollment (required for ALL users)
-      if (!securityStatus.totp_enabled) {
-        console.log('[Security Guard] MFA not enrolled, redirecting to enrollment');
-        navigate('/auth/mfa-enroll', { 
+      // CRITICAL: Password change MUST come BEFORE MFA enrollment
+      // Users created by admin need to set their password first
+      if (securityStatus.requires_password_change) {
+        console.log('[Security Guard] Password change required, redirecting');
+        navigate('/auth/password-change', { 
           state: { returnTo: location.pathname },
           replace: true 
         });
         return;
       }
 
-      // Check password change requirement
-      if (securityStatus.requires_password_change) {
-        console.log('[Security Guard] Password change required, redirecting');
-        navigate('/auth/password-change', { 
+      // Check MFA enrollment (required for ALL users)
+      if (!securityStatus.totp_enabled) {
+        console.log('[Security Guard] MFA not enrolled, redirecting to enrollment');
+        navigate('/auth/mfa-enroll', { 
           state: { returnTo: location.pathname },
           replace: true 
         });

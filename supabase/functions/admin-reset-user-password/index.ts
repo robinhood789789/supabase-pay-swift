@@ -100,7 +100,8 @@ Deno.serve(async (req) => {
     }
 
     // Update password using admin API
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    console.log(`[Password Reset] Updating password for user ${user_id} (${targetUser.public_id})`);
+    const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       user_id,
       { 
         password: new_password,
@@ -108,11 +109,14 @@ Deno.serve(async (req) => {
     );
 
     if (updateError) {
-      console.error('Error updating password:', updateError);
+      console.error('[Password Reset] Error updating password:', updateError);
       throw new Error(`Failed to update password: ${updateError.message}`);
     }
+    
+    console.log('[Password Reset] Password updated successfully for user:', targetUser.public_id);
 
     // Set requires_password_change flag
+    console.log('[Password Reset] Setting requires_password_change flag');
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({ 
@@ -122,8 +126,11 @@ Deno.serve(async (req) => {
       .eq('id', user_id);
 
     if (profileError) {
-      console.error('Error updating profile:', profileError);
+      console.error('[Password Reset] Error updating profile:', profileError);
+      throw new Error(`Failed to set password change requirement: ${profileError.message}`);
     }
+    
+    console.log('[Password Reset] Profile updated successfully');
 
     // Log the action
     await supabaseAdmin.from('audit_logs').insert({
