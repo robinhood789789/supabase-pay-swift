@@ -2379,6 +2379,7 @@ export type Database = {
       is_member_of_tenant: { Args: { tenant_uuid: string }; Returns: boolean }
       is_shareholder: { Args: { user_uuid: string }; Returns: boolean }
       is_super_admin: { Args: { user_uuid: string }; Returns: boolean }
+      is_valid_base64: { Args: { input: string }; Returns: boolean }
       request_tenant: { Args: never; Returns: string }
       update_totp_secret: {
         Args: { new_secret: string; user_id: string }
