@@ -81,7 +81,7 @@ export default function ShareholderClients() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
@@ -90,10 +90,10 @@ export default function ShareholderClients() {
     <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             👥 ลูกค้าของฉัน
           </h1>
-          <p className="text-sm sm:text-base text-white/80 mt-1 sm:mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
             จัดการลูกค้าและค่าคอมมิชชั่น
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function ShareholderClients() {
         </Badge>
       </div>
 
-      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-blue-500">
+      <Card className="shadow-soft border border-border">
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-base sm:text-lg md:text-xl">📋 รายชื่อลูกค้าทั้งหมด</CardTitle>
         </CardHeader>
@@ -131,7 +131,7 @@ export default function ShareholderClients() {
                     <TableCell className="px-2 sm:px-4">
                       <Badge 
                         variant={client.status === "active" ? "default" : "secondary"}
-                        className={`text-[10px] sm:text-xs ${client.status === "active" ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0" : ""}`}
+                        className="text-[10px] sm:text-xs"
                       >
                         {client.status === "active" ? "ใช้งาน" : "ไม่ใช้งาน"}
                       </Badge>
@@ -139,17 +139,17 @@ export default function ShareholderClients() {
                     <TableCell className="px-2 sm:px-4 hidden md:table-cell">
                       <Badge 
                         variant={client.tenants?.kyc_status === "verified" ? "default" : "secondary"}
-                        className={`text-[10px] sm:text-xs ${client.tenants?.kyc_status === "verified" ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0" : ""}`}
+                        className="text-[10px] sm:text-xs"
                       >
                         {client.tenants?.kyc_status || "pending"}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-2 sm:px-4">
                       <div className="flex items-center gap-1 sm:gap-2">
-                        <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center shrink-0">
-                          <span className="text-[10px] sm:text-xs font-bold text-amber-700 dark:text-amber-400">%</span>
+                        <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <span className="text-[10px] sm:text-xs font-bold text-foreground">%</span>
                         </div>
-                        <span className="font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent text-xs sm:text-sm">
+                        <span className="font-semibold text-foreground text-xs sm:text-sm">
                           {client.commission_rate}%
                         </span>
                       </div>
@@ -164,7 +164,7 @@ export default function ShareholderClients() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-400 transition-all text-xs px-2 sm:px-3"
+                              className="text-xs px-2 sm:px-3"
                               onClick={() => {
                                 setSelectedClient(client);
                                 setNewCommissionRate(client.commission_rate.toString());

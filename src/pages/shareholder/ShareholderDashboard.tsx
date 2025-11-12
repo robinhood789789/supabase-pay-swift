@@ -231,7 +231,7 @@ export default function ShareholderDashboard() {
   if (shareholderLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-foreground" />
       </div>
     );
   }
@@ -249,9 +249,9 @@ export default function ShareholderDashboard() {
       {/* Header */}
       <div className="flex flex-col gap-3 md:gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">💰 แดชบอร์ด</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">💰 แดชบอร์ด</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-2">
-            <p className="text-sm sm:text-base text-white/80">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {shareholder.full_name}
             </p>
             {shareholder.public_id && (
@@ -272,52 +272,52 @@ export default function ShareholderDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border border-border bg-card shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Owners ทั้งหมด</CardTitle>
-            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Owners ทั้งหมด</CardTitle>
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
               {summary ? `${summary.totalOwners}` : "-"}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border border-border bg-card shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-400">Active Owners</CardTitle>
-            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Active Owners</CardTitle>
+            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
               {summary ? `${summary.activeOwners}` : "-"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-600 dark:text-green-400 font-semibold">~{summary?.approvalRate ?? "-"}%</span> อัตราอนุมัติ
+              <span className="text-foreground font-semibold">~{summary?.approvalRate ?? "-"}%</span> อัตราอนุมัติ
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border border-border bg-card shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">รายได้/เดือน</CardTitle>
-            <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">รายได้/เดือน</CardTitle>
+            <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
               ฿{summary ? `${summary.monthlyRefRevenue.toLocaleString()}` : "-"}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background shadow-md hover:shadow-glow transition-all duration-300">
+        <Card className="border border-border bg-card shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">คอมมิชชันรอจ่าย</CardTitle>
-            <Percent className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">คอมมิชชันรอจ่าย</CardTitle>
+            <Percent className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-600 dark:text-amber-400">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
               ฿{summary ? `${summary.pendingCommission.toLocaleString()}` : "-"}
             </div>
           </CardContent>
@@ -325,7 +325,7 @@ export default function ShareholderDashboard() {
       </div>
 
       {/* Chart - ลบ Referral Tools ออกแล้ว */}
-      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-purple-500">
+      <Card className="shadow-soft border border-border">
         <CardHeader className="pb-2 px-4 sm:px-6">
           <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base sm:text-lg md:text-xl">
             <span>📈 แนวโน้มคอมมิชชัน</span>
@@ -357,7 +357,7 @@ export default function ShareholderDashboard() {
       </Card>
 
       {/* Owners Table with Commission Details */}
-      <Card className="shadow-md hover:shadow-glow transition-all duration-300 border-t-4 border-t-indigo-500">
+      <Card className="shadow-soft border border-border">
         <CardHeader className="pb-2 px-4 sm:px-6">
           <CardTitle className="flex flex-col gap-3 text-base sm:text-lg md:text-xl">
             <span className="line-clamp-2">👥 Owner ที่มาจากคุณ (พร้อมสัดส่วน Commission)</span>
