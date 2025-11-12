@@ -85,6 +85,7 @@ import PlatformShareholderEarnings from "./pages/admin/PlatformShareholderEarnin
 import TransactionDashboard from "./pages/TransactionDashboard";
 import StyleGuide from "./pages/StyleGuide";
 import SecurityMonitoring from "./pages/SecurityMonitoring";
+import SecurityAlerts from "./pages/SecurityAlerts";
 
 const queryClient = new QueryClient();
 
@@ -288,6 +289,16 @@ function AppContent() {
           <ProtectedRoute>
             <SecurityMonitoring />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/security-alerts"
+        element={
+          <SuperAdminRoute>
+            <PlatformLayout>
+              <SecurityAlerts />
+            </PlatformLayout>
+          </SuperAdminRoute>
         }
       />
       <Route

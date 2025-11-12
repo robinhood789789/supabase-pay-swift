@@ -29,6 +29,7 @@ import {
   UserCheck,
   BarChart3,
   Wallet,
+  AlertTriangle,
 } from "lucide-react";
 
 interface PlatformLayoutProps {
@@ -61,6 +62,7 @@ const PlatformSidebar = () => {
     { title: "Refunds", url: "/platform/refunds", icon: RefreshCw },
     { title: "Settings", url: "/platform/settings", icon: Settings },
     { title: "Security", url: "/platform/security", icon: Shield },
+    { title: "Security Alerts", url: "/security-alerts", icon: AlertTriangle },
     { title: "Audit", url: "/platform/audit", icon: Activity },
     { title: "Impersonate", url: "/platform/impersonate", icon: UserCheck },
     { title: "Status", url: "/platform/status", icon: Activity },
