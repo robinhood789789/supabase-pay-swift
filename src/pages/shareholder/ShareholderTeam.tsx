@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Copy, Eye, EyeOff, Trash2, Search, Edit } from "lucide-react";
+import { Plus, Loader2, Copy, Eye, EyeOff, Trash2, Search, Edit, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,11 @@ export default function ShareholderTeam() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [ownerToEdit, setOwnerToEdit] = useState<Owner | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [ownerToReset, setOwnerToReset] = useState<Owner | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [newPassword, setNewPassword] = useState<string | null>(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     business_name: "",
@@ -205,6 +210,91 @@ export default function ShareholderTeam() {
   const handleEditClick = (owner: Owner) => {
     setOwnerToEdit(owner);
     setEditDialogOpen(true);
+  };
+
+  const handleResetPasswordClick = (owner: Owner) => {
+    setOwnerToReset(owner);
+    setResetPasswordDialogOpen(true);
+  };
+
+  const generateSecurePassword = () => {
+    const length = 16;
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const special = "!@#$%^&*";
+    const all = uppercase + lowercase + numbers + special;
+    
+    let password = "";
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+    
+    for (let i = 4; i < length; i++) {
+      password += all[Math.floor(Math.random() * all.length)];
+    }
+    
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+  };
+
+  const handleResetPasswordConfirm = async () => {
+    if (!ownerToReset) return;
+
+    try {
+      setResetting(true);
+
+      // First, get the owner user_id from memberships
+      const { data: membership, error: membershipError } = await supabase
+        .from('memberships')
+        .select('user_id')
+        .eq('tenant_id', ownerToReset.ownerId)
+        .maybeSingle();
+
+      if (membershipError || !membership) {
+        throw new Error('ไม่พบข้อมูล Owner user');
+      }
+
+      // Generate new password
+      const generatedPassword = generateSecurePassword();
+
+      // Call reset password edge function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const response = await supabase.functions.invoke('admin-reset-user-password', {
+        headers: { Authorization: `Bearer ${token}` },
+        body: {
+          user_id: membership.user_id,
+          new_password: generatedPassword,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้');
+      if (!response.data.success) throw new Error(response.data.error || 'ไม่สามารถรีเซ็ตรหัสผ่านได้');
+
+      setNewPassword(generatedPassword);
+      toast({
+        title: "รีเซ็ตรหัสผ่านสำเร็จ",
+        description: `รหัสผ่านใหม่สำหรับ ${ownerToReset.publicId} ถูกสร้างแล้ว`,
+      });
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({
+        title: "รีเซ็ตรหัสผ่านไม่สำเร็จ",
+        description: error.message || "เกิดข้อผิดพลาด",
+        variant: "destructive",
+      });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleCloseResetDialog = () => {
+    setResetPasswordDialogOpen(false);
+    setOwnerToReset(null);
+    setNewPassword(null);
+    setShowNewPassword(false);
   };
 
   const filteredOwners = owners.filter((owner) => {
@@ -525,6 +615,15 @@ export default function ShareholderTeam() {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/20 dark:text-blue-300 transition-all shadow-sm hover:shadow-md"
+                            onClick={() => handleResetPasswordClick(owner)}
+                          >
+                            <KeyRound className="h-4 w-4 mr-1" />
+                            รีเซ็ตรหัส
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 dark:hover:bg-purple-950/20 dark:text-purple-300 transition-all shadow-sm hover:shadow-md"
                             onClick={() => handleEditClick(owner)}
                           >
@@ -588,6 +687,135 @@ export default function ShareholderTeam() {
         onOpenChange={setEditDialogOpen}
         onSuccess={fetchOwners}
       />
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={(open) => {
+        if (!open) handleCloseResetDialog();
+        else setResetPasswordDialogOpen(open);
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>รีเซ็ตรหัสผ่าน Owner</DialogTitle>
+          </DialogHeader>
+
+          {newPassword ? (
+            <div className="space-y-4">
+              <Alert className="border-green-500 bg-green-50 dark:bg-green-950/20">
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p className="font-semibold text-green-900 dark:text-green-100">รีเซ็ตรหัสผ่านสำเร็จ!</p>
+                    <p className="text-sm text-green-800 dark:text-green-200">
+                      รหัสผ่านใหม่จะแสดงเพียงครั้งเดียว กรุณาคัดลอกและส่งให้ Owner อย่างปลอดภัย
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label>Public ID</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={ownerToReset?.publicId || ''} 
+                    readOnly 
+                    className="font-mono text-lg font-semibold"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(ownerToReset?.publicId || '');
+                      toast({ title: "คัดลอกแล้ว", description: "Public ID ถูกคัดลอกไปยังคลิปบอร์ด" });
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>รหัสผ่านใหม่</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword} 
+                    readOnly 
+                    className="font-mono"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => {
+                      navigator.clipboard.writeText(newPassword);
+                      toast({ title: "คัดลอกแล้ว", description: "รหัสผ่านใหม่ถูกคัดลอกไปยังคลิปบอร์ด" });
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Owner จะต้องเข้าสู่ระบบด้วยรหัสผ่านใหม่นี้ และระบบจะบังคับให้เปลี่ยนรหัสผ่าน
+                </p>
+              </div>
+
+              <Button onClick={handleCloseResetDialog} className="w-full">
+                ปิด
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Alert>
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p className="font-semibold">คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตรหัสผ่านสำหรับ:</p>
+                    <div className="bg-muted p-3 rounded-md">
+                      <p className="text-sm"><span className="font-semibold">Public ID:</span> <span className="font-mono">{ownerToReset?.publicId}</span></p>
+                      <p className="text-sm"><span className="font-semibold">ธุรกิจ:</span> {ownerToReset?.businessName}</p>
+                    </div>
+                    <p className="text-sm text-destructive">
+                      ระบบจะสร้างรหัสผ่านใหม่และบังคับให้ Owner เปลี่ยนรหัสผ่านเมื่อเข้าสู่ระบบครั้งถัดไป
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleCloseResetDialog}
+                  disabled={resetting}
+                  className="flex-1"
+                >
+                  ยกเลิก
+                </Button>
+                <Button 
+                  onClick={handleResetPasswordConfirm}
+                  disabled={resetting}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                >
+                  {resetting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      กำลังรีเซ็ต...
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="h-4 w-4 mr-2" />
+                      รีเซ็ตรหัสผ่าน
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
