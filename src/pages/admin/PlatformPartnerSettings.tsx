@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Save } from "lucide-react";
-import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
@@ -22,7 +22,7 @@ export default function PlatformPartnerSettings() {
   const { data: currentSettings, isLoading } = useQuery({
     queryKey: ["platform-partner-settings"],
     queryFn: async () => {
-      const { data, error } = await invokeFunctionWithTenant("platform-partner-settings-get", {
+      const { data, error } = await supabase.functions.invoke("platform-partner-settings-get", {
         body: {},
       });
       if (error) throw error;
@@ -33,7 +33,7 @@ export default function PlatformPartnerSettings() {
 
   const saveMutation = useMutation({
     mutationFn: async (newSettings: any) => {
-      const { data, error } = await invokeFunctionWithTenant("platform-partner-settings-update", {
+      const { data, error } = await supabase.functions.invoke("platform-partner-settings-update", {
         body: { settings: newSettings },
       });
       if (error) throw error;
@@ -68,13 +68,13 @@ export default function PlatformPartnerSettings() {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6 bg-white min-h-screen p-6">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
           <div>
-            <h1 className="text-3xl font-bold">ตั้งค่าพาร์ทเนอร์</h1>
-            <p className="text-muted-foreground">นโยบาย, เพดาน, และสูตรคำนวณคอมมิชัน</p>
+            <h1 className="text-2xl font-medium text-black tracking-tight">ตั้งค่าพาร์ทเนอร์</h1>
+            <p className="text-gray-600">นโยบาย, เพดาน, และสูตรคำนวณคอมมิชัน</p>
           </div>
-          <Button onClick={handleSave} disabled={saveMutation.isPending}>
+          <Button onClick={handleSave} disabled={saveMutation.isPending} className="bg-black text-white hover:bg-gray-800 border-0">
             {saveMutation.isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
@@ -85,18 +85,18 @@ export default function PlatformPartnerSettings() {
         </div>
 
         <Tabs defaultValue="commission" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="commission">คอมมิชัน</TabsTrigger>
-            <TabsTrigger value="approval">อนุมัติ</TabsTrigger>
-            <TabsTrigger value="self-adjust">Self-Adjust</TabsTrigger>
-            <TabsTrigger value="payout">พีเอาต์</TabsTrigger>
+          <TabsList className="bg-gray-50 border border-gray-200">
+            <TabsTrigger value="commission" className="data-[state=active]:bg-white data-[state=active]:text-black">คอมมิชัน</TabsTrigger>
+            <TabsTrigger value="approval" className="data-[state=active]:bg-white data-[state=active]:text-black">อนุมัติ</TabsTrigger>
+            <TabsTrigger value="self-adjust" className="data-[state=active]:bg-white data-[state=active]:text-black">Self-Adjust</TabsTrigger>
+            <TabsTrigger value="payout" className="data-[state=active]:bg-white data-[state=active]:text-black">พีเอาต์</TabsTrigger>
           </TabsList>
 
           <TabsContent value="commission" className="space-y-4">
-            <Card>
+            <Card className="border border-gray-200 bg-white">
               <CardHeader>
-                <CardTitle>ฐานการคำนวณคอมมิชัน</CardTitle>
-                <CardDescription>เลือกว่าคอมมิชันคำนวณจากอะไร</CardDescription>
+                <CardTitle className="text-black font-medium tracking-tight">ฐานการคำนวณคอมมิชัน</CardTitle>
+                <CardDescription className="text-gray-600">เลือกว่าคอมมิชันคำนวณจากอะไร</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
