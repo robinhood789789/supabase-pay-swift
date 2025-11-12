@@ -262,14 +262,7 @@ const Dashboard = () => {
             <div>
               <h1 className="text-3xl font-bold text-foreground">
                 แดชบอร์ด
-                <Badge className={`ml-3 text-xs font-semibold ${
-                  isShareholder ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0' :
-                  roleVisibility.currentRole === 'owner' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0' :
-                  roleVisibility.currentRole === 'manager' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0' :
-                  roleVisibility.currentRole === 'finance' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0' :
-                  roleVisibility.currentRole === 'developer' ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white border-0' :
-                  ''
-                }`}>
+                <Badge className="ml-3 text-xs font-semibold">
                   {isShareholder ? 'SHAREHOLDER' : roleVisibility.currentRole?.toUpperCase()}
                 </Badge>
               </h1>
@@ -280,13 +273,13 @@ const Dashboard = () => {
             <div className="flex gap-2 flex-wrap">
               {roleVisibility.canViewPayouts && (
                 <>
-                  <Button variant="outline" size="sm" asChild className="hover:bg-cyan-50 dark:hover:bg-cyan-950/20 hover:border-cyan-300 hover:text-cyan-700 dark:hover:text-cyan-400 transition-all">
+                  <Button variant="outline" size="sm" asChild>
                     <Link to="/deposit-list">
                       <ArrowUpRight className="mr-2 h-4 w-4" />
                       ฝากเงิน
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-300 hover:text-pink-700 dark:hover:text-pink-400 transition-all">
+                  <Button variant="outline" size="sm" asChild>
                     <Link to="/withdrawal-list">
                       <ArrowDownRight className="mr-2 h-4 w-4" />
                       ถอนเงิน
@@ -295,7 +288,7 @@ const Dashboard = () => {
                 </>
               )}
               {roleVisibility.canCreatePaymentLink && (
-                <Button size="sm" asChild className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-0 shadow-lg">
+                <Button size="sm" asChild>
                   <Link to="/links">
                     <Zap className="mr-2 h-4 w-4" />
                     สร้างลิงก์ชำระ
@@ -308,11 +301,11 @@ const Dashboard = () => {
           {/* Financial KPIs (Owner/Manager/Finance) */}
           {roleVisibility.canViewFinancialOverview && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background shadow-lg hover:shadow-xl transition-all">
+              <Card className="border-l-2 border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-400">ยอดรับวันนี้</CardTitle>
-                  <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
-                    <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">ยอดรับวันนี้</CardTitle>
+                  <div className="p-2 rounded bg-muted">
+                    <DollarSign className="h-4 w-4 text-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -320,7 +313,7 @@ const Dashboard = () => {
                     <Skeleton className="h-8 w-24" />
                   ) : (
                     <>
-                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                      <div className="text-2xl font-bold text-foreground">
                         ฿{new Intl.NumberFormat('th-TH').format(currentMonthDeposits?.total ?? 0)}
                       </div>
                       <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
@@ -332,25 +325,25 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background shadow-lg hover:shadow-xl transition-all">
+              <Card className="border-l-2 border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-400">เดือนนี้</CardTitle>
-                  <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900/30">
-                    <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">เดือนนี้</CardTitle>
+                  <div className="p-2 rounded bg-muted">
+                    <TrendingUp className="h-4 w-4 text-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <div className="text-2xl font-bold text-foreground">
                     ฿{new Intl.NumberFormat('th-TH').format(currentMonthDeposits?.total ?? 0)}
                   </div>
                   <div className="flex items-center text-xs mt-2">
                     {depositChange >= 0 ? (
-                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                      <div className="flex items-center gap-1 px-2 py-1 rounded bg-muted text-foreground">
                         <TrendingUp className="h-3 w-3" />
                         <span className="font-medium">+{depositChange.toFixed(1)}%</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                      <div className="flex items-center gap-1 px-2 py-1 rounded bg-muted text-foreground">
                         <TrendingDown className="h-3 w-3" />
                         <span className="font-medium">{depositChange.toFixed(1)}%</span>
                       </div>
@@ -360,15 +353,15 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background shadow-lg hover:shadow-xl transition-all">
+              <Card className="border-l-2 border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Success Rate</CardTitle>
-                  <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Success Rate</CardTitle>
+                  <div className="p-2 rounded bg-muted">
+                    <CheckCircle2 className="h-4 w-4 text-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <div className="text-2xl font-bold text-foreground">
                     {depositStats?.total ? 
                       Math.round((depositStats.successful / depositStats.total) * 100) : 
                       100}%
@@ -380,15 +373,15 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background shadow-lg hover:shadow-xl transition-all">
+              <Card className="border-l-2 border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-400">ยอดคงเหลือ</CardTitle>
-                  <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
-                    <Activity className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">ยอดคงเหลือ</CardTitle>
+                  <div className="p-2 rounded bg-muted">
+                    <Activity className="h-4 w-4 text-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                  <div className="text-2xl font-bold text-foreground">
                     ฿{((wallet?.balance || 0) / 100).toLocaleString()}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">

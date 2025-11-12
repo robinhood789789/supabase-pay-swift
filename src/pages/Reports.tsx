@@ -220,65 +220,65 @@ const Reports = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Revenue
-              </CardTitle>
-              <DollarSign className="w-4 h-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$36,900</div>
-              <p className="text-xs text-success">
-                +18.2% from last period
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Revenue
+                </CardTitle>
+                <DollarSign className="w-4 h-4 text-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$36,900</div>
+                <p className="text-xs text-muted-foreground">
+                  +18.2% from last period
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Users
-              </CardTitle>
-              <Users className="w-4 h-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">1,012</div>
-              <p className="text-xs text-success">
-                +109 new this month
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Active Users
+                </CardTitle>
+                <Users className="w-4 h-4 text-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">1,012</div>
+                <p className="text-xs text-muted-foreground">
+                  +109 new this month
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Growth Rate
-              </CardTitle>
-              <TrendingUp className="w-4 h-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+23.4%</div>
-              <p className="text-xs text-muted-foreground">
-                Month over month
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Growth Rate
+                </CardTitle>
+                <TrendingUp className="w-4 h-4 text-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">+23.4%</div>
+                <p className="text-xs text-muted-foreground">
+                  Month over month
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Conversion Rate
-              </CardTitle>
-              <BarChart3 className="w-4 h-4 text-secondary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">3.8%</div>
-              <p className="text-xs text-success">
-                +0.4% from last month
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Conversion Rate
+                </CardTitle>
+                <BarChart3 className="w-4 h-4 text-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">3.8%</div>
+                <p className="text-xs text-muted-foreground">
+                  +0.4% from last month
+                </p>
+              </CardContent>
+            </Card>
         </div>
 
         <Tabs defaultValue="revenue" className="space-y-4">
@@ -446,10 +446,10 @@ const Reports = () => {
                   {reconcileResult && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
-                        <Card className="bg-success/10 border-success">
+                        <Card className="bg-muted border-border">
                           <CardContent className="pt-6">
                             <div className="flex items-center gap-2">
-                              <CheckCircle2 className="w-5 h-5 text-success" />
+                              <CheckCircle2 className="w-5 h-5 text-foreground" />
                               <div>
                                 <p className="text-2xl font-bold">{reconcileResult.matched}</p>
                                 <p className="text-sm text-muted-foreground">Matched</p>
@@ -458,10 +458,10 @@ const Reports = () => {
                           </CardContent>
                         </Card>
 
-                        <Card className="bg-destructive/10 border-destructive">
+                        <Card className="bg-muted border-border">
                           <CardContent className="pt-6">
                             <div className="flex items-center gap-2">
-                              <XCircle className="w-5 h-5 text-destructive" />
+                              <XCircle className="w-5 h-5 text-foreground" />
                               <div>
                                 <p className="text-2xl font-bold">{reconcileResult.unmatched}</p>
                                 <p className="text-sm text-muted-foreground">Unmatched</p>

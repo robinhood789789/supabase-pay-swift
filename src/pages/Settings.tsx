@@ -99,12 +99,12 @@ const Settings = () => {
     return (
       <DashboardLayout>
         <div className="p-6 max-w-6xl mx-auto space-y-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center space-y-3">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-3">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+                <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
+              </div>
             </div>
-          </div>
         </div>
       </DashboardLayout>
     );
@@ -153,7 +153,7 @@ const Settings = () => {
               <CardContent className="space-y-6">
                 <div className="flex items-center gap-4">
                   <Avatar className="w-20 h-20">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                    <AvatarFallback className="bg-muted text-foreground text-xl">
                       {profile?.full_name ? getInitials(profile.full_name) : <User className="w-8 h-8" />}
                     </AvatarFallback>
                   </Avatar>
@@ -197,9 +197,9 @@ const Settings = () => {
                     </p>
                   </div>
 
-                  <Button type="submit" variant="gradient" disabled={isUpdating}>
-                    {isUpdating ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
-                  </Button>
+          <Button type="submit" disabled={isUpdating}>
+            {isUpdating ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
+          </Button>
                 </form>
               </CardContent>
             </Card>
