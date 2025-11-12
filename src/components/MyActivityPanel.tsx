@@ -13,9 +13,21 @@ export const MyActivityPanel = () => {
   const { activeTenantId } = useTenantSwitcher();
 
   const { data: todayActivities, isLoading } = useQuery({
-    queryKey: ["my-activity", user?.id, activeTenantId],
+    queryKey: ["my-activity", "OWNR-000001", activeTenantId],
     queryFn: async () => {
-      if (!user?.id || !activeTenantId) return [];
+      if (!activeTenantId) return [];
+
+      // Get the user_id for OWNR-000001
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("public_id", "OWNR-000001")
+        .single();
+
+      if (profileError || !profile) {
+        console.error("Error fetching owner profile:", profileError);
+        return [];
+      }
 
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
@@ -23,7 +35,7 @@ export const MyActivityPanel = () => {
       const { data, error } = await supabase
         .from("audit_logs")
         .select("*")
-        .eq("actor_user_id", user.id)
+        .eq("actor_user_id", profile.id)
         .eq("tenant_id", activeTenantId)
         .gte("created_at", todayStart.toISOString())
         .order("created_at", { ascending: false })
@@ -32,7 +44,7 @@ export const MyActivityPanel = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id && !!activeTenantId,
+    enabled: !!activeTenantId,
   });
 
   const getActionBadgeVariant = (action: string) => {
