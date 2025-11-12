@@ -112,10 +112,10 @@ const PlatformStatus = () => {
   };
 
   const getResponseTimeColor = (ms?: number) => {
-    if (!ms) return "bg-gray-500";
-    if (ms < 200) return "bg-green-600";
-    if (ms < 1000) return "bg-yellow-600";
-    return "bg-red-600";
+    if (!ms) return "bg-muted";
+    if (ms < 200) return "bg-foreground";
+    if (ms < 1000) return "bg-muted-foreground";
+    return "bg-muted";
   };
 
   const overallStatus =
@@ -128,7 +128,7 @@ const PlatformStatus = () => {
   if (loading && healthChecks.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-foreground" />
       </div>
     );
   }

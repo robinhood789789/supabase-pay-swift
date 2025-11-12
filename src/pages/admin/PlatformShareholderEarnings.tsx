@@ -402,7 +402,7 @@ export default function PlatformShareholderEarnings() {
           <p className="text-muted-foreground mt-2">
             ภาพรวมรายได้ของ Shareholder ทั้งหมดในระบบ
             {startDate && endDate && (
-              <span className="ml-2 text-primary font-medium">
+              <span className="ml-2 text-foreground font-medium">
                 ({format(startDate, "d MMM", { locale: th })} - {format(endDate, "d MMM yyyy", { locale: th })})
               </span>
             )}

@@ -195,8 +195,8 @@ export default function PlatformTenantDetail() {
         </Button>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg bg-primary/10">
-              <Building2 className="h-8 w-8 text-primary" />
+            <div className="p-3 rounded-lg bg-muted">
+              <Building2 className="h-8 w-8 text-foreground" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">{tenant.name}</h1>
