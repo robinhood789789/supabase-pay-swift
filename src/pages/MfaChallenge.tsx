@@ -14,6 +14,8 @@ export default function MfaChallenge() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   const [useRecovery, setUseRecovery] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as any)?.returnTo || '/dashboard';
@@ -35,11 +37,18 @@ export default function MfaChallenge() {
       return;
     }
 
+    // Check if locked
+    if (lockedUntil && new Date() < lockedUntil) {
+      const minutesLeft = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
+      setError(`บัญชีถูกล็อก กรุณารอ ${minutesLeft} นาที`);
+      return;
+    }
+
     setIsVerifying(true);
     setError('');
 
     try {
-      const { data, error } = await supabase.functions.invoke('mfa-verify', {
+      const { data, error } = await supabase.functions.invoke('mfa-challenge', {
         body: { 
           code: code.toUpperCase(), 
           type: useRecovery ? 'recovery' : 'totp'
@@ -49,15 +58,40 @@ export default function MfaChallenge() {
       if (error) throw error;
 
       if (data.ok) {
-        toast.success('Verification successful');
+        setRemainingAttempts(null);
+        setLockedUntil(null);
+        toast.success('ยืนยันตัวตนสำเร็จ');
         navigate(returnTo);
-      } else {
-        setError('Invalid code. Please try again.');
+      } else if (data.error) {
+        // Handle rate limit/lockout
+        if (data.code === 'MFA_LOCKED') {
+          setLockedUntil(new Date(data.locked_until));
+          setError(data.error);
+        } else {
+          setError(data.error);
+          if (data.remaining_attempts !== undefined) {
+            setRemainingAttempts(data.remaining_attempts);
+          }
+        }
+        toast.error(data.error);
       }
     } catch (err: any) {
-      const message = err.message || 'Verification failed';
-      setError(message);
-      toast.error(message);
+      const errorData = err.context?.body;
+      
+      if (errorData?.code === 'MFA_LOCKED') {
+        setLockedUntil(new Date(errorData.locked_until));
+        setError(errorData.error);
+        toast.error(errorData.error);
+      } else {
+        const message = errorData?.error || err.message || 'Verification failed';
+        setError(message);
+        
+        if (errorData?.remaining_attempts !== undefined) {
+          setRemainingAttempts(errorData.remaining_attempts);
+        }
+        
+        toast.error(message);
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -80,7 +114,28 @@ export default function MfaChallenge() {
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+                {lockedUntil && (
+                  <div className="mt-2 text-sm">
+                    ล็อคถึง: {lockedUntil.toLocaleString('th-TH')}
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {remainingAttempts !== null && !lockedUntil && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                คุณเหลือโอกาสลองอีก {remainingAttempts} ครั้ง
+                {remainingAttempts <= 2 && (
+                  <span className="block mt-1 font-semibold text-destructive">
+                    หากพยายามผิดเกิน 5 ครั้ง บัญชีจะถูกล็อค 15 นาที
+                  </span>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 

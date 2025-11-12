@@ -138,7 +138,16 @@ serve(async (req) => {
           user_agent: req.headers.get('user-agent')?.substring(0, 255) || null,
         });
 
-      throw new Error('Invalid verification code');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid verification code',
+          remaining_attempts: rateLimit.remaining
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     // Success - reset rate limit
@@ -188,6 +197,7 @@ serve(async (req) => {
         ok: true,
         valid_for_seconds: stepupWindow,
         recovery_code_used: usedRecoveryCode,
+        remaining_attempts: rateLimit.remaining,
         message: 'Verification successful'
       }),
       { 
