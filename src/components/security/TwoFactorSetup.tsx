@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Copy, CheckCircle2, AlertCircle, Download, Printer, RefreshCw, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { sanitizeClientError } from '@/lib/security/clientErrorHandling';
 import { generateTOTPSecret, generateBackupCodes, getTOTPQRCodeUrl } from '@/lib/security/totp';
 import QRCode from 'qrcode';
 
@@ -81,7 +82,7 @@ export function TwoFactorSetup() {
       setUseRecoveryForDisable(false);
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to disable 2FA');
+      toast.error(sanitizeClientError(error));
     },
   });
 
@@ -98,7 +99,7 @@ export function TwoFactorSetup() {
       setSetupStep('setup');
       toast.success('Scan the QR code with your authenticator app');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to start enrollment');
+      toast.error(sanitizeClientError(error));
     }
   };
 
@@ -126,7 +127,7 @@ export function TwoFactorSetup() {
       // Move to recovery codes step
       setSetupStep('recovery-codes');
     } catch (error: any) {
-      toast.error(error.message || 'Invalid verification code');
+      toast.error(sanitizeClientError(error));
     }
   };
 

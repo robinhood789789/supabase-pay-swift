@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
 import { toast } from "sonner";
+import { sanitizeClientError } from "@/lib/security/clientErrorHandling";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
 import {
@@ -49,7 +50,7 @@ export function WithdrawalRequestDialog() {
       setOpen(false);
     },
     onError: (error: any) => {
-      toast.error("เกิดข้อผิดพลาดในการสร้างคำขอ", { description: error.message });
+      toast.error("เกิดข้อผิดพลาดในการสร้างคำขอ", { description: sanitizeClientError(error) });
     },
   });
 

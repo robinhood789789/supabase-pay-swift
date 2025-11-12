@@ -17,6 +17,7 @@ import { Search, Mail, Phone, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
+import { sanitizeClientError } from "@/lib/security/clientErrorHandling";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "./security/TwoFactorChallenge";
 
@@ -122,7 +123,7 @@ export const CustomersTable = () => {
 
         toast.success(`Export สำเร็จ ${customers.length} รายการ`);
       } catch (error: any) {
-        toast.error("Export ไม่สำเร็จ", { description: error.message });
+        toast.error("Export ไม่สำเร็จ", { description: sanitizeClientError(error) });
       }
     });
   };
