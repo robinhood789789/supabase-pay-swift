@@ -9,24 +9,22 @@ import { corsHeaders } from '../_shared/cors.ts';
 
 // Generate API Key (public identifier)
 const generateApiKey = (): string => {
-  const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+  const randomBytes = crypto.getRandomValues(new Uint8Array(32));
   const key = Array.from(randomBytes)
     .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-    .toUpperCase();
+    .join('');
   
-  return `AK${key.substring(0, 20)}`;
+  return `sk_test_${key}`;
 };
 
 // Generate API Secret (private key)
 const generateApiSecret = (): string => {
-  const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+  const randomBytes = crypto.getRandomValues(new Uint8Array(24));
   const secret = Array.from(randomBytes)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
   
-  // Make it more readable with dashes
-  return `sk_${secret.substring(0, 16)}_${secret.substring(16, 32)}_${secret.substring(32)}`;
+  return `sec_test_${secret}`;
 };
 
 // Hash the secret for storage
