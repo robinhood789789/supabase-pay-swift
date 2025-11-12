@@ -131,8 +131,9 @@ Deno.serve(async (req) => {
 
     // Update password and canonicalize email using admin API
     console.log(`[Password Reset] Updating password for user ${user_id} (${targetUser.public_id})`);
+    // Always canonicalize to public_id-based login to ensure Public ID sign-in works reliably
     const canonicalEmail = `${(targetUser.public_id || '').toLowerCase()}@user.local`;
-    const finalEmail = (targetUser.email || canonicalEmail).toLowerCase();
+    const finalEmail = canonicalEmail;
     const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       user_id,
       { 
