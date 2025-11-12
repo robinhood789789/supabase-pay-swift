@@ -641,6 +641,66 @@ export type Database = {
         }
         Relationships: []
       }
+      incoming_transfers: {
+        Row: {
+          adminbank_id: string | null
+          amount: number | null
+          bank_code: string | null
+          created_at: string | null
+          from_account: string | null
+          from_name: string | null
+          id: string
+          raw: Json
+          ref_id: string | null
+          slip_bank_from: string | null
+          slip_bank_to: string | null
+          status: string | null
+          to_account: string | null
+          to_name: string | null
+          trans_name_th: string | null
+          txn_time: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          adminbank_id?: string | null
+          amount?: number | null
+          bank_code?: string | null
+          created_at?: string | null
+          from_account?: string | null
+          from_name?: string | null
+          id: string
+          raw: Json
+          ref_id?: string | null
+          slip_bank_from?: string | null
+          slip_bank_to?: string | null
+          status?: string | null
+          to_account?: string | null
+          to_name?: string | null
+          trans_name_th?: string | null
+          txn_time?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          adminbank_id?: string | null
+          amount?: number | null
+          bank_code?: string | null
+          created_at?: string | null
+          from_account?: string | null
+          from_name?: string | null
+          id?: string
+          raw?: Json
+          ref_id?: string | null
+          slip_bank_from?: string | null
+          slip_bank_to?: string | null
+          status?: string | null
+          to_account?: string | null
+          to_name?: string | null
+          trans_name_th?: string | null
+          txn_time?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ip_blocks: {
         Row: {
           blocked_at: string
