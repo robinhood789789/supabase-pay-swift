@@ -30,6 +30,7 @@ import {
   BarChart3,
   Wallet,
   AlertTriangle,
+  Building2,
 } from "lucide-react";
 
 interface PlatformLayoutProps {
@@ -55,6 +56,7 @@ const PlatformSidebar = () => {
     { title: "รายงานพาร์ทเนอร์", url: "/platform/partner-reports", icon: BarChart3 },
     { title: "ตั้งค่าพาร์ทเนอร์", url: "/platform/partner-settings", icon: Settings },
     { title: "Tenants", url: "/admin/tenants", icon: Users },
+    { title: "จัดการธนาคาร(ลูกค้า)", url: "/admin/customer-bank-accounts", icon: Building2 },
     { title: "Providers", url: "/platform/providers", icon: KeyRound },
     { title: "Events", url: "/platform/events", icon: Activity },
     { title: "Webhooks", url: "/platform/webhooks", icon: Webhook },

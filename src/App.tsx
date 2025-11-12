@@ -87,6 +87,7 @@ import StyleGuide from "./pages/StyleGuide";
 import SecurityMonitoring from "./pages/SecurityMonitoring";
 import SecurityAlerts from "./pages/SecurityAlerts";
 import MfaTroubleshooting from "./pages/MfaTroubleshooting";
+import CustomerBankAccounts from "./pages/admin/CustomerBankAccounts";
 
 const queryClient = new QueryClient();
 
@@ -466,6 +467,7 @@ function AppContent() {
       <Route path="/platform/settings" element={<SuperAdminRoute><PlatformLayout><PlatformSettings /></PlatformLayout></SuperAdminRoute>} />
       <Route path="/platform/impersonate" element={<SuperAdminRoute><PlatformLayout><PlatformImpersonate /></PlatformLayout></SuperAdminRoute>} />
       <Route path="/platform/status" element={<SuperAdminRoute><PlatformLayout><PlatformStatus /></PlatformLayout></SuperAdminRoute>} />
+      <Route path="/admin/customer-bank-accounts" element={<SuperAdminRoute><PlatformLayout><CustomerBankAccounts /></PlatformLayout></SuperAdminRoute>} />
       <Route
         path="/admin/users"
         element={
