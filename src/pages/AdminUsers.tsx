@@ -415,12 +415,12 @@ const AdminUsers = () => {
   };
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async ({ userId, password }: { userId: string; password: string }) => {
+    mutationFn: async ({ userId, password, publicId }: { userId: string; password: string; publicId?: string }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("No session");
 
       const { data, error } = await supabase.functions.invoke("admin-reset-user-password", {
-        body: { user_id: userId, new_password: password },
+        body: { user_id: userId, new_password: password, public_id: publicId },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -432,6 +432,11 @@ const AdminUsers = () => {
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users", activeTenantId] });
+      // Cross-check target to prevent accidental resets on wrong user
+      if (resetPasswordUser && data?.public_id && data.public_id !== resetPasswordUser.public_id) {
+        toast.error(`รีเซ็ตผิดบัญชี! คาดว่า ${resetPasswordUser.public_id} แต่ระบบรีเซ็ตให้ ${data.public_id}`);
+        return;
+      }
       const loginEmail = data?.login_email;
       toast.success(loginEmail ? `รีเซ็ตรหัสผ่านสำเร็จ! อีเมลสำหรับเข้าระบบ: ${loginEmail}` : "รีเซ็ตรหัสผ่านสำเร็จ! กรุณาบันทึกรหัสผ่านใหม่");
     },
@@ -448,6 +453,7 @@ const AdminUsers = () => {
         resetPasswordMutation.mutate({
           userId: resetPasswordUser.id,
           password: newPassword,
+          publicId: resetPasswordUser.public_id,
         })
       );
     }

@@ -93,11 +93,13 @@ Deno.serve(async (req) => {
     }
 
     // Parse request
-    const { user_id, new_password } = await req.json();
+    const body = await req.json();
+    const user_id = body.user_id as string | undefined;
+    const new_password = body.new_password as string;
+    const input_public_id = (body.public_id as string | undefined) || undefined;
 
     // Validate inputs
     validateFields([
-      () => validateString('user_id', user_id, { required: true }),
       () => validateString('new_password', new_password, { 
         required: true,
         minLength: 12,
@@ -105,13 +107,47 @@ Deno.serve(async (req) => {
         pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/,
         patternMessage: 'Password must contain uppercase, lowercase, number, and special character'
       }),
+      () => validateString('user_id', user_id || '', { required: !input_public_id }),
+      () => validateString('public_id', input_public_id || '', { required: !user_id }),
     ]);
 
-    // Get target user
+    // Resolve target user by public_id if provided, otherwise by user_id
+    let targetUserId = user_id || '';
+    let targetPublicId = input_public_id || '';
+
+    if (input_public_id) {
+      const publicIdExact = input_public_id.toUpperCase();
+      // Case-insensitive lookup using ilike for safety
+      const { data: byPid, error: byPidErr } = await supabaseAdmin
+        .from('profiles')
+        .select('id, public_id, full_name, email, is_super_admin')
+        .ilike('public_id', publicIdExact)
+        .maybeSingle();
+
+      if (byPidErr || !byPid) {
+        return new Response(
+          JSON.stringify({ error: 'User not found for provided public_id' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      targetUserId = byPid.id;
+      targetPublicId = byPid.public_id || publicIdExact;
+
+      // If both user_id and public_id are provided, ensure they refer to the same user
+      if (user_id && user_id !== targetUserId) {
+        return new Response(
+          JSON.stringify({ error: 'Mismatch between user_id and public_id' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Get target user by resolved id
     const { data: targetUser, error: targetError } = await supabaseAdmin
       .from('profiles')
       .select('id, public_id, full_name, email, is_super_admin')
-      .eq('id', user_id)
+      .eq('id', targetUserId)
       .single();
 
     if (targetError || !targetUser) {
@@ -120,6 +156,7 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     // Prevent resetting super admin password unless requester is also super admin
     if (targetUser.is_super_admin && !profile?.is_super_admin) {
@@ -130,12 +167,12 @@ Deno.serve(async (req) => {
     }
 
     // Update password and canonicalize email using admin API
-    console.log(`[Password Reset] Updating password for user ${user_id} (${targetUser.public_id})`);
+    console.log(`[Password Reset] Updating password for user ${targetUser.id} (${targetUser.public_id})`);
     // Always canonicalize to public_id-based login to ensure Public ID sign-in works reliably
     const canonicalEmail = `${(targetUser.public_id || '').toLowerCase()}@user.local`;
     const finalEmail = canonicalEmail;
     const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user_id,
+      targetUser.id,
       { 
         password: new_password,
         email: finalEmail,
