@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { RequireTenant } from "@/components/RequireTenant";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,13 +15,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle, Clock, Loader2, XCircle, Ban } from "lucide-react";
+import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle, Clock, Loader2, XCircle, Ban, FileX, Plus } from "lucide-react";
 import { TransactionDetailDrawer } from "@/components/TransactionDetailDrawer";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function TransactionDashboard() {
+  const navigate = useNavigate();
   const { activeTenantId } = useTenantSwitcher();
   const { isViewer, currentRole } = useRoleVisibility();
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -616,9 +618,59 @@ export default function TransactionDashboard() {
                   </Table>
                 </div>
               ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <ArrowLeftRight className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>ไม่พบรายการธุรกรรม</p>
+                <div className="flex flex-col items-center justify-center py-16 px-4 animate-fade-in">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                    <div className="relative p-6 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                      <FileX className="w-16 h-16 text-primary" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    ไม่พบรายการธุรกรรม
+                  </h3>
+                  <p className="text-muted-foreground text-center max-w-md mb-8">
+                    {searchQuery || statusFilter !== "all" || typeFilter !== "all" || verifiedFilter !== "all" 
+                      ? "ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา ลองปรับเปลี่ยนตัวกรองหรือค้นหาใหม่อีกครั้ง"
+                      : "คุณยังไม่มีรายการธุรกรรมในระบบ เริ่มต้นสร้างธุรกรรมใหม่ได้เลยตอนนี้"
+                    }
+                  </p>
+                  
+                  {!searchQuery && statusFilter === "all" && typeFilter === "all" && verifiedFilter === "all" && (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        onClick={() => navigate("/deposit-list")}
+                        className="bg-gradient-success text-white border-0 shadow-glow hover:shadow-neon transition-all group"
+                      >
+                        <ArrowDownToLine className="w-4 h-4 mr-2 group-hover:translate-y-1 transition-transform" />
+                        สร้างรายการฝากเงิน
+                      </Button>
+                      <Button
+                        onClick={() => navigate("/withdrawal-list")}
+                        className="bg-gradient-withdrawal text-white border-0 shadow-glow hover:shadow-neon transition-all group"
+                      >
+                        <ArrowUpFromLine className="w-4 h-4 mr-2 group-hover:-translate-y-1 transition-transform" />
+                        สร้างรายการถอนเงิน
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {(searchQuery || statusFilter !== "all" || typeFilter !== "all" || verifiedFilter !== "all") && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setStatusFilter("all");
+                        setTypeFilter("all");
+                        setVerifiedFilter("all");
+                        setDateRange({ from: undefined, to: undefined });
+                      }}
+                      className="border-primary/20 hover:bg-primary/10 transition-all"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      ล้างตัวกรองทั้งหมด
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
