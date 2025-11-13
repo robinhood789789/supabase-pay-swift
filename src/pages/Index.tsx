@@ -31,6 +31,29 @@ const Index = () => {
       
       {/* Animated Radial Gradients - Aurora Style */}
       <div className="absolute inset-0 bg-gradient-radial pointer-events-none"></div>
+      
+      {/* Floating Particles */}
+      <div className="particle particle-1" style={{ top: '10%', left: '15%' }}></div>
+      <div className="particle particle-2" style={{ top: '20%', right: '20%' }}></div>
+      <div className="particle particle-3" style={{ top: '30%', left: '30%' }}></div>
+      <div className="particle particle-1" style={{ top: '40%', right: '15%', animationDelay: '1s' }}></div>
+      <div className="particle particle-2" style={{ top: '50%', left: '10%', animationDelay: '2s' }}></div>
+      <div className="particle particle-3" style={{ top: '60%', right: '25%', animationDelay: '1.5s' }}></div>
+      <div className="particle particle-1" style={{ top: '70%', left: '20%', animationDelay: '3s' }}></div>
+      <div className="particle particle-2" style={{ top: '80%', right: '30%', animationDelay: '2.5s' }}></div>
+      <div className="particle particle-3" style={{ top: '15%', left: '50%', animationDelay: '1s' }}></div>
+      <div className="particle particle-1" style={{ top: '35%', right: '40%', animationDelay: '2s' }}></div>
+      <div className="particle particle-2" style={{ top: '55%', left: '45%', animationDelay: '3s' }}></div>
+      <div className="particle particle-3" style={{ top: '75%', right: '10%', animationDelay: '1.5s' }}></div>
+      <div className="particle particle-1" style={{ top: '25%', left: '70%', animationDelay: '2.5s' }}></div>
+      <div className="particle particle-2" style={{ top: '45%', right: '50%', animationDelay: '1s' }}></div>
+      <div className="particle particle-3" style={{ top: '65%', left: '60%', animationDelay: '2s' }}></div>
+      <div className="particle particle-1" style={{ top: '85%', right: '60%', animationDelay: '3s' }}></div>
+      <div className="particle particle-2" style={{ top: '5%', left: '40%', animationDelay: '1.5s' }}></div>
+      <div className="particle particle-3" style={{ top: '90%', right: '35%', animationDelay: '2.5s' }}></div>
+      <div className="particle particle-1" style={{ top: '12%', left: '80%', animationDelay: '1s' }}></div>
+      <div className="particle particle-2" style={{ top: '48%', right: '70%', animationDelay: '2s' }}></div>
+      
       <div className="absolute top-0 left-1/4 w-[900px] h-[900px] bg-gradient-radial-bright opacity-50 blur-3xl animate-pulse-glow pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 w-[900px] h-[900px] bg-gradient-radial-bright opacity-50 blur-3xl animate-pulse-glow pointer-events-none" style={{
       animationDelay: '1s'
