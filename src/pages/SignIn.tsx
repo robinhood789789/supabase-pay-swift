@@ -64,17 +64,11 @@ const SignIn = () => {
       <div className="shooting-star" style={{ top: '25%', right: '60%', animationDelay: '2s', animationDuration: '4s' }}></div>
       <div className="shooting-star" style={{ top: '60%', right: '70%', animationDelay: '4s', animationDuration: '3s' }}></div>
       
-      {/* Floating Icons with Parallax */}
-      <div 
-        className="absolute top-20 right-20 opacity-8 animate-float transition-transform duration-100"
-        style={{ animationDelay: '1s', transform: `translateY(${parallax1}px)` }}
-      >
+      {/* Floating Icons */}
+      <div className="absolute top-20 right-20 opacity-8">
         <Sparkles className="w-12 h-12 text-primary" strokeWidth={1.5} />
       </div>
-      <div 
-        className="absolute bottom-20 left-20 opacity-8 animate-float transition-transform duration-100" 
-        style={{ animationDelay: '2s', transform: `translateY(${parallax2}px)` }}
-      >
+      <div className="absolute bottom-20 left-20 opacity-8">
         <Orbit className="w-16 h-16 text-secondary" strokeWidth={1.5} />
       </div>
       

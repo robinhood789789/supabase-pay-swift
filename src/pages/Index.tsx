@@ -79,34 +79,20 @@ const Index = () => {
       animationDuration: '3.5s'
     }}></div>
       
-      {/* Space Theme Background Icons with Parallax */}
-      <div className="absolute top-10 right-1/4 opacity-10 animate-float transition-transform duration-100" style={{
-      transform: `translateY(${parallax1}px)`
-    }}>
+      {/* Space Theme Background Icons */}
+      <div className="absolute top-10 right-1/4 opacity-10">
         <Rocket className="w-20 h-20 text-primary rotate-45" strokeWidth={1.5} />
       </div>
-      <div className="absolute top-1/3 left-10 opacity-8 animate-float transition-transform duration-100" style={{
-      animationDelay: '1s',
-      transform: `translateY(${parallax2}px)`
-    }}>
+      <div className="absolute top-1/3 left-10 opacity-8">
         <Satellite className="w-16 h-16 text-secondary" strokeWidth={1.5} />
       </div>
-      <div className="absolute bottom-1/4 right-10 opacity-10 animate-float transition-transform duration-100" style={{
-      animationDelay: '2s',
-      transform: `translateY(${parallax3}px)`
-    }}>
+      <div className="absolute bottom-1/4 right-10 opacity-10">
         <Globe className="w-24 h-24 text-accent" strokeWidth={1.5} />
       </div>
-      <div className="absolute top-1/2 right-1/3 opacity-8 animate-float transition-transform duration-100" style={{
-      animationDelay: '0.5s',
-      transform: `translateY(${parallax4}px)`
-    }}>
+      <div className="absolute top-1/2 right-1/3 opacity-8">
         <Orbit className="w-20 h-20 text-primary" strokeWidth={1.5} />
       </div>
-      <div className="absolute bottom-20 left-1/4 opacity-6 animate-float transition-transform duration-100" style={{
-      animationDelay: '1.5s',
-      transform: `translateY(${parallax5}px)`
-    }}>
+      <div className="absolute bottom-20 left-1/4 opacity-6">
         <Sparkles className="w-12 h-12 text-primary" strokeWidth={1.5} />
       </div>
       
@@ -135,24 +121,13 @@ const Index = () => {
         <Star className="w-5 h-5 text-purple-400 fill-purple-400" />
       </div>
       
-      {/* Geometric Shapes with Parallax */}
-      <div className="absolute top-20 right-20 w-24 h-24 border border-accent/20 rounded-full animate-float transition-transform duration-100" style={{
-      animationDelay: '2s',
-      transform: `translateY(${parallax4}px)`
-    }}></div>
-      <div className="absolute top-1/2 left-10 w-16 h-16 transition-transform duration-100" style={{
-      transform: `translateY(${parallax3}px)`
-    }}>
-        <Hexagon className="w-full h-full text-primary/10 animate-float" style={{
-        animationDelay: '1.5s'
-      }} />
+      {/* Geometric Shapes */}
+      <div className="absolute top-20 right-20 w-24 h-24 border border-accent/20 rounded-full"></div>
+      <div className="absolute top-1/2 left-10 w-16 h-16">
+        <Hexagon className="w-full h-full text-primary/10" />
       </div>
-      <div className="absolute bottom-20 right-1/4 w-20 h-20 transition-transform duration-100" style={{
-      transform: `translateY(${parallax1}px)`
-    }}>
-        <Cpu className="w-full h-full text-secondary/10 animate-float" style={{
-        animationDelay: '0.5s'
-      }} />
+      <div className="absolute bottom-20 right-1/4 w-20 h-20">
+        <Cpu className="w-full h-full text-secondary/10" />
       </div>
       
       {/* Hero Section */}
