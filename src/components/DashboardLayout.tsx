@@ -151,7 +151,6 @@ const DashboardSidebar = () => {
   // Developers menu items - H-3: แยก API Keys/Webhooks/Docs
   const developersMenuItems = [
     { title: 'API Keys', url: "/settings?tab=api-keys", icon: KeyRound, permission: "api_keys.view" },
-    { title: 'ตั้งค่า Webhook', url: "/webhook-setup", icon: Webhook, permission: "webhooks.manage" },
     { title: 'Webhooks (Outbound)', url: "/settings?tab=webhooks", icon: Webhook, permission: "webhooks.manage" },
     { title: 'API Docs', url: "/docs", icon: Book, ownerOnly: true },
   ].filter((item: any) =>
