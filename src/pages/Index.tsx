@@ -28,8 +28,6 @@ const Index = () => {
     }
   }, [user, isShareholder, shLoading, navigate]);
   return <div className="min-h-screen bg-gradient-hero animate-gradient relative overflow-hidden">
-      {/* Grid Pattern Background */}
-      <div className="absolute inset-0 grid-pattern opacity-20"></div>
       
       {/* Animated Radial Gradients - Aurora Style */}
       <div className="absolute inset-0 bg-gradient-radial pointer-events-none"></div>
