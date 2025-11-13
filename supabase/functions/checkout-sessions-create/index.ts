@@ -7,6 +7,8 @@ import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateAmount, validateString, validateEmail, sanitizeErrorMessage } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 import { CheckoutSessionRequest } from '../_shared/types.ts';
+import { createLogger, extractRequestContext } from '../_shared/logger.ts';
+import { handleEnhancedError, ValidationError, AuthenticationError, AuthorizationError } from '../_shared/enhanced-errors.ts';
 
 function validateRequest(body: any): CheckoutSessionRequest {
   if (!body || typeof body !== "object") {
@@ -129,12 +131,18 @@ async function authenticateRequest(
 }
 
 serve(async (req) => {
+  const logger = createLogger('checkout-sessions-create');
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    logger.logRequest(req);
+    const requestContext = extractRequestContext(req);
+    logger.setContext(requestContext);
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -142,30 +150,44 @@ serve(async (req) => {
     // Get tenant ID from header
     const tenantId = req.headers.get("x-tenant");
     if (!tenantId) {
-      return new Response(
-        JSON.stringify({ error: "X-Tenant header is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new ValidationError("X-Tenant header is required");
     }
+
+    logger.setContext({ tenantId });
+    logger.info('Processing checkout session creation', { tenantId });
 
     // Authenticate
     const auth = await authenticateRequest(req, supabase, tenantId);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      logger.warn('Authentication failed', { tenantId });
+      throw new AuthenticationError('Invalid authentication credentials');
+    }
+
+    if (auth.userId) {
+      logger.setContext({ userId: auth.userId });
+      logger.info('User authenticated via JWT', { userId: auth.userId });
+    } else {
+      logger.info('Authenticated via API key');
     }
 
     // MFA Step-up check for user-initiated payment creation
     if (auth.userId) {
       // CSRF validation for user sessions
       const csrfError = await requireCSRF(req, auth.userId);
-      if (csrfError) return csrfError;
+      if (csrfError) {
+        logger.warn('CSRF validation failed', { userId: auth.userId });
+        return csrfError;
+      }
+
+      logger.debug('CSRF validation passed');
 
       // Rate limiting: 100 checkout sessions per hour per user
       const rateLimitResult = checkRateLimit(auth.userId, 100, 3600000);
       if (!rateLimitResult.allowed) {
+        logger.warn('Rate limit exceeded', { 
+          userId: auth.userId,
+          resetAt: rateLimitResult.resetAt 
+        });
         return new Response(
           JSON.stringify({ 
             error: 'Too many checkout session requests. Please try again later.',
@@ -174,6 +196,8 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      logger.debug('Rate limit check passed');
 
       // Get user role and check if super admin
       const { data: profile } = await supabase
@@ -206,13 +230,22 @@ serve(async (req) => {
       });
 
       if (!mfaCheck.ok) {
+        logger.warn('MFA step-up required', { 
+          userId: auth.userId,
+          action: 'create-payment',
+          code: mfaCheck.code 
+        });
         return createMfaError(mfaCheck.code!, mfaCheck.message!);
       }
+
+      logger.info('MFA step-up check passed');
     }
 
     // Check for idempotency key
     const idempotencyKey = req.headers.get("idempotency-key");
     if (idempotencyKey) {
+      logger.debug('Checking idempotency key', { idempotencyKey });
+      
       const { data: existing } = await supabase
         .from("idempotency_keys")
         .select("response")
@@ -222,7 +255,7 @@ serve(async (req) => {
         .single();
 
       if (existing) {
-        console.log("Returning cached response for idempotency key:", idempotencyKey);
+        logger.info('Returning cached response', { idempotencyKey });
         return new Response(
           JSON.stringify(existing.response),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -272,10 +305,8 @@ serve(async (req) => {
     }
 
     if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      logger.warn('Validation errors detected', { errors: validationErrors });
+      throw new ValidationError(validationErrors.map(e => e.message).join(', '), { errors: validationErrors });
     }
     
     const params = validateRequest(body);
@@ -283,14 +314,28 @@ serve(async (req) => {
     // Override tenantId with actual value
     params.tenantId = tenantId;
 
+    logger.info('Request validated successfully', { 
+      amount: params.amount,
+      currency: params.currency,
+      methodTypes: params.methodTypes
+    });
+
     // Get payment provider
     const provider = await getPaymentProvider(supabase, tenantId);
-
-    // Secure logging - no PII
-    console.log(`[Checkout] Creating session for tenant ${tenantId}, amount: ${params.amount} ${params.currency}`);
+    logger.info('Payment provider loaded', { provider: provider.name });
 
     // Create session with provider
+    logger.info('Creating checkout session with provider', { 
+      provider: provider.name,
+      amount: params.amount,
+      currency: params.currency
+    });
+
     const providerSession = await provider.createCheckoutSession(params);
+    logger.info('Provider session created', { 
+      providerSessionId: providerSession.providerSessionId,
+      status: providerSession.status
+    });
 
     // Store in database
     const { data: session, error: dbError } = await supabase
@@ -312,9 +357,11 @@ serve(async (req) => {
       .single();
 
     if (dbError) {
-      console.error("Database error:", dbError);
+      logger.error('Database insert failed', dbError);
       throw new Error("Failed to create checkout session");
     }
+
+    logger.info('Checkout session stored in database', { sessionId: session.id });
 
     const response = {
       id: session.id,
@@ -355,20 +402,21 @@ serve(async (req) => {
           ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.substring(0, 15) || null,
           user_agent: req.headers.get('user-agent')?.substring(0, 255) || null
         });
+      
+      logger.info('Audit log created');
     }
 
-    console.log(`[Checkout] Session created: ${session.id}`);
+    logger.info('Checkout session created successfully', { 
+      sessionId: session.id,
+      duration: logger.getDuration()
+    });
+    logger.logResponse(200, response);
 
     return new Response(JSON.stringify(response), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    // Secure error logging - no sensitive data
-    console.error('[Checkout] Error:', (error as Error).message);
-    return new Response(
-      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return handleEnhancedError(error, logger);
   }
 });

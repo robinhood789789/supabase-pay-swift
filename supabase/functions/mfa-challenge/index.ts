@@ -4,24 +4,24 @@ import { verifyTOTP, hashCode } from "../_shared/totp.ts";
 import { checkRateLimit, resetRateLimit } from "../_shared/rate-limit.ts";
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 import { MfaChallengeResponse } from '../_shared/types.ts';
+import { createLogger, extractRequestContext } from '../_shared/logger.ts';
+import { handleEnhancedError, ValidationError, AuthenticationError, RateLimitError } from '../_shared/enhanced-errors.ts';
 
 serve(async (req) => {
+  const logger = createLogger('mfa-challenge');
+  
   const corsResponse = handleCorsPreflight(req);
   if (corsResponse) return corsResponse;
 
   try {
-    console.log('[MFA Challenge] Request received');
+    logger.logRequest(req);
+    const requestContext = extractRequestContext(req);
+    logger.setContext(requestContext);
     
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('[MFA Challenge] Missing authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
-        }
-      );
+      logger.warn('Missing authorization header');
+      throw new AuthenticationError('Authorization header required');
     }
 
     const supabase = createClient(
@@ -32,15 +32,12 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      console.error('[MFA Challenge] Auth error:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
-        }
-      );
+      logger.warn('Authentication failed', { error: userError?.message });
+      throw new AuthenticationError('Invalid authentication token');
     }
+
+    logger.setContext({ userId: user.id });
+    logger.info('User authenticated', { email: user.email });
 
     // Rate limiting: Max 5 attempts per minute per user, 15-minute lockout on failure
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
@@ -49,10 +46,20 @@ serve(async (req) => {
     const rateLimitKey = `mfa-challenge:${user.id}:${clientIp}`;
     const rateLimit = checkRateLimit(rateLimitKey, 5, 60000, 900000); // 5 attempts, 1 min window, 15 min lockout
 
+    logger.debug('Rate limit check', { 
+      allowed: rateLimit.allowed,
+      remaining: rateLimit.remaining,
+      isLocked: rateLimit.isLocked
+    });
+
     if (!rateLimit.allowed) {
       if (rateLimit.isLocked) {
         const lockedMinutes = Math.ceil((rateLimit.lockedUntil! - Date.now()) / 60000);
-        console.log(`[MFA Challenge] User ${user.id} is locked out for ${lockedMinutes} minutes`);
+        logger.warn('Account locked due to too many MFA attempts', { 
+          userId: user.id,
+          lockedMinutes,
+          lockedUntil: rateLimit.lockedUntil
+        });
         
         // Log failed attempt due to lockout
         await supabase
@@ -84,34 +91,35 @@ serve(async (req) => {
         );
       }
 
-      return new Response(
-        JSON.stringify({ 
-          error: 'Too many attempts. Please try again later.',
-          remaining: rateLimit.remaining
-        }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Rate limit exceeded', { 
+        userId: user.id,
+        remaining: rateLimit.remaining 
+      });
+      throw new RateLimitError('Too many attempts. Please try again later.', { 
+        remaining: rateLimit.remaining 
+      });
     }
 
-    console.log(`[MFA Challenge] User ${user.email} attempting verification (${rateLimit.remaining} attempts remaining)`);
+    logger.info('Rate limit check passed', { 
+      remaining: rateLimit.remaining,
+      email: user.email 
+    });
 
     const body = await req.json();
     const { code, type = 'totp' } = body;
     
-    console.log(`[MFA Challenge] Request body:`, { code: code ? '***' : 'missing', type });
+    logger.debug('Verification attempt', { 
+      hasCode: !!code, 
+      type,
+      codeLength: code?.length 
+    });
     
     if (!code) {
-      console.error('[MFA Challenge] Missing verification code');
-      return new Response(
-        JSON.stringify({ error: 'Missing verification code' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
+      logger.warn('Missing verification code');
+      throw new ValidationError('Verification code is required');
     }
 
-    console.log(`[MFA Challenge] User ${user.email} attempting ${type} verification`);
+    logger.info('Starting MFA verification', { type, email: user.email });
 
     // Get user's profile
     const { data: profile, error: profileError } = await supabase
@@ -121,27 +129,18 @@ serve(async (req) => {
       .single();
 
     if (profileError) {
-      console.error('[MFA Challenge] Profile error:', profileError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch user profile' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      );
+      logger.error('Failed to fetch user profile', profileError);
+      throw new Error('Failed to fetch user profile');
     }
 
-    console.log(`[MFA Challenge] Profile loaded, totp_enabled: ${profile?.totp_enabled}`);
+    logger.debug('Profile loaded', { 
+      totpEnabled: profile?.totp_enabled,
+      hasBackupCodes: !!profile?.totp_backup_codes?.length
+    });
 
     if (!profile?.totp_enabled) {
-      console.error('[MFA Challenge] TOTP not enabled for user');
-      return new Response(
-        JSON.stringify({ error: 'Two-factor authentication is not enabled' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
+      logger.warn('TOTP not enabled for user', { userId: user.id });
+      throw new ValidationError('Two-factor authentication is not enabled');
     }
 
     let isValid = false;
@@ -149,16 +148,11 @@ serve(async (req) => {
 
     if (type === 'totp' && code.length === 6) {
       // Verify TOTP code
-      console.log(`[MFA Challenge] Verifying TOTP code length: ${code.length}`);
+      logger.debug('Verifying TOTP code', { codeLength: code.length });
+      
       if (!profile.totp_secret) {
-        console.error('[MFA Challenge] No TOTP secret found');
-        return new Response(
-          JSON.stringify({ error: 'TOTP secret not configured' }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 500 
-          }
-        );
+        logger.error('TOTP secret not configured', { userId: user.id });
+        throw new Error('TOTP secret not configured');
       }
 
       // Decrypt the secret before verification
@@ -171,18 +165,13 @@ serve(async (req) => {
         .rpc('decrypt_totp_secret', { encrypted_secret: profile.totp_secret });
 
       if (decryptError || !decryptedSecret) {
-        console.error('[MFA Challenge] Decryption error:', decryptError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to decrypt TOTP secret' }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 500 
-          }
-        );
+        logger.error('Failed to decrypt TOTP secret', decryptError);
+        throw new Error('Failed to decrypt TOTP secret');
       }
 
+      logger.debug('TOTP secret decrypted successfully');
       isValid = await verifyTOTP(decryptedSecret, code);
-      console.log(`[MFA Challenge] TOTP verification result: ${isValid}`);
+      logger.info('TOTP verification completed', { isValid });
     } else if (type === 'recovery' || code.includes('-')) {
       // Verify recovery code - hash and compare
       const cleanCode = code.toUpperCase().replace(/-/g, '');
@@ -201,11 +190,20 @@ serve(async (req) => {
           .update({ totp_backup_codes: newBackupCodes })
           .eq('id', user.id);
         
-        console.log(`[MFA Challenge] Recovery code used, ${newBackupCodes.length} remaining`);
+        logger.info('Recovery code used', { 
+          userId: user.id,
+          remainingCodes: newBackupCodes.length 
+        });
       }
     }
 
     if (!isValid) {
+      logger.warn('Invalid verification code', { 
+        userId: user.id,
+        type,
+        remainingAttempts: rateLimit.remaining 
+      });
+
       // Create audit log for failed attempt
       await supabase
         .from('audit_logs')
@@ -218,21 +216,19 @@ serve(async (req) => {
           user_agent: req.headers.get('user-agent')?.substring(0, 255) || null,
         });
 
-      return new Response(
-        JSON.stringify({ 
-          error: 'Invalid verification code',
-          remaining_attempts: rateLimit.remaining
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
+      throw new ValidationError('Invalid verification code', { 
+        remaining_attempts: rateLimit.remaining 
+      });
     }
 
     // Success - reset rate limit
     resetRateLimit(rateLimitKey);
-    console.log(`[MFA Challenge] Verification successful for ${user.email}`);
+    logger.info('MFA verification successful', { 
+      userId: user.id,
+      email: user.email,
+      type,
+      usedRecoveryCode
+    });
 
     // Get tenant policy to determine window
     const { data: membership } = await supabase
@@ -272,14 +268,25 @@ serve(async (req) => {
         user_agent: req.headers.get('user-agent')?.substring(0, 255) || null,
       });
 
+    logger.info('Audit log created');
+
+    const responseData = { 
+      ok: true,
+      valid_for_seconds: stepupWindow,
+      recovery_code_used: usedRecoveryCode,
+      remaining_attempts: rateLimit.remaining,
+      message: 'Verification successful'
+    };
+
+    logger.info('MFA challenge completed successfully', { 
+      stepupWindow,
+      recoveryCodeUsed: usedRecoveryCode,
+      duration: logger.getDuration()
+    });
+    logger.logResponse(200, responseData);
+
     return new Response(
-      JSON.stringify({ 
-        ok: true,
-        valid_for_seconds: stepupWindow,
-        recovery_code_used: usedRecoveryCode,
-        remaining_attempts: rateLimit.remaining,
-        message: 'Verification successful'
-      }),
+      JSON.stringify(responseData),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -287,19 +294,6 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[MFA Challenge] Uncaught error:', error);
-    console.error('[MFA Challenge] Error stack:', error instanceof Error ? error.stack : 'No stack');
-    
-    const message = error instanceof Error ? error.message : 'An error occurred';
-    return new Response(
-      JSON.stringify({ 
-        error: message,
-        details: 'Internal server error occurred. Please try again.'
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
-    );
+    return handleEnhancedError(error, logger);
   }
 });
