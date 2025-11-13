@@ -493,10 +493,59 @@ export default function TransactionDashboard() {
             </CardHeader>
             <CardContent>
               {txLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>วันที่</TableHead>
+                        <TableHead>Reference</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Fee</TableHead>
+                        <TableHead className="text-right">Net Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Verified</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...Array(5)].map((_, index) => (
+                        <TableRow key={index} className="animate-fade-in">
+                          <TableCell>
+                            <Skeleton className="h-4 w-24 animate-pulse" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-28 animate-pulse" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-16 rounded-full animate-pulse" />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Skeleton className="h-4 w-20 ml-auto animate-pulse" />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Skeleton className="h-4 w-16 ml-auto animate-pulse" />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Skeleton className="h-4 w-24 ml-auto animate-pulse" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Skeleton className="h-8 w-16 mx-auto rounded animate-pulse" />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               ) : filteredTransactions && filteredTransactions.length > 0 ? (
                 <div className="rounded-md border overflow-x-auto">
