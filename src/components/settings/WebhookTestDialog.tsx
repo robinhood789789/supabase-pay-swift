@@ -11,7 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Send, CheckCircle2, XCircle, Clock, Code, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -53,6 +55,58 @@ const EVENT_OPTIONS = [
   { value: "webhook.test", label: "Webhook Test", description: "สำหรับทดสอบ webhook" },
 ];
 
+// Sample payloads for each event type
+const SAMPLE_PAYLOADS: Record<string, any> = {
+  "payment.succeeded": {
+    event: "payment.succeeded",
+    id: "pay_test_123456",
+    amount: 1000.00,
+    currency: "THB",
+    status: "succeeded",
+    customer: {
+      id: "cus_test_123",
+      email: "customer@example.com"
+    },
+    created_at: new Date().toISOString()
+  },
+  "payment.failed": {
+    event: "payment.failed",
+    id: "pay_test_123456",
+    amount: 1000.00,
+    currency: "THB",
+    status: "failed",
+    error: {
+      code: "card_declined",
+      message: "The card was declined"
+    },
+    created_at: new Date().toISOString()
+  },
+  "payment.pending": {
+    event: "payment.pending",
+    id: "pay_test_123456",
+    amount: 1000.00,
+    currency: "THB",
+    status: "pending",
+    created_at: new Date().toISOString()
+  },
+  "refund.created": {
+    event: "refund.created",
+    id: "ref_test_123456",
+    payment_id: "pay_test_123456",
+    amount: 1000.00,
+    currency: "THB",
+    status: "pending",
+    reason: "requested_by_customer",
+    created_at: new Date().toISOString()
+  },
+  "webhook.test": {
+    event: "webhook.test",
+    id: "test_" + Date.now(),
+    message: "This is a test webhook event",
+    timestamp: new Date().toISOString()
+  }
+};
+
 export const WebhookTestDialog = ({
   open,
   onOpenChange,
@@ -61,16 +115,41 @@ export const WebhookTestDialog = ({
   webhookEvents,
 }: WebhookTestDialogProps) => {
   const [selectedEvent, setSelectedEvent] = useState<string>("webhook.test");
+  const [customPayload, setCustomPayload] = useState<string>("");
+  const [useCustomPayload, setUseCustomPayload] = useState(false);
   const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
+  // Update custom payload when event changes
+  const handleEventChange = (eventType: string) => {
+    setSelectedEvent(eventType);
+    const samplePayload = SAMPLE_PAYLOADS[eventType] || SAMPLE_PAYLOADS["webhook.test"];
+    setCustomPayload(JSON.stringify(samplePayload, null, 2));
+  };
+
   const testWebhookMutation = useMutation({
-    mutationFn: async (eventType: string) => {
+    mutationFn: async () => {
       const startTime = Date.now();
+      
+      let payload: any = {
+        webhook_id: webhookId,
+        event_type: selectedEvent
+      };
+
+      // If using custom payload, parse and send it
+      if (useCustomPayload && customPayload.trim()) {
+        try {
+          const parsedPayload = JSON.parse(customPayload);
+          payload = {
+            ...payload,
+            custom_payload: parsedPayload
+          };
+        } catch (e) {
+          throw new Error("Invalid JSON payload: " + (e as Error).message);
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('webhooks-send-test', {
-        body: { 
-          webhook_id: webhookId,
-          event_type: eventType 
-        },
+        body: payload,
       });
 
       const duration = Date.now() - startTime;
@@ -106,14 +185,24 @@ export const WebhookTestDialog = ({
 
   const handleTest = () => {
     setTestResult(null);
-    testWebhookMutation.mutate(selectedEvent);
+    testWebhookMutation.mutate();
   };
 
   const handleClose = () => {
     setTestResult(null);
     setSelectedEvent("webhook.test");
+    setCustomPayload("");
+    setUseCustomPayload(false);
     onOpenChange(false);
   };
+
+  // Initialize payload when dialog opens
+  useState(() => {
+    if (open && !customPayload) {
+      const samplePayload = SAMPLE_PAYLOADS[selectedEvent] || SAMPLE_PAYLOADS["webhook.test"];
+      setCustomPayload(JSON.stringify(samplePayload, null, 2));
+    }
+  });
 
   // Filter available events based on webhook subscription
   const availableEvents = EVENT_OPTIONS.filter(
@@ -139,25 +228,101 @@ export const WebhookTestDialog = ({
             </div>
           </div>
 
-          {/* Event Selector */}
-          <div className="space-y-2">
-            <Label>Select Event Type</Label>
-            <Select value={selectedEvent} onValueChange={setSelectedEvent}>
-              <SelectTrigger>
-                <SelectValue placeholder="เลือก event type" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableEvents.map((event) => (
-                  <SelectItem key={event.value} value={event.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{event.label}</span>
-                      <span className="text-xs text-muted-foreground">{event.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Configuration Tabs */}
+          <Tabs defaultValue="simple" className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="simple" className="gap-2">
+                <Send className="w-4 h-4" />
+                Simple Test
+              </TabsTrigger>
+              <TabsTrigger value="custom" className="gap-2">
+                <Code className="w-4 h-4" />
+                Custom Payload
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="simple" className="space-y-4 flex-1">
+              {/* Event Selector */}
+              <div className="space-y-2">
+                <Label>Select Event Type</Label>
+                <Select value={selectedEvent} onValueChange={(val) => {
+                  handleEventChange(val);
+                  setUseCustomPayload(false);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="เลือก event type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableEvents.map((event) => (
+                      <SelectItem key={event.value} value={event.value}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{event.label}</span>
+                          <span className="text-xs text-muted-foreground">{event.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sample Payload Preview */}
+              <div className="space-y-2">
+                <Label>Sample Payload</Label>
+                <ScrollArea className="h-40 border rounded-lg">
+                  <div className="p-3 bg-muted/30">
+                    <pre className="text-xs font-mono">
+                      {JSON.stringify(SAMPLE_PAYLOADS[selectedEvent] || SAMPLE_PAYLOADS["webhook.test"], null, 2)}
+                    </pre>
+                  </div>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="custom" className="space-y-4 flex-1">
+              {/* Event Selector */}
+              <div className="space-y-2">
+                <Label>Event Type (for reference)</Label>
+                <Select value={selectedEvent} onValueChange={handleEventChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="เลือก event type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableEvents.map((event) => (
+                      <SelectItem key={event.value} value={event.value}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{event.label}</span>
+                          <span className="text-xs text-muted-foreground">{event.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Custom Payload Editor */}
+              <div className="space-y-2 flex-1 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <Label>Custom JSON Payload</Label>
+                  <Badge variant="outline" className="gap-1">
+                    <Code className="w-3 h-3" />
+                    JSON
+                  </Badge>
+                </div>
+                <Textarea
+                  value={customPayload}
+                  onChange={(e) => {
+                    setCustomPayload(e.target.value);
+                    setUseCustomPayload(true);
+                  }}
+                  placeholder='{"event": "webhook.test", "data": {...}}'
+                  className="font-mono text-xs flex-1 min-h-[200px]"
+                />
+                <p className="text-xs text-muted-foreground">
+                  แก้ไข JSON payload ตามต้องการ - ระบบจะส่งค่านี้ไปยัง webhook endpoint
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           {/* Test Button */}
           <Button

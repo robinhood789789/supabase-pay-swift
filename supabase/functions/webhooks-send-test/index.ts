@@ -28,7 +28,7 @@ serve(async (req) => {
       });
     }
 
-    const { webhook_id } = await req.json();
+    const { webhook_id, event_type, custom_payload } = await req.json();
 
     if (!webhook_id) {
       return new Response(JSON.stringify({ error: 'webhook_id is required' }), {
@@ -99,28 +99,40 @@ serve(async (req) => {
       });
     }
 
-    // Create test payload
-    const testPayload = {
-      event: 'webhook.test',
-      timestamp: new Date().toISOString(),
-      data: {
-        test: true,
-        message: 'This is a test webhook event',
-        webhook_id: webhook_id,
-      },
-    };
+    // Create test payload - use custom payload if provided
+    const eventTypeToUse = event_type || 'webhook.test';
+    let testPayload: any;
+
+    if (custom_payload) {
+      // Use custom payload provided by user
+      testPayload = custom_payload;
+    } else {
+      // Use default test payload
+      testPayload = {
+        event: eventTypeToUse,
+        timestamp: new Date().toISOString(),
+        data: {
+          test: true,
+          message: `This is a test ${eventTypeToUse} webhook event`,
+          webhook_id: webhook_id,
+        },
+      };
+    }
 
     // Generate signature
     const signature = await generateSignature(JSON.stringify(testPayload), webhookDetails.secret);
 
+    // Prepare request headers
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+      'X-Webhook-Signature': signature,
+      'X-Webhook-Event': eventTypeToUse,
+    };
+
     // Send test webhook
     const webhookResponse = await fetch(webhookDetails.url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Webhook-Signature': signature,
-        'X-Webhook-Event': 'webhook.test',
-      },
+      headers: requestHeaders,
       body: JSON.stringify(testPayload),
     });
 
@@ -132,7 +144,7 @@ serve(async (req) => {
       .from('webhook_events')
       .insert({
         tenant_id: webhookDetails.tenant_id,
-        event_type: 'webhook.test',
+        event_type: eventTypeToUse,
         payload: testPayload,
         status: success ? 'delivered' : 'failed',
         last_error: success ? null : `HTTP ${webhookResponse.status}: ${responseText}`,
@@ -141,10 +153,12 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success,
       status: webhookResponse.status,
-      response: responseText.slice(0, 500), // Limit response size
+      response: responseText.slice(0, 1000), // Increased limit for better debugging
       message: success 
         ? 'Test webhook sent successfully' 
         : 'Test webhook failed - check webhook URL and endpoint',
+      requestPayload: testPayload,
+      requestHeaders: requestHeaders,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
