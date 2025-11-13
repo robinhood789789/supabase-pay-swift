@@ -153,12 +153,15 @@ const Index = () => {
               filter: 'drop-shadow(0 0 30px rgba(6, 182, 212, 1)) drop-shadow(0 0 60px rgba(6, 182, 212, 0.8))'
             }} className="text-white tracking-wider font-orbitron text-7xl md:text-8xl font-extrabold block mb-4 animate-fade-in-up animate-text-glow-pulse">PayX</span>
               <span style={{
+              fontWeight: 950,
               background: 'linear-gradient(90deg, #06b6d4 0%, #a855f7 25%, #ec4899 50%, #a855f7 75%, #06b6d4 100%)',
               backgroundSize: '200% 100%',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
-              filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 40px rgba(6, 182, 212, 0.5))'
+              WebkitTextStroke: '1.5px rgba(6, 182, 212, 0.6)',
+              filter: 'drop-shadow(0 0 25px rgba(168, 85, 247, 1)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 75px rgba(236, 72, 153, 0.6))',
+              textShadow: '0 0 30px rgba(168, 85, 247, 0.9), 0 0 60px rgba(6, 182, 212, 0.7), 0 2px 8px rgba(0, 0, 0, 0.8)'
             }} className="text-3xl md:text-4xl font-black tracking-tight block animate-fade-in-delayed animate-shimmer">POWER YOUR PAYMENT</span>
             </h1>
             <div className="flex items-center justify-center gap-2">
