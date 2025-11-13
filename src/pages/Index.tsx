@@ -157,11 +157,8 @@ const Index = () => {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
-              WebkitTextStroke: '1.5px rgba(6, 182, 212, 0.6)',
-              filter: 'drop-shadow(0 0 25px rgba(168, 85, 247, 1)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.8)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9))',
-              fontWeight: 950,
-              textShadow: '0 0 30px rgba(6, 182, 212, 0.9), 0 0 60px rgba(168, 85, 247, 0.7), 0 4px 12px rgba(0, 0, 0, 1), 2px 2px 0 rgba(6, 182, 212, 0.3), -2px -2px 0 rgba(168, 85, 247, 0.3)'
-            }} className="text-3xl md:text-4xl tracking-tight block animate-fade-in-delayed animate-shimmer">POWER YOUR PAYMENT</span>
+              filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 40px rgba(6, 182, 212, 0.5))'
+            }} className="text-3xl md:text-4xl font-black tracking-tight block animate-fade-in-delayed animate-shimmer">POWER YOUR PAYMENT</span>
             </h1>
             <div className="flex items-center justify-center gap-2">
               <div className="h-1 w-20 bg-primary shadow-neon"></div>
