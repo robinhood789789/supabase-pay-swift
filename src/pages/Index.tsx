@@ -169,10 +169,10 @@ const Index = () => {
             <h1 className="text-6xl font-black text-white mb-6 tracking-tighter drop-shadow-2xl relative md:text-7xl">
               <span style={{
               fontWeight: 950,
-              WebkitTextStroke: '3px rgba(6, 182, 212, 1)',
+              WebkitTextStroke: '4px rgba(6, 182, 212, 1)',
               textShadow: '0 0 40px rgba(6, 182, 212, 1), 0 0 80px rgba(6, 182, 212, 1), 0 0 120px rgba(6, 182, 212, 0.8), 0 0 160px rgba(6, 182, 212, 0.6), 0 4px 20px rgba(0, 0, 0, 0.9)',
               filter: 'drop-shadow(0 0 30px rgba(6, 182, 212, 1)) drop-shadow(0 0 60px rgba(6, 182, 212, 0.8))'
-            }} className="text-white tracking-wider font-orbitron text-7xl md:text-8xl font-extrabold block mb-4 animate-fade-in-up animate-text-glow-pulse">PayX</span>
+            }} className="text-white tracking-wider font-orbitron text-8xl md:text-9xl font-extrabold block mb-4 animate-fade-in-up animate-text-glow-pulse">PayX</span>
               <span className="inline-block px-8 py-4 relative">
                 <span className="absolute inset-0 rounded-2xl" style={{
                   background: 'linear-gradient(135deg, #06b6d4 0%, #a855f7 50%, #ec4899 100%)',
