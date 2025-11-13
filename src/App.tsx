@@ -89,6 +89,7 @@ import SecurityAlerts from "./pages/SecurityAlerts";
 import MfaTroubleshooting from "./pages/MfaTroubleshooting";
 import CustomerBankAccounts from "./pages/admin/CustomerBankAccounts";
 import IncomingTransactions from "./pages/admin/IncomingTransactions";
+import WebhookSetup from "./pages/WebhookSetup";
 
 const queryClient = new QueryClient();
 
@@ -161,6 +162,14 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <WebhookEvents />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/webhook-setup"
+        element={
+          <ProtectedRoute>
+            <WebhookSetup />
           </ProtectedRoute>
         }
       />
