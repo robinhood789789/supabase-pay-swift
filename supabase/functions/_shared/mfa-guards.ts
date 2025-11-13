@@ -18,14 +18,28 @@ interface RequireStepUpOptions {
 export async function requireStepUp(options: RequireStepUpOptions): Promise<StepUpResult> {
   const { supabase, userId, tenantId, action, userRole, isSuperAdmin } = options;
 
-  console.log(`[MFA Guard] Checking step-up for user ${userId}, action: ${action}`);
+  console.log(`[MFA Guard] Checking step-up for user ${userId}, action: ${action}, role: ${userRole}, tenantId: ${tenantId}`);
 
   // Check if user is super admin
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('is_super_admin, totp_enabled, mfa_last_verified_at')
     .eq('id', userId)
     .single();
+
+  if (profileError) {
+    console.error('[MFA Guard] Profile query error:', profileError);
+    // Fail open if we can't fetch profile
+    return { ok: true };
+  }
+
+  if (!profile) {
+    console.error('[MFA Guard] Profile not found for user:', userId);
+    // Fail open if profile doesn't exist
+    return { ok: true };
+  }
+
+  console.log(`[MFA Guard] Profile loaded - totp_enabled: ${profile.totp_enabled}, is_super_admin: ${profile.is_super_admin}, mfa_last_verified_at: ${profile.mfa_last_verified_at}`);
 
   const isSuper = isSuperAdmin || profile?.is_super_admin || false;
 
@@ -68,17 +82,23 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
 
   // For non-super admin, check tenant policy
   if (!tenantId) {
+    console.log('[MFA Guard] No tenant context, allowing');
     return { ok: true }; // No tenant context, allow
   }
 
-  const { data: policy } = await supabase
+  const { data: policy, error: policyError } = await supabase
     .from('tenant_security_policy')
     .select('*')
     .eq('tenant_id', tenantId)
     .single();
 
+  if (policyError && policyError.code !== 'PGRST116') {
+    console.error('[MFA Guard] Policy query error:', policyError);
+  }
+
   // If no policy exists, don't require MFA (but create a default one)
   if (!policy) {
+    console.log('[MFA Guard] No security policy found, creating default');
     // Create default policy
     await supabase
       .from('tenant_security_policy')
@@ -92,6 +112,8 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
     // For now, don't block (policy just created)
     return { ok: true };
   }
+
+  console.log(`[MFA Guard] Policy loaded - require_2fa_for_owner: ${policy.require_2fa_for_owner}, require_2fa_for_admin: ${policy.require_2fa_for_admin}`);
 
   // Check if MFA is required for this role
   let mfaRequired = false;
@@ -107,12 +129,15 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
     mfaRequired = true;
   }
 
+  console.log(`[MFA Guard] MFA required for role ${userRole}: ${mfaRequired}`);
+
   if (!mfaRequired) {
     return { ok: true }; // MFA not required for this role
   }
 
   // MFA is required, check enrollment
   if (!profile?.totp_enabled) {
+    console.log(`[MFA Guard] MFA required but not enrolled - totp_enabled: ${profile?.totp_enabled}`);
     return {
       ok: false,
       code: 'MFA_ENROLL_REQUIRED',
@@ -120,12 +145,15 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
     };
   }
 
+  console.log('[MFA Guard] TOTP is enabled, checking verification status');
+
   // Check if verification is still valid
   const lastVerified = profile.mfa_last_verified_at 
     ? new Date(profile.mfa_last_verified_at) 
     : null;
 
   if (!lastVerified) {
+    console.log('[MFA Guard] No mfa_last_verified_at found, challenge required');
     return {
       ok: false,
       code: 'MFA_CHALLENGE_REQUIRED',
@@ -137,7 +165,10 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
   const diffInSeconds = (now.getTime() - lastVerified.getTime()) / 1000;
   const stepupWindow = policy.stepup_window_seconds || 300;
 
+  console.log(`[MFA Guard] Verification check - last verified: ${lastVerified.toISOString()}, seconds ago: ${diffInSeconds}, window: ${stepupWindow}`);
+
   if (diffInSeconds >= stepupWindow) {
+    console.log('[MFA Guard] MFA verification expired');
     return {
       ok: false,
       code: 'MFA_CHALLENGE_REQUIRED',
@@ -145,6 +176,7 @@ export async function requireStepUp(options: RequireStepUpOptions): Promise<Step
     };
   }
 
+  console.log('[MFA Guard] Step-up check passed');
   return { ok: true };
 }
 

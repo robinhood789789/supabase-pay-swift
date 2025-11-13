@@ -98,8 +98,23 @@ export const ApiKeysManager = () => {
 
       const { data, error } = await invokeFunctionWithTenant("api-credentials-create", { body });
 
-      if (error) throw new Error(error.message);
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        console.error('[API Keys] Edge function error:', error);
+        throw new Error(error.message);
+      }
+      
+      if (data.error) {
+        console.error('[API Keys] API error response:', data);
+        // Check for MFA-related errors
+        if (data.code === 'MFA_ENROLL_REQUIRED') {
+          throw new Error('กรุณาตั้งค่า Two-Factor Authentication ก่อนสร้าง API Credentials (Settings > Security)');
+        }
+        if (data.code === 'MFA_CHALLENGE_REQUIRED') {
+          throw new Error('กรุณายืนยันตัวตนด้วย 2FA อีกครั้ง');
+        }
+        throw new Error(data.error);
+      }
+      
       return data;
     },
     onSuccess: (data) => {
@@ -111,6 +126,7 @@ export const ApiKeysManager = () => {
       toast.success("API credentials created successfully");
     },
     onError: (error: Error) => {
+      console.error('[API Keys] Mutation error:', error);
       toast.error("Failed to create API key", {
         description: sanitizeClientError(error),
       });
