@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 import { requireStepUp } from '../_shared/mfa-guards.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 

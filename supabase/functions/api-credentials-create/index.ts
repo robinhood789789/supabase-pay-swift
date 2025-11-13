@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { crypto } from "https://deno.land/std@0.177.0/crypto/mod.ts";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
 import { createSecureErrorResponse, createFriendlyErrorResponse } from "../_shared/error-handling.ts";

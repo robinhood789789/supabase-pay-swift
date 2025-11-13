@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 import { ShareholderCreateRequest } from '../_shared/types.ts';
 

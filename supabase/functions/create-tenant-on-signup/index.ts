@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -81,7 +81,7 @@ serve(async (req) => {
         JSON.stringify({ 
           error: 'User already has a tenant',
           tenant_id: existingMembership.tenant_id,
-          tenant_name: existingMembership.tenants?.name
+          tenant_name: (existingMembership.tenants as any)?.name
         }),
         { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
