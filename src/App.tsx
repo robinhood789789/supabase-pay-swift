@@ -90,6 +90,7 @@ import MfaTroubleshooting from "./pages/MfaTroubleshooting";
 import CustomerBankAccounts from "./pages/admin/CustomerBankAccounts";
 import IncomingTransactions from "./pages/admin/IncomingTransactions";
 import WebhookSetup from "./pages/WebhookSetup";
+import WebhookQuickSetup from "./pages/WebhookQuickSetup";
 
 const queryClient = new QueryClient();
 
@@ -170,6 +171,14 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <WebhookSetup />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/webhook-quick-setup"
+        element={
+          <ProtectedRoute>
+            <WebhookQuickSetup />
           </ProtectedRoute>
         }
       />

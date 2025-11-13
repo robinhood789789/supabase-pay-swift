@@ -132,6 +132,13 @@ const DashboardSidebar = () => {
   // Management menu items - filtered by permissions
   const allManagementItems = [
     { title: "Workbench", url: "/workbench", icon: Activity, ownerOnly: true }, // Owner only
+    { 
+      title: "Webhook Setup", 
+      url: "/webhook-quick-setup", 
+      icon: Webhook, 
+      permission: "webhooks.manage",
+      roleAccess: ['owner', 'developer', 'manager'] // Technical roles who can configure
+    },
     { title: "Products", url: "/products", icon: Package, permission: "products.view" },
     { title: "Payment Methods", url: "/payment-methods", icon: CreditCard, permission: "payment_methods.manage" },
     { title: "Reconciliation", url: "/reconciliation", icon: FileCheck, ownerOnly: true }, // Owner only - sensitive financial data
@@ -144,9 +151,19 @@ const DashboardSidebar = () => {
   ];
   
   // Filter management items based on actual permissions
-  const managementMenuItems = allManagementItems.filter((item: any) =>
-    (item.ownerOnly ? isOwner : (!item.permission || hasPermission(item.permission) || isOwner))
-  );
+  const managementMenuItems = allManagementItems.filter((item: any) => {
+    // Check if item has specific role access requirements
+    if (item.roleAccess) {
+      const userRole = activeTenant?.roles?.name;
+      return item.roleAccess.includes(userRole);
+    }
+    // Check owner-only access
+    if (item.ownerOnly) {
+      return isOwner;
+    }
+    // Otherwise use permission-based access
+    return !item.permission || hasPermission(item.permission) || isOwner;
+  });
 
   // Developers menu items - H-3: แยก API Keys/Webhooks/Docs
   const developersMenuItems = [
