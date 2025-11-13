@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle, Clock, Loader2, XCircle, Ban, FileX, Plus } from "lucide-react";
 import { TransactionDetailDrawer } from "@/components/TransactionDetailDrawer";
+import { SavedFiltersManager } from "@/components/SavedFiltersManager";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -218,6 +219,19 @@ export default function TransactionDashboard() {
     setIsDetailOpen(true);
   };
 
+  const handleApplyFilter = (filters: any) => {
+    // Convert ISO strings back to Date objects
+    const dateRange = filters.dateRange || {};
+    setStatusFilter(filters.statusFilter || "all");
+    setTypeFilter(filters.typeFilter || "all");
+    setVerifiedFilter(filters.verifiedFilter || "all");
+    setDateRange({
+      from: dateRange.from ? new Date(dateRange.from) : undefined,
+      to: dateRange.to ? new Date(dateRange.to) : undefined,
+    });
+    toast.success("ใช้ Filter สำเร็จ");
+  };
+
   const verifiedStats = {
     total: transactions?.length || 0,
     verified: transactions?.filter(t => t.is_verified).length || 0,
@@ -319,11 +333,24 @@ export default function TransactionDashboard() {
           {/* Filters */}
           <Card className="border border-primary/20 bg-card/70 backdrop-blur-xl shadow-elegant hover:shadow-glow transition-all">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5 text-primary" />
-                ตัวกรองการค้นหา
-              </CardTitle>
-              <CardDescription>กรองและค้นหาธุรกรรมตามเงื่อนไขต่างๆ</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Search className="w-5 h-5 text-primary" />
+                    ตัวกรองการค้นหา
+                  </CardTitle>
+                  <CardDescription>กรองและค้นหาธุรกรรมตามเงื่อนไขต่างๆ</CardDescription>
+                </div>
+                <SavedFiltersManager
+                  currentFilters={{
+                    statusFilter,
+                    typeFilter,
+                    verifiedFilter,
+                    dateRange,
+                  }}
+                  onApplyFilter={handleApplyFilter}
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Status Filter */}
