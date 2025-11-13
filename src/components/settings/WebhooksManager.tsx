@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { invokeFunctionWithTenant } from "@/lib/supabaseFunctions";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ export const WebhooksManager = () => {
   const queryClient = useQueryClient();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
   const { hasPermission } = usePermissions();
+  const { tenantId } = useAuth();
 
   const { data: webhooks, isLoading } = useQuery({
     queryKey: ["webhooks"],
@@ -62,12 +64,17 @@ export const WebhooksManager = () => {
 
   const createWebhookMutation = useMutation({
     mutationFn: async ({ url, description, events }: { url: string; description: string; events: string[] }) => {
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
+
       // Generate webhook secret using browser crypto
       const secret = crypto.randomUUID();
       
       const { data, error } = await (supabase as any)
         .from("webhooks")
         .insert({
+          tenant_id: tenantId,
           url: url.trim(),
           description: description.trim(),
           events: events,

@@ -2246,6 +2246,59 @@ export type Database = {
         }
         Relationships: []
       }
+      webhooks: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          events: Json | null
+          failure_count: number
+          id: string
+          last_triggered_at: string | null
+          secret: string
+          success_count: number
+          tenant_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          events?: Json | null
+          failure_count?: number
+          id?: string
+          last_triggered_at?: string | null
+          secret: string
+          success_count?: number
+          tenant_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          events?: Json | null
+          failure_count?: number
+          id?: string
+          last_triggered_at?: string | null
+          secret?: string
+          success_count?: number
+          tenant_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_tx_daily_by_shareholder: {
