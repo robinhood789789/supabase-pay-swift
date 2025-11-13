@@ -3,12 +3,21 @@ import { getPaymentProvider } from "../_shared/providerFactory.ts";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
 import { evaluateGuardrails, createApprovalRequest } from "../_shared/guardrails.ts";
 import { checkRefundConcurrency } from "../_shared/concurrency.ts";
-import { createSecureErrorResponse, logSecureAction } from "../_shared/error-handling.ts";
 import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
 import { validateAmount, validateString } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 import { RefundRequest } from '../_shared/types.ts';
+import { createLogger, extractRequestContext } from '../_shared/logger.ts';
+import { 
+  handleEnhancedError, 
+  ValidationError, 
+  AuthenticationError, 
+  AuthorizationError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError 
+} from '../_shared/enhanced-errors.ts';
 
 // Rate limiting: Critical endpoint - strict rate limits enforced
 // 20 requests per hour per user
@@ -17,7 +26,13 @@ Deno.serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);
   if (corsResponse) return corsResponse;
 
+  const logger = createLogger('refunds-create');
+  const requestContext = extractRequestContext(req);
+  logger.setContext(requestContext);
+
   try {
+    logger.logRequest(req);
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -26,30 +41,27 @@ Deno.serve(async (req) => {
     // Get tenant ID from header
     const tenantId = req.headers.get('x-tenant');
     if (!tenantId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing X-Tenant header' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new ValidationError('Missing X-Tenant header');
     }
+    
+    logger.setContext({ tenantId });
 
     // Authenticate request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AuthenticationError('Missing authorization header');
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Authentication failed', { error: authError?.message });
+      throw new AuthenticationError('Invalid or expired token');
     }
+    
+    logger.setContext({ userId: user.id });
+    logger.info('User authenticated successfully');
 
     // Check refunds:create permission
     const { data: membership } = await supabase
@@ -60,10 +72,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!membership) {
-      return new Response(
-        JSON.stringify({ error: 'Not a member of this tenant' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new AuthorizationError('Not a member of this tenant');
     }
 
     const userRole = (membership.roles as any)?.name;
@@ -78,11 +87,11 @@ Deno.serve(async (req) => {
     );
 
     if (!hasPermission) {
-      return new Response(
-        JSON.stringify({ error: 'Missing refunds:create permission' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Permission denied', { userRole, requiredPermission: 'refunds:create' });
+      throw new AuthorizationError('Missing refunds:create permission');
     }
+    
+    logger.info('Permission check passed', { userRole });
 
     // MFA Step-up check for refunds
     const mfaCheck = await requireStepUp({
@@ -102,15 +111,12 @@ Deno.serve(async (req) => {
     if (csrfError) return csrfError;
 
     // Rate limiting: 20 refund requests per hour per user
-    const rateLimitResult = checkRateLimit(user.id, 20, 3600000); // 20 attempts, 1 hour window
+    const rateLimitResult = checkRateLimit(user.id, 20, 3600000);
     if (!rateLimitResult.allowed) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Too many refund requests. Please try again later.',
-          resetAt: new Date(rateLimitResult.resetAt).toISOString()
-        }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Rate limit exceeded', { userId: user.id, resetAt: rateLimitResult.resetAt });
+      throw new RateLimitError('Too many refund requests. Please try again later.', {
+        resetAt: new Date(rateLimitResult.resetAt).toISOString()
+      });
     }
 
     // Parse request body
@@ -134,11 +140,11 @@ Deno.serve(async (req) => {
     }
 
     if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Validation failed', { errors: validationErrors });
+      throw new ValidationError(validationErrors.map(e => e.message).join(', '));
     }
+    
+    logger.info('Input validation passed', { paymentId, amount });
 
     // Get payment details
     const { data: payment, error: paymentError } = await supabase
@@ -149,36 +155,37 @@ Deno.serve(async (req) => {
       .single();
 
     if (paymentError || !payment) {
-      return new Response(
-        JSON.stringify({ error: 'Payment not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Payment not found', { paymentId, error: paymentError?.message });
+      throw new NotFoundError('Payment');
     }
 
     if (payment.status !== 'succeeded') {
-      return new Response(
-        JSON.stringify({ error: 'Can only refund succeeded payments' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Invalid payment status for refund', { paymentId, status: payment.status });
+      throw new ValidationError('Can only refund succeeded payments');
     }
+    
+    logger.info('Payment found and validated', { 
+      paymentId, 
+      amount: payment.amount, 
+      status: payment.status 
+    });
 
     // Calculate refund amount (default to full refund)
     const refundAmount = amount || payment.amount;
 
     if (refundAmount > payment.amount) {
-      return new Response(
-        JSON.stringify({ error: 'Refund amount exceeds payment amount' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Refund amount exceeds payment amount', { 
+        refundAmount, 
+        paymentAmount: payment.amount 
+      });
+      throw new ValidationError('Refund amount exceeds payment amount');
     }
 
     // Concurrency check - prevent double refunds
     const concurrencyCheck = await checkRefundConcurrency(supabase, paymentId, refundAmount);
     if (!concurrencyCheck.allowed) {
-      return new Response(
-        JSON.stringify({ error: concurrencyCheck.error }),
-        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Concurrency check failed', { error: concurrencyCheck.error });
+      throw new ConflictError(concurrencyCheck.error || 'Refund already in progress');
     }
 
     // Check guardrails
@@ -192,13 +199,12 @@ Deno.serve(async (req) => {
     });
 
     if (guardrailCheck.blocked) {
-      return new Response(
-        JSON.stringify({ error: 'Action blocked by guardrail', reason: guardrailCheck.reason }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Guardrail blocked refund', { reason: guardrailCheck.reason });
+      throw new AuthorizationError('Action blocked by guardrail: ' + guardrailCheck.reason);
     }
 
     if (guardrailCheck.requiresApproval) {
+      logger.info('Refund requires approval', { reason: guardrailCheck.reason });
       const approvalResult = await createApprovalRequest(supabase, {
         tenantId,
         requestedBy: user.id,
@@ -227,10 +233,13 @@ Deno.serve(async (req) => {
 
     // Get payment provider
     const provider = await getPaymentProvider(supabase, tenantId);
+    logger.info('Payment provider initialized', { provider: provider.constructor.name });
 
-    // Secure logging - no PII, with request ID
-    const requestId = crypto.randomUUID();
-    console.log(`[Refund:${requestId}] Processing for payment ${paymentId.substring(0, 8)}..., amount: ${refundAmount} ${payment.currency}`);
+    logger.info('Processing refund', { 
+      paymentId: paymentId.substring(0, 8) + '...', 
+      amount: refundAmount, 
+      currency: payment.currency 
+    });
 
     // Create refund record with processing status (prevents concurrent refunds)
     const { data: refund, error: refundInsertError } = await supabase
@@ -246,12 +255,11 @@ Deno.serve(async (req) => {
       .single();
 
     if (refundInsertError) {
-      console.error('Refund insert error:', refundInsertError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to create refund record' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.error('Failed to create refund record', refundInsertError);
+      throw new Error('Failed to create refund record');
     }
+    
+    logger.info('Refund record created', { refundId: refund.id });
 
     // Call provider refund API
     try {
@@ -260,6 +268,12 @@ Deno.serve(async (req) => {
         refundAmount,
         reason
       );
+
+      logger.info('Provider refund successful', { 
+        refundId: refund.id,
+        providerRefundId: refundResponse.refundId,
+        status: refundResponse.status 
+      });
 
       // Update refund record with provider response
       await supabase
@@ -292,13 +306,22 @@ Deno.serve(async (req) => {
             refund_amount: refundAmount,
             refund_status: refundResponse.status,
             provider_refund_id: refundResponse.refundId,
-            request_id: requestId
+            request_id: requestContext.requestId
           },
-          ip: clientIp.substring(0, 45), // IPv6 max length
+          ip: clientIp.substring(0, 45),
           user_agent: userAgent
         });
 
-      console.log(`[Refund] Created successfully: ${refund.id}`);
+      logger.info('Refund completed successfully', { refundId: refund.id });
+
+      const response = {
+        refundId: refund.id,
+        status: refundResponse.status,
+        amount: refundAmount,
+        providerRefundId: refundResponse.refundId
+      };
+
+      logger.logResponse(200, response);
 
       return new Response(
         JSON.stringify({
@@ -311,7 +334,7 @@ Deno.serve(async (req) => {
       );
 
     } catch (error) {
-      console.error('Provider refund error:', error);
+      logger.error('Provider refund failed', error);
       
       // Update refund status to failed
       await supabase
@@ -337,10 +360,10 @@ Deno.serve(async (req) => {
           user_agent: req.headers.get('user-agent') || null
         });
 
-      return createSecureErrorResponse(error, 'refunds-create', corsHeaders);
+      return handleEnhancedError(error, logger);
     }
 
   } catch (error) {
-    return createSecureErrorResponse(error, 'refunds-create', corsHeaders);
+    return handleEnhancedError(error, logger);
   }
 });

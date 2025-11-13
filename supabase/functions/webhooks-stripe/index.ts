@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { 
   verifyWebhookSignature, 
@@ -7,6 +7,8 @@ import {
   storeProviderEvent,
   enqueueWebhookEvents 
 } from "../_shared/webhook-security.ts";
+import { createLogger, extractRequestContext } from '../_shared/logger.ts';
+import { handleEnhancedError, ValidationError, ExternalServiceError } from '../_shared/enhanced-errors.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,12 +34,13 @@ async function verifyStripeSignature(
 async function processPaymentEvent(
   supabase: any,
   event: Stripe.Event,
-  tenantId: string
+  tenantId: string,
+  logger: any
 ) {
   const eventType = event.type;
   const data = event.data.object as any;
 
-  console.log(`Processing Stripe event: ${eventType} for tenant ${tenantId}`);
+  logger.info('Processing Stripe event', { eventType, tenantId, eventId: event.id });
 
   // Find checkout session by provider_session_id
   const { data: session } = await supabase
@@ -48,9 +51,11 @@ async function processPaymentEvent(
     .single();
 
   if (!session) {
-    console.log("No checkout session found for provider session:", data.id);
+    logger.warn("No checkout session found", { providerSessionId: data.id });
     return;
   }
+  
+  logger.info('Checkout session found', { sessionId: session.id, status: session.status });
 
   let paymentStatus = session.status;
   let paidAt: string | undefined;
@@ -105,6 +110,8 @@ async function processPaymentEvent(
       .single();
 
     payment = updated;
+    
+    logger.info('Payment updated', { paymentId: existingPayment.id, status: paymentStatus });
 
     // Audit log for payment update
     await supabase.from("audit_logs").insert({
@@ -132,6 +139,8 @@ async function processPaymentEvent(
       .single();
 
     payment = created;
+    
+    logger.info('Payment created', { paymentId: created.id, amount: session.amount, status: paymentStatus });
 
     // Audit log for payment creation
     await supabase.from("audit_logs").insert({
@@ -166,6 +175,7 @@ async function processPaymentEvent(
           raw_event: data,
         }
       );
+      logger.info('Webhook events enqueued', { tenantId, eventType: event.type });
     }
 }
 
@@ -174,7 +184,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const logger = createLogger('webhooks-stripe');
+  const requestContext = extractRequestContext(req);
+  logger.setContext(requestContext);
+
   try {
+    logger.logRequest(req);
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -185,22 +201,18 @@ serve(async (req) => {
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
     if (!webhookSecret) {
-      console.error("STRIPE_WEBHOOK_SECRET not configured");
-      return new Response(
-        JSON.stringify({ error: "Webhook secret not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      logger.error("STRIPE_WEBHOOK_SECRET not configured");
+      throw new ValidationError("Webhook secret not configured");
     }
 
     // Verify signature using shared library
     const verifyResult = await verifyWebhookSignature('stripe', payload, signature, webhookSecret);
     if (!verifyResult.valid) {
-      console.error('[Stripe Webhook] Signature verification failed:', verifyResult.error);
-      return new Response(
-        JSON.stringify({ error: verifyResult.error || 'Invalid signature' }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      logger.error('Signature verification failed', { error: verifyResult.error });
+      throw new ValidationError(verifyResult.error || 'Invalid signature');
     }
+    
+    logger.info('Webhook signature verified');
 
     // Parse Stripe event from payload
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -208,11 +220,12 @@ serve(async (req) => {
     });
     const event = stripe.webhooks.constructEvent(payload, signature!, webhookSecret);
 
-    console.log("Verified Stripe webhook event:", event.type, event.id);
+    logger.info('Stripe webhook event verified', { eventType: event.type, eventId: event.id });
 
     // Check for duplicate event using shared library
     if (await isEventProcessed(supabase, 'stripe', event.id)) {
-      console.log("Event already processed:", event.id);
+      logger.info('Event already processed (idempotency check)', { eventId: event.id });
+      logger.logResponse(200, { received: true, message: "Event already processed" });
       return new Response(
         JSON.stringify({ received: true, message: "Event already processed" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -227,26 +240,27 @@ serve(async (req) => {
     const tenantId = data.metadata?.tenant_id;
 
     if (!tenantId) {
-      console.log("No tenant_id in event metadata, skipping processing");
+      logger.warn("No tenant_id in event metadata, skipping processing");
+      logger.logResponse(200, { received: true });
       return new Response(
         JSON.stringify({ received: true }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    logger.setContext({ tenantId });
 
     // Process the event
-    await processPaymentEvent(supabase, event, tenantId);
+    await processPaymentEvent(supabase, event, tenantId, logger);
 
+    logger.info('Webhook processing completed successfully');
+    logger.logResponse(200, { received: true });
+    
     return new Response(
       JSON.stringify({ received: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error processing Stripe webhook:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return handleEnhancedError(error, logger);
   }
 });
