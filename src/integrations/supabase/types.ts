@@ -2214,37 +2214,73 @@ export type Database = {
         Row: {
           attempts: number | null
           created_at: string | null
+          delivered_at: string | null
+          error_message: string | null
           event_type: string | null
           id: string
           last_error: string | null
           payload: Json | null
           provider: string | null
+          response_body: string | null
+          response_status: number | null
+          retry_count: number
           status: string | null
+          success: boolean | null
           tenant_id: string | null
+          webhook_id: string
         }
         Insert: {
           attempts?: number | null
           created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
           event_type?: string | null
           id?: string
           last_error?: string | null
           payload?: Json | null
           provider?: string | null
+          response_body?: string | null
+          response_status?: number | null
+          retry_count?: number
           status?: string | null
+          success?: boolean | null
           tenant_id?: string | null
+          webhook_id: string
         }
         Update: {
           attempts?: number | null
           created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
           event_type?: string | null
           id?: string
           last_error?: string | null
           payload?: Json | null
           provider?: string | null
+          response_body?: string | null
+          response_status?: number | null
+          retry_count?: number
           status?: string | null
+          success?: boolean | null
           tenant_id?: string | null
+          webhook_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhooks: {
         Row: {
