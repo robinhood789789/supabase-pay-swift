@@ -148,8 +148,9 @@ const Index = () => {
             <h1 className="text-6xl font-black text-white mb-6 tracking-tighter drop-shadow-2xl relative md:text-7xl">
               <span style={{
               fontWeight: 950,
-              WebkitTextStroke: '2px rgba(6, 182, 212, 0.8)',
-              textShadow: '0 0 30px rgba(6, 182, 212, 1), 0 0 60px rgba(6, 182, 212, 0.8), 0 0 90px rgba(6, 182, 212, 0.6), 0 4px 12px rgba(0, 0, 0, 0.8)'
+              WebkitTextStroke: '3px rgba(6, 182, 212, 1)',
+              textShadow: '0 0 40px rgba(6, 182, 212, 1), 0 0 80px rgba(6, 182, 212, 1), 0 0 120px rgba(6, 182, 212, 0.8), 0 0 160px rgba(6, 182, 212, 0.6), 0 4px 20px rgba(0, 0, 0, 0.9)',
+              filter: 'drop-shadow(0 0 30px rgba(6, 182, 212, 1)) drop-shadow(0 0 60px rgba(6, 182, 212, 0.8))'
             }} className="text-white tracking-wider font-orbitron text-7xl md:text-8xl font-extrabold block mb-4 animate-fade-in-up">PayX</span>
               <span style={{
               background: 'linear-gradient(90deg, #06b6d4 0%, #a855f7 25%, #ec4899 50%, #a855f7 75%, #06b6d4 100%)',
