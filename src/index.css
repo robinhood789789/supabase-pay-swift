@@ -306,6 +306,22 @@ body {
     }
   }
   
+  /* Text Glow Pulse Animation */
+  .animate-text-glow-pulse {
+    animation: textGlowPulse 3s ease-in-out infinite;
+  }
+  
+  @keyframes textGlowPulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 30px rgba(6, 182, 212, 1)) drop-shadow(0 0 60px rgba(6, 182, 212, 0.8));
+      text-shadow: 0 0 40px rgba(6, 182, 212, 1), 0 0 80px rgba(6, 182, 212, 1), 0 0 120px rgba(6, 182, 212, 0.8), 0 0 160px rgba(6, 182, 212, 0.6);
+    }
+    50% {
+      filter: drop-shadow(0 0 50px rgba(6, 182, 212, 1)) drop-shadow(0 0 100px rgba(168, 85, 247, 0.8));
+      text-shadow: 0 0 60px rgba(6, 182, 212, 1), 0 0 120px rgba(6, 182, 212, 1), 0 0 180px rgba(168, 85, 247, 0.9), 0 0 240px rgba(168, 85, 247, 0.7);
+    }
+  }
+  
   /* Focus Ring */
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
