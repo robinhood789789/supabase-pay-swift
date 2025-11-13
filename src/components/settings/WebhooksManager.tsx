@@ -211,26 +211,12 @@ export const WebhooksManager = () => {
   const canManage = hasPermission("webhooks.manage");
   const canView = hasPermission("webhooks.view");
   const canTest = hasPermission("webhooks.test");
-  
-  if (!canView && !canManage) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Webhooks</CardTitle>
-          <CardDescription>
-            คุณไม่มีสิทธิ์เข้าถึงส่วนนี้
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
 
   return (
     <>
       <div className="space-y-6">
         {/* Create Webhook Form */}
-        {canManage && (
-          <Card>
+        <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="w-5 h-5" />
@@ -349,7 +335,6 @@ export const WebhooksManager = () => {
               </div>
             </CardContent>
           </Card>
-        )}
 
         {/* Existing Webhooks List */}
         <Card>
