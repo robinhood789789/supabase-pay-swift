@@ -156,7 +156,7 @@ const SignIn = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-neon text-white hover:shadow-neon transition-all duration-500 font-bold tracking-wide border-2 border-aurora-cyan hover:border-aurora-purple shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] animate-pulse-glow" 
+                className="w-full bg-gradient-neon text-white hover:shadow-neon transition-all duration-500 font-bold tracking-wide border-2 border-aurora-cyan hover:border-aurora-purple shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] animate-pulse-glow hover:scale-105 active:scale-95" 
                 disabled={isLoading}
               >
                 {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
