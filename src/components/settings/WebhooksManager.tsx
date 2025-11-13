@@ -34,9 +34,12 @@ import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "../security/TwoFactorChallenge";
+import { WebhookTestDialog } from "./WebhookTestDialog";
 
 export const WebhooksManager = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [selectedWebhook, setSelectedWebhook] = useState<{ id: string; url: string; events: string[] } | null>(null);
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookDescription, setWebhookDescription] = useState("");
   const [selectedEvents, setSelectedEvents] = useState<string[]>([
@@ -194,8 +197,11 @@ export const WebhooksManager = () => {
     }));
   };
 
-  const handleTestWebhook = (webhookId: string) => {
-    checkAndChallenge(() => testWebhookMutation.mutate(webhookId));
+  const handleTestWebhook = (webhook: { id: string; url: string; events: string[] }) => {
+    checkAndChallenge(() => {
+      setSelectedWebhook(webhook);
+      setTestDialogOpen(true);
+    });
   };
 
   const handleDeleteWebhook = (webhookId: string) => {
@@ -401,15 +407,15 @@ export const WebhooksManager = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleTestWebhook(webhook.id)}
-                        disabled={!webhook.enabled || testWebhookMutation.isPending}
+                        onClick={() => handleTestWebhook({
+                          id: webhook.id,
+                          url: webhook.url,
+                          events: webhook.events || []
+                        })}
+                        disabled={!webhook.enabled}
                         className="gap-2"
                       >
-                        {testWebhookMutation.isPending ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
+                        <Send className="w-4 h-4" />
                         ทดสอบ
                       </Button>
                     )}
@@ -459,6 +465,15 @@ export const WebhooksManager = () => {
         </CardContent>
       </Card>
       <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
+      {selectedWebhook && (
+        <WebhookTestDialog
+          open={testDialogOpen}
+          onOpenChange={setTestDialogOpen}
+          webhookId={selectedWebhook.id}
+          webhookUrl={selectedWebhook.url}
+          webhookEvents={selectedWebhook.events}
+        />
+      )}
     </>
   );
 };
