@@ -13,6 +13,8 @@ import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
 import { Link } from "react-router-dom";
 import webhookHeroBanner from "@/assets/webhook-hero-banner.jpg";
+import DashboardLayout from "@/components/DashboardLayout";
+import { RequireTenant } from "@/components/RequireTenant";
 
 export default function WebhookQuickSetup() {
   const [webhookUrl, setWebhookUrl] = useState("");
@@ -96,8 +98,9 @@ export default function WebhookQuickSetup() {
   };
 
   return (
-    <>
-      <div className="container max-w-3xl mx-auto py-8 px-4">
+    <RequireTenant>
+      <DashboardLayout>
+        <div className="container max-w-3xl mx-auto py-8 px-4">
         <Card className="border-0 shadow-lg">
           <CardHeader className="space-y-4">
             {/* Hero Banner */}
@@ -185,9 +188,10 @@ export default function WebhookQuickSetup() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
-    </>
+        <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
+      </DashboardLayout>
+    </RequireTenant>
   );
 }
