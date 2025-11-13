@@ -121,7 +121,7 @@ const SignIn = () => {
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
                         <Input 
                           placeholder="OWNR-000001" 
-                          className="pl-10 uppercase bg-black/20 backdrop-blur-sm border-2 border-primary/40 text-cyan-100 placeholder:text-cyan-300/40 focus:border-primary focus:shadow-glow-info transition-all duration-300" 
+                          className="pl-10 uppercase bg-black/20 backdrop-blur-sm border-2 border-primary/40 text-cyan-100 placeholder:text-cyan-300/40 focus:border-aurora-cyan focus:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-all duration-300" 
                           {...field} 
                           onChange={(e) => field.onChange(e.target.value.toUpperCase())} 
                         />
@@ -144,7 +144,7 @@ const SignIn = () => {
                         <Input 
                           type="password" 
                           placeholder="••••••" 
-                          className="pl-10 bg-black/20 backdrop-blur-sm border-2 border-primary/40 text-cyan-100 placeholder:text-cyan-300/40 focus:border-primary focus:shadow-glow-info transition-all duration-300" 
+                          className="pl-10 bg-black/20 backdrop-blur-sm border-2 border-primary/40 text-cyan-100 placeholder:text-cyan-300/40 focus:border-aurora-cyan focus:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-all duration-300" 
                           {...field} 
                         />
                       </div>
