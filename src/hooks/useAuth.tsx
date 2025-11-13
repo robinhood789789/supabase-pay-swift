@@ -151,25 +151,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (publicIdOrEmail: string, password: string) => {
     try {
-      let email = publicIdOrEmail;
+      const rawInput = publicIdOrEmail.trim();
+      let email = rawInput;
+      const pidUpper = rawInput.toUpperCase();
+      const isPublicIdInput = /^[A-Z0-9]{2,6}-\d{6}$/.test(pidUpper);
       
-      // Check if it's a Public ID format (PREFIX-NNNNNN)
-      if (/^[A-Z0-9]{2,6}-\d{6}$/.test(publicIdOrEmail)) {
-        console.log('Looking up email for public_id:', publicIdOrEmail);
-        
+      // If input looks like a Public ID (case-insensitive), resolve to email via RPC
+      if (isPublicIdInput) {
+        console.log('Looking up email for public_id:', pidUpper);
         // Use database function to lookup email (bypasses RLS)
         const { data: emailData, error: lookupError } = await supabase
-          .rpc('get_email_by_public_id', { input_public_id: publicIdOrEmail });
+          .rpc('get_email_by_public_id', { input_public_id: pidUpper });
         
         if (lookupError) {
           console.error('Error looking up public_id:', lookupError);
-          // Fallback: try using {user_id}@system.local format for bootstrap test accounts
-          email = `${publicIdOrEmail}@system.local`;
+          // Fallback: try using {public_id}@system.local format for bootstrap test accounts
+          email = `${pidUpper.toLowerCase()}@system.local`;
           console.log('Fallback to system email format:', email);
         } else if (!emailData) {
           console.log('Public ID not found in database, using fallback email');
-          // Fallback: try using {user_id}@system.local format for bootstrap test accounts
-          email = `${publicIdOrEmail}@system.local`;
+          email = `${pidUpper.toLowerCase()}@system.local`;
         } else {
           console.log('Found email for public_id:', emailData);
           email = emailData as string;
@@ -180,14 +181,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let data: any | null = null;
       let error: any | null = null;
 
-      // If user typed Public ID, try multiple email candidates safely
-      const isPublicId = /^[A-Z0-9]{2,6}-\d{6}$/.test(publicIdOrEmail);
+      // If user typed Public ID, try multiple email candidates safely (case-insensitive)
+      const isPublicId = /^[A-Z0-9]{2,6}-\d{6}$/.test(pidUpper);
       const candidates: string[] = [];
       if (isPublicId) {
         // Primary from RPC lookup
         if (email) candidates.push(email.toLowerCase());
-        const pidUpper = publicIdOrEmail.toUpperCase();
-        const pidLower = publicIdOrEmail.toLowerCase();
+        const pidLower = pidUpper.toLowerCase();
         candidates.push(`${pidLower}@system.local`, `${pidLower}@user.local`, `${pidUpper}@system.local`, `${pidUpper}@user.local`);
       } else {
         candidates.push(email.toLowerCase());
