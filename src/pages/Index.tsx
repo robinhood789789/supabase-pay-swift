@@ -33,26 +33,103 @@ const Index = () => {
       <div className="absolute inset-0 bg-gradient-radial pointer-events-none"></div>
       
       {/* Floating Particles */}
-      <div className="particle particle-1" style={{ top: '10%', left: '15%' }}></div>
-      <div className="particle particle-2" style={{ top: '20%', right: '20%' }}></div>
-      <div className="particle particle-3" style={{ top: '30%', left: '30%' }}></div>
-      <div className="particle particle-1" style={{ top: '40%', right: '15%', animationDelay: '1s' }}></div>
-      <div className="particle particle-2" style={{ top: '50%', left: '10%', animationDelay: '2s' }}></div>
-      <div className="particle particle-3" style={{ top: '60%', right: '25%', animationDelay: '1.5s' }}></div>
-      <div className="particle particle-1" style={{ top: '70%', left: '20%', animationDelay: '3s' }}></div>
-      <div className="particle particle-2" style={{ top: '80%', right: '30%', animationDelay: '2.5s' }}></div>
-      <div className="particle particle-3" style={{ top: '15%', left: '50%', animationDelay: '1s' }}></div>
-      <div className="particle particle-1" style={{ top: '35%', right: '40%', animationDelay: '2s' }}></div>
-      <div className="particle particle-2" style={{ top: '55%', left: '45%', animationDelay: '3s' }}></div>
-      <div className="particle particle-3" style={{ top: '75%', right: '10%', animationDelay: '1.5s' }}></div>
-      <div className="particle particle-1" style={{ top: '25%', left: '70%', animationDelay: '2.5s' }}></div>
-      <div className="particle particle-2" style={{ top: '45%', right: '50%', animationDelay: '1s' }}></div>
-      <div className="particle particle-3" style={{ top: '65%', left: '60%', animationDelay: '2s' }}></div>
-      <div className="particle particle-1" style={{ top: '85%', right: '60%', animationDelay: '3s' }}></div>
-      <div className="particle particle-2" style={{ top: '5%', left: '40%', animationDelay: '1.5s' }}></div>
-      <div className="particle particle-3" style={{ top: '90%', right: '35%', animationDelay: '2.5s' }}></div>
-      <div className="particle particle-1" style={{ top: '12%', left: '80%', animationDelay: '1s' }}></div>
-      <div className="particle particle-2" style={{ top: '48%', right: '70%', animationDelay: '2s' }}></div>
+      <div className="particle particle-1" style={{
+      top: '10%',
+      left: '15%'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '20%',
+      right: '20%'
+    }}></div>
+      <div className="particle particle-3" style={{
+      top: '30%',
+      left: '30%'
+    }}></div>
+      <div className="particle particle-1" style={{
+      top: '40%',
+      right: '15%',
+      animationDelay: '1s'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '50%',
+      left: '10%',
+      animationDelay: '2s'
+    }}></div>
+      <div className="particle particle-3" style={{
+      top: '60%',
+      right: '25%',
+      animationDelay: '1.5s'
+    }}></div>
+      <div className="particle particle-1" style={{
+      top: '70%',
+      left: '20%',
+      animationDelay: '3s'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '80%',
+      right: '30%',
+      animationDelay: '2.5s'
+    }}></div>
+      <div className="particle particle-3" style={{
+      top: '15%',
+      left: '50%',
+      animationDelay: '1s'
+    }}></div>
+      <div className="particle particle-1" style={{
+      top: '35%',
+      right: '40%',
+      animationDelay: '2s'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '55%',
+      left: '45%',
+      animationDelay: '3s'
+    }}></div>
+      <div className="particle particle-3" style={{
+      top: '75%',
+      right: '10%',
+      animationDelay: '1.5s'
+    }}></div>
+      <div className="particle particle-1" style={{
+      top: '25%',
+      left: '70%',
+      animationDelay: '2.5s'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '45%',
+      right: '50%',
+      animationDelay: '1s'
+    }}></div>
+      <div className="particle particle-3" style={{
+      top: '65%',
+      left: '60%',
+      animationDelay: '2s'
+    }}></div>
+      <div className="particle particle-1" style={{
+      top: '85%',
+      right: '60%',
+      animationDelay: '3s'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '5%',
+      left: '40%',
+      animationDelay: '1.5s'
+    }}></div>
+      <div className="particle particle-3" style={{
+      top: '90%',
+      right: '35%',
+      animationDelay: '2.5s'
+    }}></div>
+      <div className="particle particle-1" style={{
+      top: '12%',
+      left: '80%',
+      animationDelay: '1s'
+    }}></div>
+      <div className="particle particle-2" style={{
+      top: '48%',
+      right: '70%',
+      animationDelay: '2s'
+    }}></div>
       
       <div className="absolute top-0 left-1/4 w-[900px] h-[900px] bg-gradient-radial-bright opacity-50 blur-3xl animate-pulse-glow pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 w-[900px] h-[900px] bg-gradient-radial-bright opacity-50 blur-3xl animate-pulse-glow pointer-events-none" style={{
@@ -172,27 +249,27 @@ const Index = () => {
               WebkitTextStroke: '4px rgba(6, 182, 212, 1)',
               textShadow: '0 0 40px rgba(6, 182, 212, 1), 0 0 80px rgba(6, 182, 212, 1), 0 0 120px rgba(6, 182, 212, 0.8), 0 0 160px rgba(6, 182, 212, 0.6), 0 4px 20px rgba(0, 0, 0, 0.9)',
               filter: 'drop-shadow(0 0 30px rgba(6, 182, 212, 1)) drop-shadow(0 0 60px rgba(6, 182, 212, 0.8))'
-            }} className="text-white tracking-wider font-orbitron text-8xl md:text-9xl font-extrabold block mb-4 animate-fade-in-up animate-text-glow-pulse">PayX</span>
+            }} className="text-white tracking-wider font-orbitron text-8xl block mb-4 animate-fade-in-up animate-text-glow-pulse mx-0 md:text-9xl font-extrabold">PayX</span>
               <span className="inline-block px-8 py-4 relative">
                 <span className="absolute inset-0 rounded-2xl" style={{
-                  background: 'linear-gradient(135deg, #06b6d4 0%, #a855f7 50%, #ec4899 100%)',
-                  padding: '3px',
-                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude',
-                  filter: 'drop-shadow(0 0 20px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 40px rgba(168, 85, 247, 0.6))'
-                }}></span>
+                background: 'linear-gradient(135deg, #06b6d4 0%, #a855f7 50%, #ec4899 100%)',
+                padding: '3px',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                filter: 'drop-shadow(0 0 20px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 40px rgba(168, 85, 247, 0.6))'
+              }}></span>
                 <span style={{
-                  fontWeight: 950,
-                  background: 'linear-gradient(90deg, #06b6d4 0%, #a855f7 25%, #ec4899 50%, #a855f7 75%, #06b6d4 100%)',
-                  backgroundSize: '200% 100%',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  WebkitTextStroke: '1.5px rgba(6, 182, 212, 0.6)',
-                  filter: 'drop-shadow(0 0 25px rgba(168, 85, 247, 1)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 75px rgba(236, 72, 153, 0.6))',
-                  textShadow: '0 0 30px rgba(168, 85, 247, 0.9), 0 0 60px rgba(6, 182, 212, 0.7), 0 2px 8px rgba(0, 0, 0, 0.8)'
-                }} className="text-3xl md:text-4xl font-black tracking-tight relative z-10 animate-shimmer">POWER YOUR PAYMENT</span>
+                fontWeight: 950,
+                background: 'linear-gradient(90deg, #06b6d4 0%, #a855f7 25%, #ec4899 50%, #a855f7 75%, #06b6d4 100%)',
+                backgroundSize: '200% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                WebkitTextStroke: '1.5px rgba(6, 182, 212, 0.6)',
+                filter: 'drop-shadow(0 0 25px rgba(168, 85, 247, 1)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 75px rgba(236, 72, 153, 0.6))',
+                textShadow: '0 0 30px rgba(168, 85, 247, 0.9), 0 0 60px rgba(6, 182, 212, 0.7), 0 2px 8px rgba(0, 0, 0, 0.8)'
+              }} className="text-3xl md:text-4xl font-black tracking-tight relative z-10 animate-shimmer">POWER YOUR PAYMENT</span>
               </span>
             </h1>
             <div className="flex items-center justify-center gap-2">
@@ -232,8 +309,8 @@ const Index = () => {
 
             {/* Card 2 */}
             <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-secondary/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-secondary/60 transition-all duration-500 cursor-pointer relative overflow-hidden animate-card-glow-pulse" style={{
-              animationDelay: '1.3s'
-            }}>
+            animationDelay: '1.3s'
+          }}>
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-neon"></div>
               <div className="relative z-10 space-y-4">
@@ -258,8 +335,8 @@ const Index = () => {
 
             {/* Card 3 */}
             <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-accent/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-accent/60 transition-all duration-500 cursor-pointer relative overflow-hidden animate-card-glow-pulse" style={{
-              animationDelay: '2.6s'
-            }}>
+            animationDelay: '2.6s'
+          }}>
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-neon"></div>
               <div className="relative z-10 space-y-4">
