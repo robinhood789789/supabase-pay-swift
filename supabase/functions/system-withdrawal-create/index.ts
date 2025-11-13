@@ -1,17 +1,31 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { requireStepUp } from "../_shared/mfa-guards.ts";
 import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
-import { validateAmount, validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
+import { validateAmount, validateString } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 import { WithdrawalRequest } from '../_shared/types.ts';
+import { createLogger, extractRequestContext } from '../_shared/logger.ts';
+import { 
+  handleEnhancedError, 
+  ValidationError, 
+  AuthenticationError, 
+  AuthorizationError,
+  RateLimitError 
+} from '../_shared/enhanced-errors.ts';
 
 serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);
   if (corsResponse) return corsResponse;
 
+  const logger = createLogger('system-withdrawal-create');
+  const requestContext = extractRequestContext(req);
+  logger.setContext(requestContext);
+
   try {
+    logger.logRequest(req);
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -20,19 +34,19 @@ serve(async (req) => {
 
     const tenantId = req.headers.get('x-tenant');
     if (!tenantId) {
-      return new Response(JSON.stringify({ error: 'Missing X-Tenant header' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new ValidationError('Missing X-Tenant header');
     }
+    
+    logger.setContext({ tenantId });
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      logger.warn('Authentication failed', { error: authError?.message });
+      throw new AuthenticationError('Invalid or expired token');
     }
+    
+    logger.setContext({ userId: user.id });
+    logger.info('User authenticated successfully');
 
     // Check if user is owner
     const { data: membership } = await supabaseClient
@@ -43,11 +57,11 @@ serve(async (req) => {
       .single();
 
     if (!membership || (membership as any).roles.name !== 'owner') {
-      return new Response(JSON.stringify({ error: 'Only owners can create system withdrawals' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      logger.warn('Insufficient role', { userRole: (membership as any)?.roles?.name, requiredRole: 'owner' });
+      throw new AuthorizationError('Only owners can create system withdrawals');
     }
+    
+    logger.info('Permission check passed', { userRole: 'owner' });
 
     // MFA Step-up check
     const stepUpResult = await requireStepUp({
@@ -77,13 +91,10 @@ serve(async (req) => {
     // Rate limiting: 10 system withdrawals per hour per user
     const rateLimitResult = checkRateLimit(user.id, 10, 3600000);
     if (!rateLimitResult.allowed) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Too many system withdrawal requests. Please try again later.',
-          resetAt: new Date(rateLimitResult.resetAt).toISOString()
-        }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Rate limit exceeded', { userId: user.id, resetAt: rateLimitResult.resetAt });
+      throw new RateLimitError('Too many system withdrawal requests. Please try again later.', {
+        resetAt: new Date(rateLimitResult.resetAt).toISOString()
+      });
     }
 
     const { amount, currency, method, bank_name, bank_account_number, bank_account_name, notes } = await req.json();
@@ -115,11 +126,11 @@ serve(async (req) => {
     }
 
     if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Validation failed', { errors: validationErrors });
+      throw new ValidationError(validationErrors.map(e => e.message).join(', '));
     }
+    
+    logger.info('Input validation passed', { amount, currency, method });
 
     // Get tenant wallet balance
     const { data: wallet } = await supabaseClient
@@ -129,11 +140,11 @@ serve(async (req) => {
       .single();
 
     if (!wallet || wallet.balance < amount) {
-      return new Response(JSON.stringify({ error: 'Insufficient balance' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      logger.warn('Insufficient balance', { balance: wallet?.balance, requested: amount });
+      throw new ValidationError('Insufficient balance');
     }
+    
+    logger.info('Balance check passed', { balance: wallet.balance, requested: amount });
 
     // Get tenant settings for limits
     const { data: settings } = await supabaseClient
@@ -144,10 +155,11 @@ serve(async (req) => {
 
     // Check per-transaction limit
     if (settings?.withdrawal_per_transaction_limit && amount > settings.withdrawal_per_transaction_limit) {
-      return new Response(JSON.stringify({ error: `Amount exceeds per-transaction limit of ${settings.withdrawal_per_transaction_limit / 100}` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      logger.warn('Per-transaction limit exceeded', { 
+        amount, 
+        limit: settings.withdrawal_per_transaction_limit 
       });
+      throw new ValidationError(`Amount exceeds per-transaction limit of ${settings.withdrawal_per_transaction_limit / 100}`);
     }
 
     // Check daily limit
@@ -163,14 +175,23 @@ serve(async (req) => {
 
     const todayTotal = (todayWithdrawals || []).reduce((sum, w) => sum + w.amount, 0);
     if (settings?.withdrawal_daily_limit && (todayTotal + amount) > settings.withdrawal_daily_limit) {
-      return new Response(JSON.stringify({ error: `Daily withdrawal limit exceeded. Today: ${todayTotal / 100}, Limit: ${settings.withdrawal_daily_limit / 100}` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      logger.warn('Daily withdrawal limit exceeded', { 
+        todayTotal, 
+        requested: amount, 
+        limit: settings.withdrawal_daily_limit 
       });
+      throw new ValidationError(`Daily withdrawal limit exceeded. Today: ${todayTotal / 100}, Limit: ${settings.withdrawal_daily_limit / 100}`);
     }
+    
+    logger.info('Limits check passed', { todayTotal, amount });
 
     // Check if approval is required
     if (settings?.withdrawal_approval_threshold && amount >= settings.withdrawal_approval_threshold) {
+      logger.info('Withdrawal requires approval', { 
+        amount, 
+        threshold: settings.withdrawal_approval_threshold 
+      });
+
       // Create approval request
       const { data: approval, error: approvalError } = await supabaseClient
         .from('approvals')
@@ -192,7 +213,12 @@ serve(async (req) => {
         .select()
         .single();
 
-      if (approvalError) throw approvalError;
+      if (approvalError) {
+        logger.error('Failed to create approval', approvalError);
+        throw approvalError;
+      }
+      
+      logger.info('Approval request created', { approvalId: approval.id });
 
       // Audit log
       await supabaseClient.from('audit_logs').insert({
@@ -203,12 +229,16 @@ serve(async (req) => {
         after: approval,
       });
 
-      return new Response(JSON.stringify({ 
+      const response = { 
         success: true, 
         requiresApproval: true,
         approvalId: approval.id,
         message: 'Withdrawal request created and pending approval'
-      }), {
+      };
+
+      logger.logResponse(200, response);
+
+      return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -231,7 +261,12 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (withdrawalError) throw withdrawalError;
+    if (withdrawalError) {
+      logger.error('Failed to create withdrawal', withdrawalError);
+      throw withdrawalError;
+    }
+    
+    logger.info('System withdrawal created', { withdrawalId: withdrawal.id, amount });
 
     // Audit log
     await supabaseClient.from('audit_logs').insert({
@@ -242,14 +277,16 @@ serve(async (req) => {
       after: withdrawal,
     });
 
-    return new Response(JSON.stringify({ success: true, withdrawal }), {
+    logger.info('System withdrawal completed successfully');
+
+    const response = { success: true, withdrawal };
+
+    logger.logResponse(200, response);
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in system-withdrawal-create:', error);
-    return new Response(JSON.stringify({ error: sanitizeErrorMessage(error as Error) }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return handleEnhancedError(error, logger);
   }
 });

@@ -1,17 +1,31 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { requireStepUp, createMfaError } from "../_shared/mfa-guards.ts";
 import { requireCSRF } from '../_shared/csrf-validation.ts';
 import { checkRateLimit } from '../_shared/rate-limit.ts';
-import { validateAmount, validateString, sanitizeErrorMessage } from '../_shared/validation.ts';
+import { validateAmount, validateString } from '../_shared/validation.ts';
 import { corsHeaders, handleCorsPreflight } from '../_shared/cors.ts';
 import { DepositRequest, TransactionRequest } from '../_shared/types.ts';
+import { createLogger, extractRequestContext } from '../_shared/logger.ts';
+import { 
+  handleEnhancedError, 
+  ValidationError, 
+  AuthenticationError, 
+  AuthorizationError,
+  RateLimitError 
+} from '../_shared/enhanced-errors.ts';
 
 serve(async (req) => {
   const corsResponse = handleCorsPreflight(req);
   if (corsResponse) return corsResponse;
 
+  const logger = createLogger('system-deposit-create');
+  const requestContext = extractRequestContext(req);
+  logger.setContext(requestContext);
+
   try {
+    logger.logRequest(req);
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -29,20 +43,20 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      logger.warn('Authentication failed', { error: userError?.message });
+      throw new AuthenticationError('Invalid or expired token');
     }
+    
+    logger.setContext({ userId: user.id });
 
     // Get tenant ID from header
     const tenantId = req.headers.get("x-tenant");
     if (!tenantId) {
-      return new Response(JSON.stringify({ error: "Tenant ID is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new ValidationError('Tenant ID is required');
     }
+    
+    logger.setContext({ tenantId });
+    logger.info('User authenticated successfully');
 
     // Verify user has owner or admin role in this tenant
     const { data: membership, error: membershipError } = await supabaseClient
@@ -53,25 +67,16 @@ serve(async (req) => {
       .single();
 
     if (membershipError || !membership) {
-      return new Response(
-        JSON.stringify({ error: "User is not a member of this tenant" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      throw new AuthorizationError('User is not a member of this tenant');
     }
 
     const roleName = (membership.roles as any)?.name;
     if (roleName !== "owner") {
-      return new Response(
-        JSON.stringify({ error: "Only owners can create system deposits" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      logger.warn('Insufficient role', { userRole: roleName, requiredRole: 'owner' });
+      throw new AuthorizationError('Only owners can create system deposits');
     }
+    
+    logger.info('Permission check passed', { userRole: roleName });
 
     // MFA Step-up check
     const mfaCheck = await requireStepUp({
@@ -93,13 +98,10 @@ serve(async (req) => {
     // Rate limiting: 20 system deposits per hour per user
     const rateLimitResult = checkRateLimit(user.id, 20, 3600000);
     if (!rateLimitResult.allowed) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Too many system deposit requests. Please try again later.',
-          resetAt: new Date(rateLimitResult.resetAt).toISOString()
-        }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      logger.warn('Rate limit exceeded', { userId: user.id, resetAt: rateLimitResult.resetAt });
+      throw new RateLimitError('Too many system deposit requests. Please try again later.', {
+        resetAt: new Date(rateLimitResult.resetAt).toISOString()
+      });
     }
 
     // Parse request body
@@ -128,11 +130,11 @@ serve(async (req) => {
     }
 
     if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({ error: validationErrors.map(e => e.message).join(', ') }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      logger.warn('Validation failed', { errors: validationErrors });
+      throw new ValidationError(validationErrors.map(e => e.message).join(', '));
     }
+    
+    logger.info('Input validation passed', { amount, currency, method });
 
     // Create payment record with type = 'deposit' and status = 'succeeded'
     const { data: payment, error: paymentError } = await supabaseClient
@@ -157,15 +159,11 @@ serve(async (req) => {
       .single();
 
     if (paymentError) {
-      console.error("Error creating payment:", paymentError);
-      return new Response(
-        JSON.stringify({ error: "Failed to create deposit", details: paymentError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      logger.error('Failed to create payment', paymentError);
+      throw new Error('Failed to create deposit: ' + paymentError.message);
     }
+    
+    logger.info('System deposit payment created', { paymentId: payment.id, amount, currency });
 
     // Log audit activity
     await supabaseClient.from("audit_logs").insert({
@@ -181,24 +179,23 @@ serve(async (req) => {
       },
     });
 
+    logger.info('System deposit completed successfully');
+
+    const response = {
+      success: true,
+      payment: payment,
+      message: "System deposit created successfully",
+    };
+
+    logger.logResponse(200, response);
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        payment: payment,
-        message: "System deposit created successfully",
-      }),
+      JSON.stringify(response),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error("Error in system-deposit-create:", error);
-    return new Response(
-      JSON.stringify({ error: sanitizeErrorMessage(error as Error) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return handleEnhancedError(error, logger);
   }
 });
