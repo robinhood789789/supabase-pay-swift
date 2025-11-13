@@ -227,136 +227,142 @@ export const WebhooksManager = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
+      <div className="space-y-6">
+        {/* Create Webhook Form */}
+        {canManage && (
+          <Card>
+            <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Webhook className="w-5 h-5" />
-                Webhook Endpoints
+                <Plus className="w-5 h-5" />
+                สร้าง Webhook Endpoint ใหม่
               </CardTitle>
               <CardDescription>
-                จัดการ webhook endpoints สำหรับรับ payment events แบบ real-time
+                กำหนด URL endpoint ที่ต้องการรับการแจ้งเตือน payment events
               </CardDescription>
-            </div>
-            {canManage && (
-              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add Webhook
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add Webhook Endpoint</DialogTitle>
-                  <DialogDescription>
-                    กำหนดค่า webhook endpoint สำหรับรับ payment events
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="webhookDescription">ชื่อ / คำอธิบาย</Label>
-                    <Input
-                      id="webhookDescription"
-                      type="text"
-                      placeholder="Production Payment Webhook"
-                      value={webhookDescription}
-                      onChange={(e) => setWebhookDescription(e.target.value)}
-                      disabled={createWebhookMutation.isPending}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      ระบุชื่อหรือคำอธิบายเพื่อระบุจุดประสงค์ของ webhook นี้
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="webhookUrl">Webhook URL</Label>
-                    <Input
-                      id="webhookUrl"
-                      type="url"
-                      placeholder="https://example.com/api/webhooks/payment"
-                      value={webhookUrl}
-                      onChange={(e) => setWebhookUrl(e.target.value)}
-                      disabled={createWebhookMutation.isPending}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      URL ต้องเป็น HTTPS และสามารถรับ POST request ได้
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Events to Listen</Label>
-                    <div className="space-y-2 border rounded-lg p-3">
-                      {[
-                        { value: "payment.succeeded", label: "Payment Succeeded", description: "เมื่อการชำระเงินสำเร็จ" },
-                        { value: "payment.failed", label: "Payment Failed", description: "เมื่อการชำระเงินล้มเหลว" },
-                        { value: "payment.pending", label: "Payment Pending", description: "เมื่อการชำระเงินรอดำเนินการ" },
-                        { value: "refund.created", label: "Refund Created", description: "เมื่อสร้างคำขอคืนเงิน" },
-                        { value: "refund.succeeded", label: "Refund Succeeded", description: "เมื่อคืนเงินสำเร็จ" },
-                        { value: "refund.failed", label: "Refund Failed", description: "เมื่อคืนเงินล้มเหลว" },
-                        { value: "dispute.created", label: "Dispute Created", description: "เมื่อมีข้อพิพาท" },
-                        { value: "settlement.completed", label: "Settlement Completed", description: "เมื่อการตัดจ่ายเสร็จสิ้น" },
-                      ].map((event) => (
-                        <div key={event.value} className="flex items-start space-x-3 py-2">
-                          <Checkbox
-                            id={event.value}
-                            checked={selectedEvents.includes(event.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedEvents([...selectedEvents, event.value]);
-                              } else {
-                                setSelectedEvents(selectedEvents.filter((e) => e !== event.value));
-                              }
-                            }}
-                            disabled={createWebhookMutation.isPending}
-                          />
-                          <div className="flex-1">
-                            <Label htmlFor={event.value} className="cursor-pointer font-medium">
-                              {event.label}
-                            </Label>
-                            <p className="text-xs text-muted-foreground">{event.description}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      เลือก events ที่ต้องการรับการแจ้งเตือน
-                    </p>
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Webhook Security</Label>
-                      <div className="bg-muted/50 p-3 rounded-lg space-y-1">
-                        <p className="text-xs text-muted-foreground">
-                          • Webhook secret จะถูกสร้างอัตโนมัติ
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          • ใช้ secret เพื่อ verify webhook signatures
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          • Header: <code className="text-xs bg-background px-1 py-0.5 rounded">X-Webhook-Signature</code>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    onClick={handleCreateWebhook}
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="webhookDescription">ชื่อ / คำอธิบาย</Label>
+                  <Input
+                    id="webhookDescription"
+                    type="text"
+                    placeholder="Production Payment Webhook"
+                    value={webhookDescription}
+                    onChange={(e) => setWebhookDescription(e.target.value)}
                     disabled={createWebhookMutation.isPending}
-                    className="w-full"
-                  >
-                    {createWebhookMutation.isPending ? "Creating..." : "Create Webhook"}
-                  </Button>
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    ระบุชื่อหรือคำอธิบายเพื่อระบุจุดประสงค์ของ webhook นี้
+                  </p>
                 </div>
-              </DialogContent>
-            </Dialog>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
+
+                <div className="space-y-2">
+                  <Label htmlFor="webhookUrl">Webhook URL</Label>
+                  <Input
+                    id="webhookUrl"
+                    type="url"
+                    placeholder="https://example.com/api/webhooks/payment"
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    disabled={createWebhookMutation.isPending}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    URL ต้องเป็น HTTPS และสามารถรับ POST request ได้
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Events to Listen</Label>
+                  <div className="space-y-2 border rounded-lg p-3 max-h-64 overflow-y-auto">
+                    {[
+                      { value: "payment.succeeded", label: "Payment Succeeded", description: "เมื่อการชำระเงินสำเร็จ" },
+                      { value: "payment.failed", label: "Payment Failed", description: "เมื่อการชำระเงินล้มเหลว" },
+                      { value: "payment.pending", label: "Payment Pending", description: "เมื่อการชำระเงินรอดำเนินการ" },
+                      { value: "refund.created", label: "Refund Created", description: "เมื่อสร้างคำขอคืนเงิน" },
+                      { value: "refund.succeeded", label: "Refund Succeeded", description: "เมื่อคืนเงินสำเร็จ" },
+                      { value: "refund.failed", label: "Refund Failed", description: "เมื่อคืนเงินล้มเหลว" },
+                      { value: "dispute.created", label: "Dispute Created", description: "เมื่อมีข้อพิพาท" },
+                      { value: "settlement.completed", label: "Settlement Completed", description: "เมื่อการตัดจ่ายเสร็จสิ้น" },
+                    ].map((event) => (
+                      <div key={event.value} className="flex items-start space-x-3 py-2">
+                        <Checkbox
+                          id={event.value}
+                          checked={selectedEvents.includes(event.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedEvents([...selectedEvents, event.value]);
+                            } else {
+                              setSelectedEvents(selectedEvents.filter((e) => e !== event.value));
+                            }
+                          }}
+                          disabled={createWebhookMutation.isPending}
+                        />
+                        <div className="flex-1">
+                          <Label htmlFor={event.value} className="cursor-pointer font-medium">
+                            {event.label}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">{event.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    เลือก events ที่ต้องการรับการแจ้งเตือน (ต้องเลือกอย่างน้อย 1 event)
+                  </p>
+                </div>
+
+                <div className="border-t pt-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Webhook Security</Label>
+                    <div className="bg-muted/50 p-3 rounded-lg space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        • Webhook secret จะถูกสร้างอัตโนมัติ
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        • ใช้ secret เพื่อ verify webhook signatures
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        • Header: <code className="text-xs bg-background px-1 py-0.5 rounded">X-Webhook-Signature</code>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={handleCreateWebhook}
+                  disabled={createWebhookMutation.isPending}
+                  className="w-full"
+                >
+                  {createWebhookMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      กำลังสร้าง...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      สร้าง Webhook
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Existing Webhooks List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Webhook className="w-5 h-5" />
+              Webhooks ที่มีอยู่
+            </CardTitle>
+            <CardDescription>
+              จัดการ webhook endpoints ที่สร้างไว้แล้ว
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground text-center py-8">Loading...</p>
           ) : webhooks && webhooks.length > 0 ? (
@@ -464,6 +470,8 @@ export const WebhooksManager = () => {
           )}
         </CardContent>
       </Card>
+      </div>
+      
       <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />
       {selectedWebhook && (
         <WebhookTestDialog
