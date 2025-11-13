@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, DollarSign, Calendar as CalendarIcon, Download, Eye, CheckCircle2, AlertCircle, Clock, Loader2, XCircle, Ban } from "lucide-react";
 import { TransactionDetailDrawer } from "@/components/TransactionDetailDrawer";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { cn } from "@/lib/utils";
@@ -105,23 +105,64 @@ export default function TransactionDashboard() {
   });
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      SUCCESS: "default",
-      PENDING: "secondary",
-      PROCESSING: "outline",
-      FAILED: "destructive",
-      CANCELED: "outline",
+    const statusConfig: Record<string, { className: string; icon: React.ReactNode }> = {
+      SUCCESS: {
+        className: "bg-success text-success-foreground border-success/20",
+        icon: <CheckCircle2 className="w-3 h-3 mr-1" />
+      },
+      PENDING: {
+        className: "bg-warning text-warning-foreground border-warning/20",
+        icon: <Clock className="w-3 h-3 mr-1" />
+      },
+      PROCESSING: {
+        className: "bg-primary text-primary-foreground border-primary/20",
+        icon: <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+      },
+      FAILED: {
+        className: "bg-destructive text-destructive-foreground border-destructive/20",
+        icon: <XCircle className="w-3 h-3 mr-1" />
+      },
+      CANCELED: {
+        className: "bg-secondary text-secondary-foreground border-secondary/20",
+        icon: <Ban className="w-3 h-3 mr-1" />
+      },
     };
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+    
+    const config = statusConfig[status] || {
+      className: "bg-muted text-muted-foreground",
+      icon: null
+    };
+    
+    return (
+      <Badge className={cn("flex items-center gap-1", config.className)}>
+        {config.icon}
+        {status}
+      </Badge>
+    );
   };
 
   const getTypeBadge = (type: string, direction: string) => {
     if (type === "DEPOSIT") {
-      return <Badge className="bg-green-500 text-white"><ArrowDownToLine className="w-3 h-3 mr-1" />{type}</Badge>;
+      return (
+        <Badge className="bg-success text-success-foreground border-success/20 flex items-center gap-1">
+          <ArrowDownToLine className="w-3 h-3" />
+          {type}
+        </Badge>
+      );
     } else if (type === "WITHDRAWAL") {
-      return <Badge className="bg-red-500 text-white"><ArrowUpFromLine className="w-3 h-3 mr-1" />{type}</Badge>;
+      return (
+        <Badge className="bg-warning text-warning-foreground border-warning/20 flex items-center gap-1">
+          <ArrowUpFromLine className="w-3 h-3" />
+          {type}
+        </Badge>
+      );
     } else {
-      return <Badge className="bg-blue-500 text-white"><ArrowLeftRight className="w-3 h-3 mr-1" />{direction}</Badge>;
+      return (
+        <Badge className="bg-primary text-primary-foreground border-primary/20 flex items-center gap-1">
+          <ArrowLeftRight className="w-3 h-3" />
+          {direction}
+        </Badge>
+      );
     }
   };
 
