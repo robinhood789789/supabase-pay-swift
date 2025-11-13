@@ -11,6 +11,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { SignInLoadingSkeleton } from "@/components/SignInLoadingSkeleton";
 
 const signInSchema = z.object({
   publicId: z.string().min(1, { message: "User ID is required" }).regex(/^[A-Z0-9]{2,6}-\d{6}$/, { message: "Invalid User ID format (e.g., OWNR-000001)" }),
@@ -47,6 +48,11 @@ const SignIn = () => {
     await signIn(values.publicId, values.password);
     setIsLoading(false);
   };
+
+  // Show loading skeleton while authenticating
+  if (isLoading) {
+    return <SignInLoadingSkeleton />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-hero animate-gradient px-4 relative overflow-hidden">
