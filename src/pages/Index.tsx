@@ -175,7 +175,7 @@ const Index = () => {
           {/* Feature Cards - Futuristic Style */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 mb-16">
             {/* Card 1 */}
-            <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-primary/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-primary/60 transition-all duration-500 cursor-pointer relative overflow-hidden">
+            <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-primary/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-primary/60 transition-all duration-500 cursor-pointer relative overflow-hidden animate-card-glow-pulse">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-neon"></div>
               <div className="relative z-10 space-y-4">
@@ -197,7 +197,9 @@ const Index = () => {
             </Card>
 
             {/* Card 2 */}
-            <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-secondary/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-secondary/60 transition-all duration-500 cursor-pointer relative overflow-hidden">
+            <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-secondary/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-secondary/60 transition-all duration-500 cursor-pointer relative overflow-hidden animate-card-glow-pulse" style={{
+              animationDelay: '1.3s'
+            }}>
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-neon"></div>
               <div className="relative z-10 space-y-4">
@@ -221,7 +223,9 @@ const Index = () => {
             </Card>
 
             {/* Card 3 */}
-            <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-accent/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-accent/60 transition-all duration-500 cursor-pointer relative overflow-hidden">
+            <Card className="group p-8 bg-black/40 backdrop-blur-xl border-2 border-accent/30 shadow-glow hover:shadow-neon hover:scale-105 hover:border-accent/60 transition-all duration-500 cursor-pointer relative overflow-hidden animate-card-glow-pulse" style={{
+              animationDelay: '2.6s'
+            }}>
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-neon"></div>
               <div className="relative z-10 space-y-4">
