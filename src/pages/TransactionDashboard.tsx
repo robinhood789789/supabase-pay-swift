@@ -188,13 +188,13 @@ export default function TransactionDashboard() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-foreground">
                 Transaction Verification
               </h1>
               <p className="text-muted-foreground mt-1">
                 ตรวจสอบและยืนยันธุรกรรมทางการเงิน
               </p>
-              <Badge className="mt-2 bg-gradient-deposit text-white border-0">
+              <Badge variant="secondary" className="mt-2">
                 {currentRole?.toUpperCase()} ROLE
               </Badge>
             </div>
@@ -221,15 +221,15 @@ export default function TransactionDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-success bg-card/80 backdrop-blur-xl shadow-glow hover:shadow-neon transition-all animate-in" style={{ animationDelay: "0.1s" }}>
+            <Card className="border-l-4 border-l-primary bg-card/80 backdrop-blur-xl shadow-glow hover:shadow-neon transition-all animate-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-foreground">Total Transactions</CardTitle>
-                <div className="p-2 rounded-full bg-gradient-primary">
-                  <ArrowLeftRight className="h-5 w-5 text-white" />
+                <div className="p-2 rounded-full bg-primary/10">
+                  <ArrowLeftRight className="h-5 w-5 text-primary" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                <div className="text-3xl font-bold text-foreground">
                   {verifiedStats.total}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
