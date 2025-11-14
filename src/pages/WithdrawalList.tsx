@@ -30,44 +30,68 @@ export default function WithdrawalList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
-  const { data: queryResult, isLoading, refetch } = useQuery<{ data: any[], count: number }>({
-    queryKey: ["withdrawals", statusFilter, activeTenantId, page, itemsPerPage],
+  const { data: queryResult, isLoading, refetch } = useQuery<{ data: any[], count: number, statusCounts: any }>({
+    queryKey: ["withdrawals", statusFilter, activeTenantId, page, itemsPerPage, searchQuery],
     queryFn: async () => {
-      if (!activeTenantId) return { data: [], count: 0 };
-
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
 
-      let query = supabase
-        .from("payments")
+      // Query withdraw_transfers data
+      let query = (supabase as any)
+        .from("withdraw_transfers")
         .select("*", { count: 'exact' })
-        .eq("tenant_id", activeTenantId)
-        .eq("type", "withdrawal")
         .order("created_at", { ascending: false })
         .range(from, to);
 
       if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
+        // Map status: "3" = succeeded, "0" = pending, "1" = processing, "2" = rejected
+        const statusMap: Record<string, string> = {
+          succeeded: "3",
+          pending: "0",
+          processing: "1",
+          rejected: "2",
+          expired: "4"
+        };
+        query = query.eq("status", statusMap[statusFilter]);
+      }
+
+      if (searchQuery) {
+        query = query.or(`fullname.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%,memberid.ilike.%${searchQuery}%,ref_id.ilike.%${searchQuery}%`);
       }
 
       const { data, error, count } = await query;
-      if (error) throw error;
-      return { data: data || [], count: count || 0 };
+      if (error) {
+        console.error("Error fetching withdraw_transfers:", error);
+        throw error;
+      }
+
+      // Get all records to count by status
+      const { data: allData } = await (supabase as any)
+        .from("withdraw_transfers")
+        .select("status");
+
+      const statusCounts = {
+        pending: allData?.filter((w: any) => w.status === "0").length || 0,
+        processing: allData?.filter((w: any) => w.status === "1").length || 0,
+        succeeded: allData?.filter((w: any) => w.status === "3").length || 0,
+        expired: allData?.filter((w: any) => w.status === "4").length || 0,
+        rejected: allData?.filter((w: any) => w.status === "2").length || 0,
+      };
+
+      return { data: data || [], count: count || 0, statusCounts };
     },
-    enabled: !!activeTenantId,
+    enabled: true,
   });
 
   const withdrawals = queryResult?.data || [];
   const totalCount = queryResult?.count || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-  // Count by status
-  const statusCounts = {
-    pending: withdrawals?.filter(w => w.status === "pending").length || 0,
-    processing: withdrawals?.filter(w => w.status === "processing").length || 0,
-    succeeded: withdrawals?.filter(w => w.status === "succeeded").length || 0,
-    expired: withdrawals?.filter(w => w.status === "expired").length || 0,
-    rejected: withdrawals?.filter(w => w.status === "rejected").length || 0,
+  const statusCounts = queryResult?.statusCounts || {
+    pending: 0,
+    processing: 0,
+    succeeded: 0,
+    expired: 0,
+    rejected: 0,
   };
 
   const statusButtons: { value: PaymentStatus; label: string }[] = [
@@ -79,15 +103,15 @@ export default function WithdrawalList() {
   ];
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      succeeded: { label: "สำเร็จ", variant: "default" as const },
-      pending: { label: "รอดำเนินการ", variant: "secondary" as const },
-      processing: { label: "กำลังดำเนินการ", variant: "default" as const },
-      expired: { label: "หมดอายุ", variant: "destructive" as const },
-      rejected: { label: "ถูกปฏิเสธ", variant: "destructive" as const },
+    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      "3": { label: "สำเร็จ", variant: "default" },
+      "0": { label: "รอดำเนินการ", variant: "secondary" },
+      "1": { label: "กำลังดำเนินการ", variant: "outline" },
+      "2": { label: "ถูกปฏิเสธ", variant: "destructive" },
+      "4": { label: "หมดอายุ", variant: "destructive" },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || { 
+    const config = statusConfig[status] || { 
       label: status, 
       variant: "secondary" as const 
     };
@@ -164,55 +188,91 @@ export default function WithdrawalList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>วันที่</TableHead>
-                    <TableHead>TX ID</TableHead>
+                    <TableHead className="w-16">ลำดับ</TableHead>
+                    <TableHead>เวลาสมัคร</TableHead>
                     <TableHead>Ref ID</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>ผู้ค้า</TableHead>
-                    <TableHead>จำนวนเงิน</TableHead>
-                    <TableHead>จำนวนที่จ่าย</TableHead>
+                    <TableHead>TX ID</TableHead>
+                    <TableHead>ลูกค้า</TableHead>
+                    <TableHead>ร้านค้า</TableHead>
+                    <TableHead className="text-right">จำนวน</TableHead>
+                    <TableHead className="text-right">Payout จำนวน</TableHead>
                     <TableHead>ธนาคาร</TableHead>
+                    <TableHead>ผู้ดำเนินการ</TableHead>
+                    <TableHead>สถานะกระบวนการ</TableHead>
                     <TableHead>สถานะ</TableHead>
                     <TableHead>ประเภท</TableHead>
+                    <TableHead>จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8">
+                      <TableCell colSpan={14} className="text-center py-8">
                         กำลังโหลด...
                       </TableCell>
                     </TableRow>
                   ) : withdrawals && withdrawals.length > 0 ? (
-                    withdrawals.map((withdrawal) => (
+                    withdrawals.map((withdrawal, index) => (
                       <TableRow key={withdrawal.id}>
-                        <TableCell>
-                          {format(new Date(withdrawal.created_at), "yyyy-MM-dd HH:mm")}
+                        <TableCell className="font-medium">
+                          {(page - 1) * itemsPerPage + index + 1}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {withdrawal.createdate ? format(new Date(withdrawal.createdate), "yyyy-MM-dd HH:mm") : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-primary">
-                          {withdrawal.id.slice(0, 12)}
+                          {withdrawal.ref_id || "-"}
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {withdrawal.provider_payment_id?.slice(0, 12) || "-"}
-                        </TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>{withdrawal.provider || "-"}</TableCell>
-                        <TableCell>
-                          ฿{(withdrawal.amount / 100).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                        <TableCell className="font-mono text-sm text-blue-600">
+                          {withdrawal.withdrawid || "-"}
                         </TableCell>
                         <TableCell>
-                          ฿{(withdrawal.amount / 100).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                          <div className="flex flex-col">
+                            <span className="font-medium">{withdrawal.fullname || "-"}</span>
+                            <span className="text-xs text-muted-foreground">{withdrawal.username}</span>
+                          </div>
                         </TableCell>
-                        <TableCell>{withdrawal.method || "-"}</TableCell>
+                        <TableCell>{withdrawal.memberid || "-"}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ฿{Number(withdrawal.beforewithdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-emerald-600">
+                          ฿{Number(withdrawal.withdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono">
+                            {withdrawal.bankcode || "-"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-sm">{withdrawal.staff_activename || "-"}</span>
+                            <span className="text-xs text-muted-foreground">{withdrawal.staff_activeid || ""}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {withdrawal.statusbanktranfer ? (
+                            <Badge variant="default">สำเร็จ</Badge>
+                          ) : (
+                            <Badge variant="secondary">กำลังดำเนินการ</Badge>
+                          )}
+                        </TableCell>
                         <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">Bank Transfer</Badge>
+                          <Badge variant="outline">{withdrawal.cashtype || "withdraw"}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Search className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                         ไม่พบรายการถอนเงิน
                       </TableCell>
                     </TableRow>
