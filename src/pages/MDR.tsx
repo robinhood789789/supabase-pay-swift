@@ -42,7 +42,6 @@ const MDR = () => {
   const { activeTenantId } = useTenantSwitcher();
   const [startDate, setStartDate] = useState<Date>(new Date("2025-07-01"));
   const [endDate, setEndDate] = useState<Date>(new Date("2025-08-05"));
-  const [merchantFilter, setMerchantFilter] = useState("no13");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
@@ -62,24 +61,20 @@ const MDR = () => {
       mdrSettlement: number;
     };
   }>({
-    queryKey: ["mdr-report", format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), merchantFilter, page, itemsPerPage],
+    queryKey: ["mdr-report", format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), page, itemsPerPage],
     queryFn: async () => {
       const startDateStr = format(startDate, "yyyy-MM-dd");
       const endDateStr = format(endDate, "yyyy-MM-dd");
       
-      console.log("Fetching MDR data with filters:", { startDateStr, endDateStr, merchantFilter });
+      console.log("Fetching MDR data with filters:", { startDateStr, endDateStr });
       
       // 1. Query deposit_transfers data (เติมเงิน)
-      let depositQuery = (supabase as any)
+      const depositQuery = (supabase as any)
         .from("deposit_transfers")
         .select("*")
         .gte("depositdate", startDateStr)
         .lte("depositdate", endDateStr)
         .order("depositdate", { ascending: true });
-
-      if (merchantFilter && merchantFilter !== "all") {
-        depositQuery = depositQuery.eq("memberid", merchantFilter);
-      }
 
       const { data: depositData, error: depositError } = await depositQuery;
       
@@ -89,16 +84,12 @@ const MDR = () => {
       }
 
       // 2. Query topup_transfers data (เติมเงินเข้าระบบ owner)
-      let topupQuery = (supabase as any)
+      const topupQuery = (supabase as any)
         .from("topup_transfers")
         .select("*")
         .gte("topup_date", startDateStr)
         .lte("topup_date", endDateStr)
         .order("topup_date", { ascending: true });
-
-      if (merchantFilter && merchantFilter !== "all") {
-        topupQuery = topupQuery.eq("merchant_code", merchantFilter);
-      }
 
       const { data: topupData, error: topupError } = await topupQuery;
       
@@ -108,16 +99,12 @@ const MDR = () => {
       }
 
       // 3. Query settlement_transfers data (ถอนเงิน และ ถอนเงินระบบ owner)
-      let settlementQuery = (supabase as any)
+      const settlementQuery = (supabase as any)
         .from("settlement_transfers")
         .select("*")
         .gte("created_at", startDateStr)
         .lte("created_at", endDateStr)
         .order("created_at", { ascending: true });
-
-      if (merchantFilter && merchantFilter !== "all") {
-        settlementQuery = settlementQuery.eq("merchant_code", merchantFilter);
-      }
 
       const { data: settlementData, error: settlementError } = await settlementQuery;
       
@@ -138,14 +125,12 @@ const MDR = () => {
       // Process deposit_transfers (เติมเงิน)
       (depositData || []).forEach((item: any) => {
         const date = item.depositdate ? format(new Date(item.depositdate), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
-        const merchant = item.memberid || "unknown";
         const amount = parseFloat(item.amountpaid || 0);
-        const key = `${date}-${merchant}`;
         
-        if (!dailyMap.has(key)) {
-          dailyMap.set(key, {
+        if (!dailyMap.has(date)) {
+          dailyMap.set(date, {
             date,
-            merchant,
+            merchant: "all",
             totalDeposit: 0,
             mdrDeposit: 0,
             totalTopup: 0,
@@ -158,7 +143,7 @@ const MDR = () => {
           });
         }
 
-        const dayData = dailyMap.get(key)!;
+        const dayData = dailyMap.get(date)!;
         
         // Calculate based on status (3 = completed)
         if (item.status === "3" && amount > 0) {
@@ -171,14 +156,12 @@ const MDR = () => {
       // Process topup_transfers (เติมเงินเข้าระบบ owner)
       (topupData || []).forEach((item: any) => {
         const date = item.topup_date ? format(new Date(item.topup_date), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
-        const merchant = item.merchant_code || "unknown";
         const amount = parseFloat(item.amount || 0);
-        const key = `${date}-${merchant}`;
         
-        if (!dailyMap.has(key)) {
-          dailyMap.set(key, {
+        if (!dailyMap.has(date)) {
+          dailyMap.set(date, {
             date,
-            merchant,
+            merchant: "all",
             totalDeposit: 0,
             mdrDeposit: 0,
             totalTopup: 0,
@@ -191,7 +174,7 @@ const MDR = () => {
           });
         }
 
-        const dayData = dailyMap.get(key)!;
+        const dayData = dailyMap.get(date)!;
         
         // Calculate based on status (completed)
         if (item.status === "completed" && amount > 0) {
@@ -204,14 +187,12 @@ const MDR = () => {
       // Process settlement_transfers (ถอนเงิน)
       (settlementData || []).forEach((item: any) => {
         const date = format(new Date(item.created_at), "yyyy-MM-dd");
-        const merchant = item.merchant_code || "unknown";
         const amount = parseFloat(item.amount || 0);
-        const key = `${date}-${merchant}`;
         
-        if (!dailyMap.has(key)) {
-          dailyMap.set(key, {
+        if (!dailyMap.has(date)) {
+          dailyMap.set(date, {
             date,
-            merchant,
+            merchant: "all",
             totalDeposit: 0,
             mdrDeposit: 0,
             totalTopup: 0,
@@ -224,7 +205,7 @@ const MDR = () => {
           });
         }
 
-        const dayData = dailyMap.get(key)!;
+        const dayData = dailyMap.get(date)!;
         
         // Calculate based on status (completed/approved)
         if ((item.status === "completed" || item.status === "approved") && amount > 0) {
@@ -357,27 +338,6 @@ const MDR = () => {
                 </Popover>
               </div>
 
-              <div className="space-y-2">
-                <Label>Merchant</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={merchantFilter}
-                    onChange={(e) => setMerchantFilter(e.target.value)}
-                    placeholder="Merchant ID"
-                    className="w-[200px]"
-                  />
-                  {merchantFilter && (
-                    <Badge 
-                      variant="secondary" 
-                      className="px-3 py-2 cursor-pointer hover:bg-destructive"
-                      onClick={() => setMerchantFilter("")}
-                    >
-                      {merchantFilter} ×
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
               <Button onClick={handleSubmit} disabled={isLoading}>
                 Submit
               </Button>
@@ -452,7 +412,6 @@ const MDR = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead rowSpan={2} className="border-r">Date</TableHead>
-                    <TableHead rowSpan={2} className="border-r">Merchant</TableHead>
                     <TableHead colSpan={2} className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100 border-r">Deposit</TableHead>
                     <TableHead colSpan={2} className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100 border-r">Topup</TableHead>
                     <TableHead colSpan={2} className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 border-r">Payout</TableHead>
@@ -473,13 +432,13 @@ const MDR = () => {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8">
+                      <TableCell colSpan={10} className="text-center py-8">
                         กำลังโหลดข้อมูล...
                       </TableCell>
                     </TableRow>
                   ) : queryError ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-destructive">
+                      <TableCell colSpan={10} className="text-center py-8 text-destructive">
                         เกิดข้อผิดพลาด: {(queryError as Error).message}
                         <br />
                         <span className="text-sm text-muted-foreground">
@@ -491,7 +450,6 @@ const MDR = () => {
                     mdrData.paginatedData.map((row, index) => (
                       <TableRow key={index}>
                         <TableCell className="border-r">{row.date}</TableCell>
-                        <TableCell className="border-r">{row.merchant}</TableCell>
                         <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30">{formatNumber(row.totalDeposit)}</TableCell>
                         <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30 border-r">{formatNumber(row.mdrDeposit)}</TableCell>
                         <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30">{formatNumber(row.totalTopup)}</TableCell>
@@ -505,11 +463,11 @@ const MDR = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลาที่เลือก
                         <br />
                         <span className="text-sm">
-                          กรุณาเปลี่ยนช่วงวันที่หรือ Merchant ID
+                          กรุณาเปลี่ยนช่วงวันที่
                         </span>
                       </TableCell>
                     </TableRow>
