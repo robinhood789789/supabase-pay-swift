@@ -448,16 +448,16 @@ const MDR = () => {
                     </TableRow>
                   ) : mdrData?.paginatedData && mdrData.paginatedData.length > 0 ? (
                     mdrData.paginatedData.map((row, index) => (
-                      <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-slate-900/50">
+                      <TableRow key={index} className="hover:bg-blue-50/30 dark:hover:bg-slate-900/50">
                         <TableCell className="border-r bg-white dark:bg-slate-950 font-semibold text-slate-900 dark:text-slate-100">{row.date}</TableCell>
-                        <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalDeposit)}</TableCell>
-                        <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">{formatNumber(row.mdrDeposit)}</TableCell>
-                        <TableCell className="text-right bg-cyan-50/50 dark:bg-cyan-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalTopup)}</TableCell>
-                        <TableCell className="text-right bg-cyan-50/50 dark:bg-cyan-950/20 border-r text-cyan-700 dark:text-cyan-400 font-bold">{formatNumber(row.mdrTopup)}</TableCell>
-                        <TableCell className="text-right bg-rose-50/50 dark:bg-rose-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalPayout)}</TableCell>
-                        <TableCell className="text-right bg-rose-50/50 dark:bg-rose-950/20 border-r text-rose-700 dark:text-rose-400 font-bold">{formatNumber(row.mdrPayout)}</TableCell>
-                        <TableCell className="text-right bg-violet-50/50 dark:bg-violet-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalSettlement)}</TableCell>
-                        <TableCell className="text-right bg-violet-50/50 dark:bg-violet-950/20 border-r text-violet-700 dark:text-violet-400 font-bold">{formatNumber(row.mdrSettlement)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-emerald-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalDeposit)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">{formatNumber(row.mdrDeposit)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-cyan-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalTopup)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-cyan-950/20 border-r text-cyan-700 dark:text-cyan-400 font-bold">{formatNumber(row.mdrTopup)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-rose-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalPayout)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-rose-950/20 border-r text-rose-700 dark:text-rose-400 font-bold">{formatNumber(row.mdrPayout)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-violet-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalSettlement)}</TableCell>
+                        <TableCell className="text-right bg-white dark:bg-violet-950/20 border-r text-violet-700 dark:text-violet-400 font-bold">{formatNumber(row.mdrSettlement)}</TableCell>
                         <TableCell className="text-right bg-white dark:bg-slate-950 font-bold text-slate-900 dark:text-slate-100 text-base">{formatNumber(row.totalMDR)}</TableCell>
                       </TableRow>
                     ))
