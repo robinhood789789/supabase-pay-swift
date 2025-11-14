@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
 import { useAuth } from "@/hooks/useAuth";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type PaymentStatus = "all" | "pending" | "processing" | "succeeded" | "expired" | "rejected";
 
@@ -24,6 +26,8 @@ export default function SystemWithdrawal() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<PaymentStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Check if user is owner
   useEffect(() => {
@@ -186,10 +190,27 @@ export default function SystemWithdrawal() {
                 <Input
                   placeholder="ค้นหา (Ref ID, TX ID, ชื่อผู้รับ, เลขบัญชี)"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="pl-9"
                 />
               </div>
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                setItemsPerPage(Number(value));
+                setCurrentPage(1);
+              }}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 / page</SelectItem>
+                  <SelectItem value="20">20 / page</SelectItem>
+                  <SelectItem value="50">50 / page</SelectItem>
+                  <SelectItem value="100">100 / page</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" onClick={() => refetchWithdrawals()}>
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -220,51 +241,135 @@ export default function SystemWithdrawal() {
                         ไม่มีประวัติการถอนเงิน
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    withdrawals
-                      .filter((w: any) => {
-                        if (!searchQuery) return true;
-                        const search = searchQuery.toLowerCase();
-                        return (
-                          w.settlement_ref?.toLowerCase().includes(search) ||
-                          w.tx_id?.toLowerCase().includes(search) ||
-                          w.beneficiary_name?.toLowerCase().includes(search) ||
-                          w.account_number?.toLowerCase().includes(search) ||
-                          w.bank_name?.toLowerCase().includes(search)
-                        );
-                      })
-                      .map((withdrawal: any) => (
-                        <TableRow key={withdrawal.id}>
-                          <TableCell className="text-xs">
-                            {withdrawal.created_at ? format(new Date(withdrawal.created_at), "yyyy-MM-dd HH:mm:ss") : "-"}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">{withdrawal.settlement_ref || "-"}</TableCell>
-                          <TableCell className="font-mono text-xs">{withdrawal.tx_id || "-"}</TableCell>
-                          <TableCell className="text-xs">{withdrawal.client_code || "-"}</TableCell>
-                          <TableCell className="text-xs">{withdrawal.merchant_code || "-"}</TableCell>
-                          <TableCell className="text-sm font-medium">{withdrawal.beneficiary_name || "-"}</TableCell>
-                          <TableCell className="text-right font-medium">
-                            ฿{withdrawal.amount ? parseFloat(withdrawal.amount).toLocaleString("th-TH", { minimumFractionDigits: 2 }) : "0.00"}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-xs font-mono">
-                              {withdrawal.bank_code || withdrawal.bank_name || "-"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">{withdrawal.account_number || "-"}</TableCell>
-                          <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
-                          <TableCell className="text-xs">{withdrawal.sys_bank || "-"}</TableCell>
-                          <TableCell className="text-xs">
-                            <Badge variant="secondary" className="text-xs">
-                              {withdrawal.ops_type || "-"}
-                            </Badge>
+                  ) : (() => {
+                    const filteredWithdrawals = withdrawals.filter((w: any) => {
+                      if (!searchQuery) return true;
+                      const search = searchQuery.toLowerCase();
+                      return (
+                        w.settlement_ref?.toLowerCase().includes(search) ||
+                        w.tx_id?.toLowerCase().includes(search) ||
+                        w.beneficiary_name?.toLowerCase().includes(search) ||
+                        w.account_number?.toLowerCase().includes(search) ||
+                        w.bank_name?.toLowerCase().includes(search)
+                      );
+                    });
+
+                    const totalPages = Math.ceil(filteredWithdrawals.length / itemsPerPage);
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const paginatedWithdrawals = filteredWithdrawals.slice(startIndex, endIndex);
+
+                    if (paginatedWithdrawals.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                            ไม่พบข้อมูลที่ค้นหา
                           </TableCell>
                         </TableRow>
-                      ))
-                  )}
+                      );
+                    }
+
+                    return paginatedWithdrawals.map((withdrawal: any) => (
+                      <TableRow key={withdrawal.id}>
+                        <TableCell className="text-xs">
+                          {withdrawal.created_at ? format(new Date(withdrawal.created_at), "yyyy-MM-dd HH:mm:ss") : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{withdrawal.settlement_ref || "-"}</TableCell>
+                        <TableCell className="font-mono text-xs">{withdrawal.tx_id || "-"}</TableCell>
+                        <TableCell className="text-xs">{withdrawal.client_code || "-"}</TableCell>
+                        <TableCell className="text-xs">{withdrawal.merchant_code || "-"}</TableCell>
+                        <TableCell className="text-sm font-medium">{withdrawal.beneficiary_name || "-"}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ฿{withdrawal.amount ? parseFloat(withdrawal.amount).toLocaleString("th-TH", { minimumFractionDigits: 2 }) : "0.00"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {withdrawal.bank_code || withdrawal.bank_name || "-"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{withdrawal.account_number || "-"}</TableCell>
+                        <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
+                        <TableCell className="text-xs">{withdrawal.sys_bank || "-"}</TableCell>
+                        <TableCell className="text-xs">
+                          <Badge variant="secondary" className="text-xs">
+                            {withdrawal.ops_type || "-"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ));
+                  })()}
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination */}
+            {withdrawals && withdrawals.length > 0 && (() => {
+              const filteredWithdrawals = withdrawals.filter((w: any) => {
+                if (!searchQuery) return true;
+                const search = searchQuery.toLowerCase();
+                return (
+                  w.settlement_ref?.toLowerCase().includes(search) ||
+                  w.tx_id?.toLowerCase().includes(search) ||
+                  w.beneficiary_name?.toLowerCase().includes(search) ||
+                  w.account_number?.toLowerCase().includes(search) ||
+                  w.bank_name?.toLowerCase().includes(search)
+                );
+              });
+
+              const totalPages = Math.ceil(filteredWithdrawals.length / itemsPerPage);
+              
+              if (totalPages <= 1) return null;
+
+              return (
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWithdrawals.length)} จาก {filteredWithdrawals.length} รายการ
+                  </div>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNumber)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

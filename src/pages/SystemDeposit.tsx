@@ -15,6 +15,8 @@ import { Wallet, ShieldAlert } from "lucide-react";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type PaymentStatus = "all" | "pending" | "completed";
 
@@ -26,6 +28,8 @@ export default function SystemDeposit() {
   const [statusFilter, setStatusFilter] = useState<PaymentStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isOwner, setIsOwner] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Check if user is owner
   useEffect(() => {
@@ -226,9 +230,26 @@ export default function SystemDeposit() {
               <Input
                 placeholder="ค้นหาด้วย Ref ID, หมายเหตุ..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="max-w-sm"
               />
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                setItemsPerPage(Number(value));
+                setCurrentPage(1);
+              }}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 / page</SelectItem>
+                  <SelectItem value="20">20 / page</SelectItem>
+                  <SelectItem value="50">50 / page</SelectItem>
+                  <SelectItem value="100">100 / page</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" onClick={() => refetch()}>
                 รีเฟรช
               </Button>
@@ -257,44 +278,59 @@ export default function SystemDeposit() {
                         Loading...
                       </TableCell>
                     </TableRow>
-                  ) : deposits && deposits.length > 0 ? (
-                    deposits
-                      .filter((deposit) => {
-                        if (!searchQuery) return true;
-                        const search = searchQuery.toLowerCase();
-                        return (
-                          deposit.id.toLowerCase().includes(search) ||
-                          (deposit.metadata as any)?.reference?.toLowerCase().includes(search) ||
-                          (deposit.metadata as any)?.notes?.toLowerCase().includes(search)
-                        );
-                      })
-                      .map((deposit) => (
-                        <TableRow key={deposit.id}>
-                          <TableCell className="text-sm">
-                            {format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm")}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {deposit.id.slice(0, 8)}...
-                          </TableCell>
-                          <TableCell className="text-sm font-medium">
-                            ฿{(deposit.amount / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                          <TableCell className="text-sm capitalize">
-                            {deposit.method?.replace('_', ' ') || "-"}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {(deposit.metadata as any)?.reference || "-"}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(deposit.status)}</TableCell>
-                          <TableCell className="text-sm">
-                            {deposit.paid_at ? format(new Date(deposit.paid_at), "dd/MM/yyyy HH:mm") : "-"}
-                          </TableCell>
-                          <TableCell className="text-sm max-w-xs truncate">
-                            {(deposit.metadata as any)?.notes || "-"}
+                  ) : deposits && deposits.length > 0 ? (() => {
+                    const filteredDeposits = deposits.filter((deposit) => {
+                      if (!searchQuery) return true;
+                      const search = searchQuery.toLowerCase();
+                      return (
+                        deposit.id.toLowerCase().includes(search) ||
+                        (deposit.metadata as any)?.reference?.toLowerCase().includes(search) ||
+                        (deposit.metadata as any)?.notes?.toLowerCase().includes(search)
+                      );
+                    });
+
+                    const totalPages = Math.ceil(filteredDeposits.length / itemsPerPage);
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const paginatedDeposits = filteredDeposits.slice(startIndex, endIndex);
+
+                    if (paginatedDeposits.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            ไม่พบข้อมูลที่ค้นหา
                           </TableCell>
                         </TableRow>
-                      ))
-                  ) : (
+                      );
+                    }
+
+                    return paginatedDeposits.map((deposit) => (
+                      <TableRow key={deposit.id}>
+                        <TableCell className="text-sm">
+                          {format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm")}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {deposit.id.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">
+                          ฿{(deposit.amount / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell className="text-sm capitalize">
+                          {deposit.method?.replace('_', ' ') || "-"}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {(deposit.metadata as any)?.reference || "-"}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(deposit.status)}</TableCell>
+                        <TableCell className="text-sm">
+                          {deposit.paid_at ? format(new Date(deposit.paid_at), "dd/MM/yyyy HH:mm") : "-"}
+                        </TableCell>
+                        <TableCell className="text-sm max-w-xs truncate">
+                          {(deposit.metadata as any)?.notes || "-"}
+                        </TableCell>
+                      </TableRow>
+                    ));
+                  })() : (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -308,6 +344,73 @@ export default function SystemDeposit() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination */}
+            {deposits && deposits.length > 0 && (() => {
+              const filteredDeposits = deposits.filter((deposit) => {
+                if (!searchQuery) return true;
+                const search = searchQuery.toLowerCase();
+                return (
+                  deposit.id.toLowerCase().includes(search) ||
+                  (deposit.metadata as any)?.reference?.toLowerCase().includes(search) ||
+                  (deposit.metadata as any)?.notes?.toLowerCase().includes(search)
+                );
+              });
+
+              const totalPages = Math.ceil(filteredDeposits.length / itemsPerPage);
+              
+              if (totalPages <= 1) return null;
+
+              return (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDeposits.length)} จาก {filteredDeposits.length} รายการ
+                  </div>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(pageNumber)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
