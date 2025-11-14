@@ -184,101 +184,101 @@ export default function WithdrawalList() {
               </Button>
             </div>
 
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">ลำดับ</TableHead>
-                    <TableHead>เวลาสมัคร</TableHead>
-                    <TableHead>Ref ID</TableHead>
-                    <TableHead>TX ID</TableHead>
-                    <TableHead>ลูกค้า</TableHead>
-                    <TableHead>ร้านค้า</TableHead>
-                    <TableHead className="text-right">จำนวน</TableHead>
-                    <TableHead className="text-right">Payout จำนวน</TableHead>
-                    <TableHead>ธนาคาร</TableHead>
-                    <TableHead>ผู้ดำเนินการ</TableHead>
-                    <TableHead>สถานะกระบวนการ</TableHead>
-                    <TableHead>สถานะ</TableHead>
-                    <TableHead>ประเภท</TableHead>
-                    <TableHead>จัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
+            <div className="rounded-md border overflow-hidden">
+              <div className="overflow-x-auto max-w-full">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={14} className="text-center py-8">
-                        กำลังโหลด...
-                      </TableCell>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead className="w-32">เวลาสมัคร</TableHead>
+                      <TableHead className="w-28">Ref ID</TableHead>
+                      <TableHead className="w-28">TX ID</TableHead>
+                      <TableHead className="min-w-32">ลูกค้า</TableHead>
+                      <TableHead className="w-24">ร้านค้า</TableHead>
+                      <TableHead className="w-24 text-right">จำนวน</TableHead>
+                      <TableHead className="w-24 text-right">Payout</TableHead>
+                      <TableHead className="w-20">ธนาคาร</TableHead>
+                      <TableHead className="w-28">ผู้ดำเนินการ</TableHead>
+                      <TableHead className="w-28">สถานะกระบวนการ</TableHead>
+                      <TableHead className="w-24">สถานะ</TableHead>
+                      <TableHead className="w-20">ประเภท</TableHead>
+                      <TableHead className="w-16">จัดการ</TableHead>
                     </TableRow>
-                  ) : withdrawals && withdrawals.length > 0 ? (
-                    withdrawals.map((withdrawal, index) => (
-                      <TableRow key={withdrawal.id}>
-                        <TableCell className="font-medium">
-                          {(page - 1) * itemsPerPage + index + 1}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {withdrawal.createdate ? format(new Date(withdrawal.createdate), "yyyy-MM-dd HH:mm") : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-primary">
-                          {withdrawal.ref_id || "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-blue-600">
-                          {withdrawal.withdrawid || "-"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{withdrawal.fullname || "-"}</span>
-                            <span className="text-xs text-muted-foreground">{withdrawal.username}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{withdrawal.memberid || "-"}</TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ฿{Number(withdrawal.beforewithdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-emerald-600">
-                          ฿{Number(withdrawal.withdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-mono">
-                            {withdrawal.bankcode || "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="text-sm">{withdrawal.staff_activename || "-"}</span>
-                            <span className="text-xs text-muted-foreground">{withdrawal.staff_activeid || ""}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {withdrawal.statusbanktranfer ? (
-                            <Badge variant="default">สำเร็จ</Badge>
-                          ) : (
-                            <Badge variant="secondary">กำลังดำเนินการ</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{withdrawal.cashtype || "withdraw"}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Search className="h-4 w-4" />
-                            </Button>
-                          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={14} className="text-center py-8">
+                          กำลังโหลด...
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
-                        ไม่พบรายการถอนเงิน
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    ) : withdrawals && withdrawals.length > 0 ? (
+                      withdrawals.map((withdrawal, index) => (
+                        <TableRow key={withdrawal.id}>
+                          <TableCell className="font-medium text-sm">
+                            {(page - 1) * itemsPerPage + index + 1}
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {withdrawal.createdate ? format(new Date(withdrawal.createdate), "yyyy-MM-dd HH:mm") : "-"}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-primary truncate max-w-28" title={withdrawal.ref_id}>
+                            {withdrawal.ref_id || "-"}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-blue-600 truncate max-w-28" title={withdrawal.withdrawid}>
+                            {withdrawal.withdrawid || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col max-w-32">
+                              <span className="font-medium text-sm truncate" title={withdrawal.fullname}>{withdrawal.fullname || "-"}</span>
+                              <span className="text-xs text-muted-foreground truncate" title={withdrawal.username}>{withdrawal.username}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm truncate" title={withdrawal.memberid}>{withdrawal.memberid || "-"}</TableCell>
+                          <TableCell className="text-right font-semibold text-sm whitespace-nowrap">
+                            ฿{Number(withdrawal.beforewithdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-emerald-600 text-sm whitespace-nowrap">
+                            ฿{Number(withdrawal.withdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {withdrawal.bankcode || "-"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col max-w-28">
+                              <span className="text-xs truncate" title={withdrawal.staff_activename}>{withdrawal.staff_activename || "-"}</span>
+                              <span className="text-xs text-muted-foreground truncate" title={withdrawal.staff_activeid}>{withdrawal.staff_activeid || ""}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {withdrawal.statusbanktranfer ? (
+                              <Badge variant="default" className="text-xs">สำเร็จ</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">กำลังดำเนินการ</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">{withdrawal.cashtype || "withdraw"}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Search className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                          ไม่พบรายการถอนเงิน
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </CardContent>
         </Card>
