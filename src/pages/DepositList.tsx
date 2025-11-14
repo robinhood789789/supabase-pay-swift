@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ChevronDown, ChevronUp, Calendar, Plus, Wallet } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,8 @@ export default function DepositList() {
   const [accName, setAccName] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterExpanded, setFilterExpanded] = useState(true);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const { activeTenantId, activeTenant } = useTenantSwitcher();
   const { hasPermission } = usePermissions();
@@ -52,35 +55,47 @@ export default function DepositList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
-  const { data: deposits, isLoading, error: queryError, refetch } = useQuery<DepositTransfer[]>({
-    queryKey: ["deposit-transfers", statusFilter, activeTenantId],
+  const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
+    queryKey: ["deposit-transfers", statusFilter, activeTenantId, page, itemsPerPage],
     queryFn: async () => {
       console.log("🔍 Fetching deposit_transfers...");
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
       let query = (supabase as any)
         .from("deposit_transfers")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*", { count: 'exact' })
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter);
       }
 
-      const { data, error } = await query;
-      console.log("📊 Query result:", { data, error, count: data?.length });
+      const { data, error, count } = await query;
+      console.log("📊 Query result:", { data, error, count });
       if (error) {
         console.error("❌ Query error:", error);
         throw error;
       }
-      return (data || []) as DepositTransfer[];
+      return { data: (data || []) as DepositTransfer[], count: count || 0 };
     },
     enabled: true,
   });
+
+  const deposits = queryResult?.data || [];
+  const totalCount = queryResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   // Debug logs
   console.log("🔹 DepositList state:", { 
     isLoading, 
     hasError: !!queryError, 
     depositsCount: deposits?.length,
+    totalCount,
+    page,
+    itemsPerPage,
+    totalPages,
     hasPermission: hasPermission("deposits.view"),
     userRole,
     activeTenantId
@@ -328,6 +343,87 @@ export default function DepositList() {
                   )}
                 </TableBody>
               </Table>
+          </CardContent>
+        </Card>
+
+        {/* Pagination Controls */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">แสดง</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setPage(1);
+                }}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              {/* Page info */}
+              <div className="text-sm text-muted-foreground">
+                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+              </div>
+
+              {/* Pagination */}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (page <= 3) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = page - 2 + i;
+                    }
+                    
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => setPage(pageNum)}
+                          isActive={page === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  {totalPages > 5 && page < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </CardContent>
         </Card>
       </div>
