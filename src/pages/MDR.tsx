@@ -46,7 +46,7 @@ const MDR = () => {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  // Fetch and calculate MDR data from deposit_transfers
+  // Fetch and calculate MDR data from all sources
   const { data: mdrData, isLoading, error: queryError, refetch } = useQuery<{
     dailyData: DailyMDRData[];
     paginatedData: DailyMDRData[];
@@ -69,8 +69,8 @@ const MDR = () => {
       
       console.log("Fetching MDR data with filters:", { startDateStr, endDateStr, merchantFilter });
       
-      // Query deposit_transfers data
-      let query = (supabase as any)
+      // 1. Query deposit_transfers data (เติมเงิน)
+      let depositQuery = (supabase as any)
         .from("deposit_transfers")
         .select("*")
         .gte("depositdate", startDateStr)
@@ -78,32 +78,72 @@ const MDR = () => {
         .order("depositdate", { ascending: true });
 
       if (merchantFilter && merchantFilter !== "all") {
-        query = query.eq("memberid", merchantFilter);
+        depositQuery = depositQuery.eq("memberid", merchantFilter);
       }
 
-      const { data, error } = await query;
+      const { data: depositData, error: depositError } = await depositQuery;
       
-      console.log("Query result:", { 
-        dataCount: data?.length || 0, 
-        error: error?.message,
-        sampleData: data?.[0] 
+      if (depositError) {
+        console.error("Error fetching deposit_transfers:", depositError);
+        throw depositError;
+      }
+
+      // 2. Query topup_transfers data (เติมเงินเข้าระบบ owner)
+      let topupQuery = (supabase as any)
+        .from("topup_transfers")
+        .select("*")
+        .gte("topup_date", startDateStr)
+        .lte("topup_date", endDateStr)
+        .order("topup_date", { ascending: true });
+
+      if (merchantFilter && merchantFilter !== "all") {
+        topupQuery = topupQuery.eq("merchant_code", merchantFilter);
+      }
+
+      const { data: topupData, error: topupError } = await topupQuery;
+      
+      if (topupError) {
+        console.error("Error fetching topup_transfers:", topupError);
+        throw topupError;
+      }
+
+      // 3. Query settlement_transfers data (ถอนเงิน และ ถอนเงินระบบ owner)
+      let settlementQuery = (supabase as any)
+        .from("settlement_transfers")
+        .select("*")
+        .gte("created_at", startDateStr)
+        .lte("created_at", endDateStr)
+        .order("created_at", { ascending: true });
+
+      if (merchantFilter && merchantFilter !== "all") {
+        settlementQuery = settlementQuery.eq("merchant_code", merchantFilter);
+      }
+
+      const { data: settlementData, error: settlementError } = await settlementQuery;
+      
+      if (settlementError) {
+        console.error("Error fetching settlement_transfers:", settlementError);
+        throw settlementError;
+      }
+
+      console.log("Query results:", { 
+        depositCount: depositData?.length || 0, 
+        topupCount: topupData?.length || 0,
+        settlementCount: settlementData?.length || 0
       });
-      
-      if (error) {
-        console.error("Error fetching deposit_transfers:", error);
-        throw error;
-      }
 
-      // Group data by date
+      // Group data by date and merchant
       const dailyMap = new Map<string, DailyMDRData>();
       
-      (data || []).forEach((item: any) => {
+      // Process deposit_transfers (เติมเงิน)
+      (depositData || []).forEach((item: any) => {
         const date = item.depositdate ? format(new Date(item.depositdate), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
         const merchant = item.memberid || "unknown";
         const amount = parseFloat(item.amountpaid || 0);
+        const key = `${date}-${merchant}`;
         
-        if (!dailyMap.has(date)) {
-          dailyMap.set(date, {
+        if (!dailyMap.has(key)) {
+          dailyMap.set(key, {
             date,
             merchant,
             totalDeposit: 0,
@@ -118,19 +158,88 @@ const MDR = () => {
           });
         }
 
-        const dayData = dailyMap.get(date)!;
+        const dayData = dailyMap.get(key)!;
         
         // Calculate based on status (3 = completed)
         if (item.status === "3" && amount > 0) {
           dayData.totalDeposit += amount;
-          // Calculate MDR (assume 1.6% for deposits)
+          // Calculate MDR (1.6% for deposits)
           dayData.mdrDeposit += amount * 0.016;
-          
-          // For settlement (assuming all deposits go to settlement)
-          dayData.totalSettlement += amount;
         }
+      });
+
+      // Process topup_transfers (เติมเงินเข้าระบบ owner)
+      (topupData || []).forEach((item: any) => {
+        const date = item.topup_date ? format(new Date(item.topup_date), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
+        const merchant = item.merchant_code || "unknown";
+        const amount = parseFloat(item.amount || 0);
+        const key = `${date}-${merchant}`;
         
-        // Calculate total MDR
+        if (!dailyMap.has(key)) {
+          dailyMap.set(key, {
+            date,
+            merchant,
+            totalDeposit: 0,
+            mdrDeposit: 0,
+            totalTopup: 0,
+            mdrTopup: 0,
+            totalPayout: 0,
+            mdrPayout: 0,
+            totalSettlement: 0,
+            mdrSettlement: 0,
+            totalMDR: 0,
+          });
+        }
+
+        const dayData = dailyMap.get(key)!;
+        
+        // Calculate based on status (completed)
+        if (item.status === "completed" && amount > 0) {
+          dayData.totalTopup += amount;
+          // Calculate MDR (1.6% for topups)
+          dayData.mdrTopup += amount * 0.016;
+        }
+      });
+
+      // Process settlement_transfers (ถอนเงิน)
+      (settlementData || []).forEach((item: any) => {
+        const date = format(new Date(item.created_at), "yyyy-MM-dd");
+        const merchant = item.merchant_code || "unknown";
+        const amount = parseFloat(item.amount || 0);
+        const key = `${date}-${merchant}`;
+        
+        if (!dailyMap.has(key)) {
+          dailyMap.set(key, {
+            date,
+            merchant,
+            totalDeposit: 0,
+            mdrDeposit: 0,
+            totalTopup: 0,
+            mdrTopup: 0,
+            totalPayout: 0,
+            mdrPayout: 0,
+            totalSettlement: 0,
+            mdrSettlement: 0,
+            totalMDR: 0,
+          });
+        }
+
+        const dayData = dailyMap.get(key)!;
+        
+        // Calculate based on status (completed/approved)
+        if ((item.status === "completed" || item.status === "approved") && amount > 0) {
+          dayData.totalPayout += amount;
+          // Calculate MDR (1.6% for payouts)
+          dayData.mdrPayout += amount * 0.016;
+          
+          dayData.totalSettlement += amount;
+          // Calculate MDR for settlements (0.5%)
+          dayData.mdrSettlement += amount * 0.005;
+        }
+      });
+
+      // Calculate total MDR for each day
+      dailyMap.forEach((dayData) => {
         dayData.totalMDR = dayData.mdrDeposit + dayData.mdrTopup + dayData.mdrPayout + dayData.mdrSettlement;
       });
 
