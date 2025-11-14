@@ -141,6 +141,17 @@ Deno.serve(async (req) => {
     const finalTenantId = (createdTenant as any).id as string;
     console.log('Tenant created successfully:', finalTenantId);
 
+    // Verify tenant exists before proceeding
+    const { data: verifyTenant, error: verifyErr } = await supabaseClient
+      .from('tenants')
+      .select('id')
+      .eq('id', finalTenantId)
+      .maybeSingle();
+    if (verifyErr || !verifyTenant) {
+      console.error('Tenant verification failed:', verifyErr);
+      throw new Error('Tenant not found after creation');
+    }
+
     // Find existing owner role (roles are global)
     const { data: ownerRole, error: ownerRoleError } = await supabaseClient
       .from('roles')
@@ -206,7 +217,7 @@ Deno.serve(async (req) => {
     await supabaseClient
       .from('tenant_settings')
       .insert({
-        tenant_id: tenantId,
+        tenant_id: finalTenantId,
         provider: 'stripe',
       });
 
@@ -214,7 +225,7 @@ Deno.serve(async (req) => {
     await supabaseClient
       .from('tenant_wallets')
       .insert({
-        tenant_id: tenantId,
+        tenant_id: finalTenantId,
         balance: 0,
       });
 
@@ -222,7 +233,7 @@ Deno.serve(async (req) => {
     await supabaseClient
       .from('audit_logs')
       .insert({
-        tenant_id: tenantId,
+        tenant_id: finalTenantId,
         actor_user_id: user.id,
         action: 'owner.create',
         target: `user:${ownerUserId}`,
@@ -238,7 +249,7 @@ Deno.serve(async (req) => {
         success: true,
         data: {
           owner_id: ownerUserId,
-          tenant_id: tenantId,
+          tenant_id: finalTenantId,
           public_id: public_id,
           business_name: business_name,
           email: generated_email,
