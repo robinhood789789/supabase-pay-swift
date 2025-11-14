@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent } from "@/components/ui/card";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CalendarIcon, Search, ChevronUp, ChevronDown, Download, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,8 @@ export const PaymentsTable = () => {
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(true);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   const [filters, setFilters] = useState({
     status: "all",
@@ -42,16 +45,20 @@ export const PaymentsTable = () => {
     accountNumber: "all",
   });
 
-  const { data: payments, isLoading } = useQuery({
-    queryKey: ["payments", activeTenantId, filters],
+  const { data: queryResult, isLoading } = useQuery<{ data: any[], count: number }>({
+    queryKey: ["payments", activeTenantId, filters, page, itemsPerPage],
     queryFn: async () => {
-      if (!activeTenantId) return [];
+      if (!activeTenantId) return { data: [], count: 0 };
+
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
 
       let query = supabase
         .from("payments")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("tenant_id", activeTenantId)
-        .order(filters.sortBy, { ascending: false });
+        .order(filters.sortBy, { ascending: false })
+        .range(from, to);
 
       if (filters.status !== "all") {
         query = query.eq("status", filters.status);
@@ -67,7 +74,7 @@ export const PaymentsTable = () => {
         query = query.lte("created_at", endOfDay.toISOString());
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
       
       let filteredData = data || [];
@@ -79,10 +86,14 @@ export const PaymentsTable = () => {
         );
       }
       
-      return filteredData;
+      return { data: filteredData, count: count || 0 };
     },
     enabled: !!activeTenantId,
   });
+
+  const payments = queryResult?.data || [];
+  const totalCount = queryResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const statusCounts = {
     all: payments?.length || 0,
@@ -91,6 +102,11 @@ export const PaymentsTable = () => {
     succeeded: payments?.filter(p => p.status === "succeeded").length || 0,
     failed: payments?.filter(p => p.status === "failed").length || 0,
     rejected: payments?.filter(p => p.status === "rejected").length || 0,
+  };
+
+  const updateFilter = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPage(1); // Reset to page 1 when filter changes
   };
 
   const getStatusBadge = (status: string) => {
@@ -186,42 +202,42 @@ export const PaymentsTable = () => {
         <Button
           variant={filters.status === "all" ? "default" : "outline"}
           size="sm"
-          onClick={() => setFilters({ ...filters, status: "all" })}
+          onClick={() => updateFilter("status", "all")}
         >
           All {statusCounts.all > 0 && <Badge variant="secondary" className="ml-2 bg-red-500 hover:bg-red-600 text-white">{statusCounts.all}</Badge>}
         </Button>
         <Button
           variant={filters.status === "pending" ? "default" : "outline"}
           size="sm"
-          onClick={() => setFilters({ ...filters, status: "pending" })}
+          onClick={() => updateFilter("status", "pending")}
         >
           Pending
         </Button>
         <Button
           variant={filters.status === "processing" ? "default" : "outline"}
           size="sm"
-          onClick={() => setFilters({ ...filters, status: "processing" })}
+          onClick={() => updateFilter("status", "processing")}
         >
           Processing
         </Button>
         <Button
           variant={filters.status === "succeeded" ? "default" : "outline"}
           size="sm"
-          onClick={() => setFilters({ ...filters, status: "succeeded" })}
+          onClick={() => updateFilter("status", "succeeded")}
         >
           Complete {statusCounts.succeeded > 0 && <Badge variant="secondary" className="ml-2 bg-red-500 hover:bg-red-600 text-white">{statusCounts.succeeded}</Badge>}
         </Button>
         <Button
           variant={filters.status === "failed" ? "default" : "outline"}
           size="sm"
-          onClick={() => setFilters({ ...filters, status: "failed" })}
+          onClick={() => updateFilter("status", "failed")}
         >
           Failed {statusCounts.failed > 0 && <Badge variant="secondary" className="ml-2 bg-red-500 hover:bg-red-600 text-white">{statusCounts.failed}</Badge>}
         </Button>
         <Button
           variant={filters.status === "rejected" ? "default" : "outline"}
           size="sm"
-          onClick={() => setFilters({ ...filters, status: "rejected" })}
+          onClick={() => updateFilter("status", "rejected")}
         >
           Rejected
         </Button>
@@ -250,7 +266,7 @@ export const PaymentsTable = () => {
                     <label className="text-sm text-muted-foreground mb-2 block">Sort By</label>
                     <Select 
                       value={filters.sortBy} 
-                      onValueChange={(value) => setFilters({ ...filters, sortBy: value })}
+                      onValueChange={(value) => updateFilter("sortBy", value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -267,7 +283,7 @@ export const PaymentsTable = () => {
                     <label className="text-sm text-muted-foreground mb-2 block">Priority</label>
                     <Select 
                       value={filters.priority} 
-                      onValueChange={(value) => setFilters({ ...filters, priority: value })}
+                      onValueChange={(value) => updateFilter("priority", value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -300,7 +316,7 @@ export const PaymentsTable = () => {
                         <Calendar
                           mode="single"
                           selected={filters.startDate}
-                          onSelect={(date) => setFilters({ ...filters, startDate: date })}
+                          onSelect={(date) => updateFilter("startDate", date)}
                           initialFocus
                           className="pointer-events-auto"
                         />
@@ -327,7 +343,7 @@ export const PaymentsTable = () => {
                         <Calendar
                           mode="single"
                           selected={filters.endDate}
-                          onSelect={(date) => setFilters({ ...filters, endDate: date })}
+                          onSelect={(date) => updateFilter("endDate", date)}
                           initialFocus
                           className="pointer-events-auto"
                         />
@@ -341,7 +357,7 @@ export const PaymentsTable = () => {
                   <Input
                     placeholder="input search text..."
                     value={filters.searchQuery}
-                    onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                    onChange={(e) => updateFilter("searchQuery", e.target.value)}
                     className="pl-10"
                   />
                 </div>
@@ -436,6 +452,87 @@ export const PaymentsTable = () => {
                 )}
               </TableBody>
             </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pagination Controls */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Items per page selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">แสดง</span>
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                setItemsPerPage(Number(value));
+                setPage(1);
+              }}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">รายการ</span>
+            </div>
+
+            {/* Page info */}
+            <div className="text-sm text-muted-foreground">
+              หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+            </div>
+
+            {/* Pagination */}
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        onClick={() => setPage(pageNum)}
+                        isActive={page === pageNum}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                {totalPages > 5 && page < totalPages - 2 && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         </CardContent>
       </Card>
