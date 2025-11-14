@@ -36,15 +36,11 @@ export default function DepositList() {
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
   const { data: deposits, isLoading, refetch } = useQuery({
-    queryKey: ["deposits", statusFilter, activeTenantId],
+    queryKey: ["deposit-transfers", statusFilter, activeTenantId],
     queryFn: async () => {
-      if (!activeTenantId) return [];
-
       let query = supabase
-        .from("payments")
+        .from("deposit_transfers")
         .select("*")
-        .eq("tenant_id", activeTenantId)
-        .eq("type", "deposit")
         .order("created_at", { ascending: false });
 
       if (statusFilter !== "all") {
@@ -55,7 +51,7 @@ export default function DepositList() {
       if (error) throw error;
       return data;
     },
-    enabled: !!activeTenantId,
+    enabled: true,
   });
 
   const statusButtons: { value: PaymentStatus; label: string }[] = [
@@ -246,43 +242,38 @@ export default function DepositList() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={15} className="text-center py-8">
+                      <TableCell colSpan={8} className="text-center py-8">
                         Loading...
                       </TableCell>
                     </TableRow>
                   ) : deposits && deposits.length > 0 ? (
                     deposits.map((deposit) => (
                       <TableRow key={deposit.id}>
-                        <TableCell className="text-sm">
-                          {format(new Date(deposit.created_at), "MM/dd/yyyy HH:mm")}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {deposit.id.slice(0, 8)}
-                        </TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell className="text-sm">{deposit.provider || "-"}</TableCell>
-                        <TableCell className="text-sm font-medium">
-                          {(deposit.amount / 100).toLocaleString()} {deposit.currency}
-                        </TableCell>
-                        <TableCell className="text-sm">{deposit.method || "-"}</TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell className="text-sm">-</TableCell>
-                        <TableCell>{getStatusBadge(deposit.status)}</TableCell>
-                        <TableCell className="text-sm">{deposit.method || "-"}</TableCell>
-                        <TableCell className="text-sm">-</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm">
-                            Manage
-                          </Button>
+                          {deposit.depositdate 
+                            ? format(new Date(deposit.depositdate), "dd/MM/yyyy HH:mm")
+                            : format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm")}
+                        </TableCell>
+                        <TableCell className="font-mono">{deposit.ref_id || deposit.transactionid}</TableCell>
+                        <TableCell>{deposit.custaccountname || deposit.fullname || '-'}</TableCell>
+                        <TableCell className="font-mono">{deposit.custaccountnumber || '-'}</TableCell>
+                        <TableCell>{deposit.adminbank_bankname || deposit.bankcode || '-'}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {deposit.amountpaid ? Number(deposit.amountpaid).toFixed(2) : '0.00'} THB
+                        </TableCell>
+                        <TableCell>{getStatusBadge(deposit.status || 'pending')}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              View
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={15} className="text-center py-8">
+                      <TableCell colSpan={8} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <div className="text-4xl">📋</div>
                           <div>No data</div>
