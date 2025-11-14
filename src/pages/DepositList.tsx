@@ -17,6 +17,23 @@ import { usePermissions } from "@/hooks/usePermissions";
 
 type PaymentStatus = "all" | "pending" | "completed" | "expired" | "rejected";
 
+interface DepositTransfer {
+  id: number;
+  ref_id: string;
+  transactionid: string | null;
+  custaccountname: string | null;
+  custaccountnumber: string | null;
+  fullname: string | null;
+  adminbank_bankname: string | null;
+  adminbank_bankcode: string | null;
+  bankcode: string | null;
+  amountpaid: number | null;
+  status: string | null;
+  depositdate: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 export default function DepositList() {
   const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState<PaymentStatus>("all");
@@ -35,10 +52,10 @@ export default function DepositList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
-  const { data: deposits, isLoading, refetch } = useQuery({
+  const { data: deposits, isLoading, refetch } = useQuery<DepositTransfer[]>({
     queryKey: ["deposit-transfers", statusFilter, activeTenantId],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("deposit_transfers")
         .select("*")
         .order("created_at", { ascending: false });
@@ -49,7 +66,7 @@ export default function DepositList() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return (data || []) as DepositTransfer[];
     },
     enabled: true,
   });
