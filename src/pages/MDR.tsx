@@ -43,7 +43,7 @@ const MDR = () => {
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Fetch and calculate MDR data from deposit_transfers
-  const { data: mdrData, isLoading, refetch } = useQuery<{
+  const { data: mdrData, isLoading, error: queryError, refetch } = useQuery<{
     dailyData: DailyMDRData[];
     paginatedData: DailyMDRData[];
     totalPages: number;
@@ -60,6 +60,8 @@ const MDR = () => {
   }>({
     queryKey: ["mdr-report", startDate, endDate, merchantFilter, page, itemsPerPage],
     queryFn: async () => {
+      console.log("Fetching MDR data with filters:", { startDate, endDate, merchantFilter });
+      
       // Query deposit_transfers data
       let query = (supabase as any)
         .from("deposit_transfers")
@@ -73,7 +75,17 @@ const MDR = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      
+      console.log("Query result:", { 
+        dataCount: data?.length || 0, 
+        error: error?.message,
+        sampleData: data?.[0] 
+      });
+      
+      if (error) {
+        console.error("Error fetching deposit_transfers:", error);
+        throw error;
+      }
 
       // Group data by date
       const dailyMap = new Map<string, DailyMDRData>();
@@ -312,7 +324,17 @@ const MDR = () => {
                   {isLoading ? (
                     <TableRow>
                       <TableCell colSpan={11} className="text-center py-8">
-                        Loading...
+                        กำลังโหลดข้อมูล...
+                      </TableCell>
+                    </TableRow>
+                  ) : queryError ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="text-center py-8 text-destructive">
+                        เกิดข้อผิดพลาด: {(queryError as Error).message}
+                        <br />
+                        <span className="text-sm text-muted-foreground">
+                          กรุณาตรวจสอบว่าคุณมีสิทธิ์เข้าถึงข้อมูลหรือไม่
+                        </span>
                       </TableCell>
                     </TableRow>
                   ) : mdrData?.paginatedData && mdrData.paginatedData.length > 0 ? (
@@ -334,7 +356,11 @@ const MDR = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
-                        No data found
+                        ไม่พบข้อมูลในช่วงเวลาที่เลือก
+                        <br />
+                        <span className="text-sm">
+                          กรุณาเปลี่ยนช่วงวันที่หรือ Merchant ID
+                        </span>
                       </TableCell>
                     </TableRow>
                   )}
