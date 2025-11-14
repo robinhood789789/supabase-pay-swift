@@ -87,9 +87,9 @@ const MDR = () => {
       const topupQuery = (supabase as any)
         .from("topup_transfers")
         .select("*")
-        .gte("topup_date", startDateStr)
-        .lte("topup_date", endDateStr)
-        .order("topup_date", { ascending: true });
+        .gte("transfer_date", startDateStr)
+        .lte("transfer_date", endDateStr)
+        .order("transfer_date", { ascending: true });
 
       const { data: topupData, error: topupError } = await topupQuery;
       
@@ -155,7 +155,7 @@ const MDR = () => {
 
       // Process topup_transfers (เติมเงินเข้าระบบ owner)
       (topupData || []).forEach((item: any) => {
-        const date = item.topup_date ? format(new Date(item.topup_date), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
+        const date = item.transfer_date ? format(new Date(item.transfer_date), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
         const amount = parseFloat(item.amount || 0);
         
         if (!dailyMap.has(date)) {
