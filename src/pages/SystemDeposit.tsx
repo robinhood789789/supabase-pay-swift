@@ -85,15 +85,13 @@ export default function SystemDeposit() {
   });
 
   const { data: deposits, isLoading, refetch } = useQuery({
-    queryKey: ["system-deposits", statusFilter, activeTenantId],
+    queryKey: ["topup-transfers", statusFilter, activeTenantId],
     queryFn: async () => {
       if (!activeTenantId) return [];
       
-      let query = supabase
-        .from("payments")
+      let query: any = supabase
+        .from("topup_transfers" as any)
         .select("*")
-        .eq("type", "deposit")
-        .eq("tenant_id", activeTenantId)
         .order("created_at", { ascending: false });
 
       if (statusFilter !== "all") {
@@ -102,7 +100,7 @@ export default function SystemDeposit() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!activeTenantId,
   });
@@ -228,7 +226,7 @@ export default function SystemDeposit() {
 
             <div className="flex gap-2">
               <Input
-                placeholder="ค้นหาด้วย Ref ID, หมายเหตุ..."
+                placeholder="ค้นหาด้วย Topup Ref, Ref ID, Client, Merchant..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -261,31 +259,38 @@ export default function SystemDeposit() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>วันที่</TableHead>
+                    <TableHead>วันที่สร้าง</TableHead>
+                    <TableHead>Topup Ref</TableHead>
                     <TableHead>Ref ID</TableHead>
-                    <TableHead>จำนวนเงิน</TableHead>
-                    <TableHead>วิธีการชำระ</TableHead>
-                    <TableHead>เลขอ้างอิง</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Merchant</TableHead>
+                    <TableHead className="text-right">จำนวนเงิน</TableHead>
+                    <TableHead>ธนาคาร</TableHead>
+                    <TableHead>เลขบัญชี</TableHead>
+                    <TableHead>ชื่อบัญชี</TableHead>
+                    <TableHead>วิธีการ</TableHead>
                     <TableHead>สถานะ</TableHead>
-                    <TableHead>วันที่ชำระ</TableHead>
-                    <TableHead>หมายเหตุ</TableHead>
+                    <TableHead>วันที่โอน</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                      <TableCell colSpan={12} className="text-center py-8">
                         Loading...
                       </TableCell>
                     </TableRow>
                   ) : deposits && deposits.length > 0 ? (() => {
-                    const filteredDeposits = deposits.filter((deposit) => {
+                    const filteredDeposits = deposits.filter((deposit: any) => {
                       if (!searchQuery) return true;
                       const search = searchQuery.toLowerCase();
                       return (
-                        deposit.id.toLowerCase().includes(search) ||
-                        (deposit.metadata as any)?.reference?.toLowerCase().includes(search) ||
-                        (deposit.metadata as any)?.notes?.toLowerCase().includes(search)
+                        deposit.topup_ref?.toLowerCase().includes(search) ||
+                        deposit.ref_id?.toLowerCase().includes(search) ||
+                        deposit.client_code?.toLowerCase().includes(search) ||
+                        deposit.merchant_code?.toLowerCase().includes(search) ||
+                        deposit.account_name?.toLowerCase().includes(search) ||
+                        deposit.account_number?.toLowerCase().includes(search)
                       );
                     });
 
@@ -297,42 +302,46 @@ export default function SystemDeposit() {
                     if (paginatedDeposits.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                             ไม่พบข้อมูลที่ค้นหา
                           </TableCell>
                         </TableRow>
                       );
                     }
 
-                    return paginatedDeposits.map((deposit) => (
+                    return paginatedDeposits.map((deposit: any) => (
                       <TableRow key={deposit.id}>
-                        <TableCell className="text-sm">
-                          {format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm")}
+                        <TableCell className="text-xs">
+                          {deposit.created_at ? format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm:ss") : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-xs">
-                          {deposit.id.slice(0, 8)}...
+                          {deposit.topup_ref || "-"}
                         </TableCell>
-                        <TableCell className="text-sm font-medium">
-                          ฿{(deposit.amount / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                        <TableCell className="font-mono text-xs">
+                          {deposit.ref_id || "-"}
                         </TableCell>
-                        <TableCell className="text-sm capitalize">
-                          {deposit.method?.replace('_', ' ') || "-"}
+                        <TableCell className="text-xs">{deposit.client_code || "-"}</TableCell>
+                        <TableCell className="text-xs">{deposit.merchant_code || "-"}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ฿{deposit.amount ? parseFloat(deposit.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 }) : "0.00"}
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {(deposit.metadata as any)?.reference || "-"}
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {deposit.bank_code || deposit.bank_name || "-"}
+                          </Badge>
                         </TableCell>
+                        <TableCell className="font-mono text-xs">{deposit.account_number || "-"}</TableCell>
+                        <TableCell className="text-sm">{deposit.account_name || "-"}</TableCell>
+                        <TableCell className="text-xs capitalize">{deposit.method?.replace('_', ' ') || "-"}</TableCell>
                         <TableCell>{getStatusBadge(deposit.status)}</TableCell>
-                        <TableCell className="text-sm">
-                          {deposit.paid_at ? format(new Date(deposit.paid_at), "dd/MM/yyyy HH:mm") : "-"}
-                        </TableCell>
-                        <TableCell className="text-sm max-w-xs truncate">
-                          {(deposit.metadata as any)?.notes || "-"}
+                        <TableCell className="text-xs">
+                          {deposit.transfer_date ? format(new Date(deposit.transfer_date), "dd/MM/yyyy HH:mm") : "-"}
                         </TableCell>
                       </TableRow>
                     ));
                   })() : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                      <TableCell colSpan={12} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <div className="text-4xl">💰</div>
                           <div>ยังไม่มีรายการเติมเงิน</div>
@@ -347,13 +356,16 @@ export default function SystemDeposit() {
 
             {/* Pagination */}
             {deposits && deposits.length > 0 && (() => {
-              const filteredDeposits = deposits.filter((deposit) => {
+              const filteredDeposits = deposits.filter((deposit: any) => {
                 if (!searchQuery) return true;
                 const search = searchQuery.toLowerCase();
                 return (
-                  deposit.id.toLowerCase().includes(search) ||
-                  (deposit.metadata as any)?.reference?.toLowerCase().includes(search) ||
-                  (deposit.metadata as any)?.notes?.toLowerCase().includes(search)
+                  deposit.topup_ref?.toLowerCase().includes(search) ||
+                  deposit.ref_id?.toLowerCase().includes(search) ||
+                  deposit.client_code?.toLowerCase().includes(search) ||
+                  deposit.merchant_code?.toLowerCase().includes(search) ||
+                  deposit.account_name?.toLowerCase().includes(search) ||
+                  deposit.account_number?.toLowerCase().includes(search)
                 );
               });
 
