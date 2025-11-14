@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
 
     // Create tenant with referral tracking
     const tenantId = crypto.randomUUID();
-    const { error: tenantError } = await supabaseClient
+    const { data: createdTenant, error: tenantError } = await supabaseClient
       .from('tenants')
       .insert({
         id: tenantId,
@@ -130,15 +130,20 @@ Deno.serve(async (req) => {
         status: 'trial',
         referred_by_code: shareholder.referral_code,
         referred_by_shareholder_id: shareholder.id
-      });
+      })
+      .select()
+      .single();
 
-    if (tenantError) {
-      throw new Error(`Failed to create tenant: ${tenantError.message}`);
+    if (tenantError || !createdTenant) {
+      console.error('Tenant creation error:', tenantError);
+      throw new Error(`Failed to create tenant: ${tenantError?.message || 'No tenant data returned'}`);
     }
+
+    console.log('Tenant created successfully:', createdTenant.id);
 
     // Create owner role
     const ownerRoleId = crypto.randomUUID();
-    const { error: roleError } = await supabaseClient
+    const { data: createdRole, error: roleError } = await supabaseClient
       .from('roles')
       .insert({
         id: ownerRoleId,
@@ -146,27 +151,33 @@ Deno.serve(async (req) => {
         name: 'owner',
         description: 'Full system access',
         is_system: true,
-      });
+      })
+      .select()
+      .single();
 
-    if (roleError) {
+    if (roleError || !createdRole) {
       console.error('Role creation error:', roleError);
+      throw new Error(`Failed to create owner role: ${roleError?.message || 'No role data returned'}`);
     }
 
     // Create membership
-    const { error: membershipError } = await supabaseClient
+    const { data: createdMembership, error: membershipError } = await supabaseClient
       .from('memberships')
       .insert({
         user_id: ownerUserId,
         tenant_id: tenantId,
         role_id: ownerRoleId,
-      });
+      })
+      .select()
+      .single();
 
-    if (membershipError) {
+    if (membershipError || !createdMembership) {
       console.error('Membership creation error:', membershipError);
+      throw new Error(`Failed to create membership: ${membershipError?.message || 'No membership data returned'}`);
     }
 
     // Link shareholder to tenant manually to avoid trigger ordering issues
-    const { error: linkError } = await supabaseClient
+    const { data: linkData, error: linkError } = await supabaseClient
       .from('shareholder_clients')
       .insert({
         shareholder_id: shareholder.id,
@@ -174,11 +185,16 @@ Deno.serve(async (req) => {
         commission_rate: 5.0,
         status: 'active',
         referral_source: 'shareholder_portal',
-      });
-    if (linkError) {
+      })
+      .select()
+      .single();
+      
+    if (linkError || !linkData) {
       console.error('Shareholder link error:', linkError);
-      throw new Error(`Failed to link shareholder: ${linkError.message}`);
+      throw new Error(`Failed to link shareholder: ${linkError?.message || 'No link data returned'}`);
     }
+    
+    console.log('Shareholder linked successfully to tenant:', tenantId);
 
     // Update tenant with referral info after link is created
     const { error: tenantReferralError } = await supabaseClient
