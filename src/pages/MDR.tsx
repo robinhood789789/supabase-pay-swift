@@ -291,21 +291,21 @@ const MDR = () => {
                   <TableRow>
                     <TableHead rowSpan={2} className="border-r">Date</TableHead>
                     <TableHead rowSpan={2} className="border-r">Merchant</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-emerald-50 dark:bg-emerald-950/30 border-r">Deposit</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-cyan-50 dark:bg-cyan-950/30 border-r">Topup</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-rose-50 dark:bg-rose-950/30 border-r">Payout</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-violet-50 dark:bg-violet-950/30 border-r">Settlement</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100 border-r">Deposit</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100 border-r">Topup</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 border-r">Payout</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-900 dark:text-violet-100 border-r">Settlement</TableHead>
                     <TableHead rowSpan={2} className="text-center">Total<br/>MDR</TableHead>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Total Deposit</TableHead>
-                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30">Total Topup</TableHead>
-                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30">Total Payout</TableHead>
-                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30">Total Settlement</TableHead>
-                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100">Total Deposit</TableHead>
+                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100">Total Topup</TableHead>
+                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100">Total Payout</TableHead>
+                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-900 dark:text-violet-100">Total Settlement</TableHead>
+                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-900 dark:text-violet-100 border-r">MDR</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
