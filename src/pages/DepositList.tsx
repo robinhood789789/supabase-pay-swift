@@ -52,9 +52,10 @@ export default function DepositList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
-  const { data: deposits, isLoading, refetch } = useQuery<DepositTransfer[]>({
+  const { data: deposits, isLoading, error: queryError, refetch } = useQuery<DepositTransfer[]>({
     queryKey: ["deposit-transfers", statusFilter, activeTenantId],
     queryFn: async () => {
+      console.log("🔍 Fetching deposit_transfers...");
       let query = (supabase as any)
         .from("deposit_transfers")
         .select("*")
@@ -65,10 +66,24 @@ export default function DepositList() {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      console.log("📊 Query result:", { data, error, count: data?.length });
+      if (error) {
+        console.error("❌ Query error:", error);
+        throw error;
+      }
       return (data || []) as DepositTransfer[];
     },
     enabled: true,
+  });
+
+  // Debug logs
+  console.log("🔹 DepositList state:", { 
+    isLoading, 
+    hasError: !!queryError, 
+    depositsCount: deposits?.length,
+    hasPermission: hasPermission("deposits.view"),
+    userRole,
+    activeTenantId
   });
 
   const statusButtons: { value: PaymentStatus; label: string }[] = [
@@ -103,6 +118,19 @@ export default function DepositList() {
         <div className="p-6">
           <h1 className="text-3xl font-bold">Topup List</h1>
           <p className="text-muted-foreground">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>
+          <p className="text-sm text-muted-foreground mt-2">Role: {userRole}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <h1 className="text-3xl font-bold">Topup List</h1>
+          <p className="text-destructive">เกิดข้อผิดพลาด: {queryError.message}</p>
+          <Button onClick={() => refetch()} className="mt-4">ลองใหม่</Button>
         </div>
       </DashboardLayout>
     );
