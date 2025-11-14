@@ -69,14 +69,17 @@ export const SavedFiltersManager = ({
       if (!activeTenantId || !user?.id) return [];
       
       const { data, error } = await supabase
-        .from("transaction_filters")
+        .from("transaction_filters" as any)
         .select("*")
         .eq("tenant_id", activeTenantId)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data as SavedFilter[];
+      if (error) {
+        console.error("Error fetching filters:", error);
+        return [];
+      }
+      return (data || []) as unknown as SavedFilter[];
     },
     enabled: !!activeTenantId && !!user?.id,
   });
@@ -98,14 +101,14 @@ export const SavedFiltersManager = ({
       };
 
       const { data, error } = await supabase
-        .from("transaction_filters")
+        .from("transaction_filters" as any)
         .insert([{
           user_id: user.id,
           tenant_id: activeTenantId,
           name,
           filters: filtersToSave,
           is_default: isDefault,
-        }] as any)
+        }])
         .select()
         .single();
 
@@ -137,13 +140,15 @@ export const SavedFiltersManager = ({
         },
       };
 
+      const updateData = {
+        name,
+        filters: filtersToSave,
+        is_default: isDefault,
+      };
+
       const { data, error } = await supabase
-        .from("transaction_filters")
-        .update({
-          name,
-          filters: filtersToSave as any,
-          is_default: isDefault,
-        })
+        .from("transaction_filters" as any)
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
@@ -167,7 +172,7 @@ export const SavedFiltersManager = ({
   const deleteFilterMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("transaction_filters")
+        .from("transaction_filters" as any)
         .delete()
         .eq("id", id);
 
@@ -186,7 +191,7 @@ export const SavedFiltersManager = ({
   const setDefaultMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("transaction_filters")
+        .from("transaction_filters" as any)
         .update({ is_default: true })
         .eq("id", id);
 
