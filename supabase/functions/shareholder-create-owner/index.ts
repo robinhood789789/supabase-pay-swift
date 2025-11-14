@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to generate tenant public_id: ${publicIdError?.message || 'No ID returned'}`);
     }
 
-    // Create tenant with referral tracking
+    // Create tenant (referral info added after linking to avoid trigger issues)
     const tenantId = crypto.randomUUID();
     const { data: createdTenant, error: tenantError } = await supabaseClient
       .from('tenants')
@@ -127,9 +127,7 @@ Deno.serve(async (req) => {
         name: business_name,
         public_id: tenantPublicId,
         user_id: public_id,
-        status: 'trial',
-        referred_by_code: shareholder.referral_code,
-        referred_by_shareholder_id: shareholder.id
+        status: 'trial'
       })
       .select()
       .single();
