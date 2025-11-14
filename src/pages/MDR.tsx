@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Receipt, Save } from "lucide-react";
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -17,305 +16,314 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { format } from "date-fns";
+
+interface DailyMDRData {
+  date: string;
+  merchant: string;
+  totalDeposit: number;
+  mdrDeposit: number;
+  totalTopup: number;
+  mdrTopup: number;
+  totalPayout: number;
+  mdrPayout: number;
+  totalSettlement: number;
+  mdrSettlement: number;
+  totalMDR: number;
+}
 
 const MDR = () => {
   const { activeTenantId } = useTenantSwitcher();
-  const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [feeConfig, setFeeConfig] = useState({
-    cardRate: "2.95",
-    qrRate: "1.50",
-    bankTransferRate: "0.50",
-    installmentRate: "3.50",
-    fixedFee: "0",
-  });
+  const [startDate, setStartDate] = useState("2025-07-01");
+  const [endDate, setEndDate] = useState("2025-08-05");
+  const [merchantFilter, setMerchantFilter] = useState("no13");
 
-  // Fetch tenant settings and fee plan
-  const { data: tenant, isLoading } = useQuery({
-    queryKey: ["tenant-fees", activeTenantId],
+  // Fetch and calculate MDR data from deposit_transfers
+  const { data: mdrData, isLoading, refetch } = useQuery<{
+    dailyData: DailyMDRData[];
+    summary: {
+      depositAmount: number;
+      topupAmount: number;
+      payoutAmount: number;
+      settlementAmount: number;
+      mdrDeposit: number;
+      mdrTopup: number;
+      mdrPayout: number;
+      mdrSettlement: number;
+    };
+  }>({
+    queryKey: ["mdr-report", startDate, endDate, merchantFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tenants")
-        .select("fee_plan")
-        .eq("id", activeTenantId!)
-        .single();
+      // Query deposit_transfers data
+      let query = (supabase as any)
+        .from("deposit_transfers")
+        .select("*")
+        .gte("depositdate", startDate)
+        .lte("depositdate", endDate)
+        .order("depositdate", { ascending: true });
 
-      if (error) throw error;
-
-      // Set fee config from fetched data
-      if (data?.fee_plan) {
-        const plan = data.fee_plan as any;
-        setFeeConfig({
-          cardRate: plan.card_rate?.toString() || "2.95",
-          qrRate: plan.qr_rate?.toString() || "1.50",
-          bankTransferRate: plan.bank_transfer_rate?.toString() || "0.50",
-          installmentRate: plan.installment_rate?.toString() || "3.50",
-          fixedFee: plan.fixed_fee?.toString() || "0",
-        });
+      if (merchantFilter && merchantFilter !== "all") {
+        query = query.eq("memberid", merchantFilter);
       }
 
-      return data;
-    },
-    enabled: !!activeTenantId,
-  });
-
-  // Fetch recent payments to show MDR calculation
-  const { data: recentPayments } = useQuery({
-    queryKey: ["mdr-payments", activeTenantId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("tenant_id", activeTenantId!)
-        .eq("status", "succeeded")
-        .order("paid_at", { ascending: false })
-        .limit(20);
-
+      const { data, error } = await query;
       if (error) throw error;
-      return data;
-    },
-    enabled: !!activeTenantId,
-  });
 
-  // Update fee plan mutation
-  const updateFeePlan = useMutation({
-    mutationFn: async (config: typeof feeConfig) => {
-      if (!activeTenantId) throw new Error("No active tenant");
+      // Group data by date
+      const dailyMap = new Map<string, DailyMDRData>();
+      
+      (data || []).forEach((item: any) => {
+        const date = item.depositdate ? format(new Date(item.depositdate), "yyyy-MM-dd") : format(new Date(item.created_at), "yyyy-MM-dd");
+        const merchant = item.memberid || "unknown";
+        const amount = parseFloat(item.amountpaid || 0);
+        
+        if (!dailyMap.has(date)) {
+          dailyMap.set(date, {
+            date,
+            merchant,
+            totalDeposit: 0,
+            mdrDeposit: 0,
+            totalTopup: 0,
+            mdrTopup: 0,
+            totalPayout: 0,
+            mdrPayout: 0,
+            totalSettlement: 0,
+            mdrSettlement: 0,
+            totalMDR: 0,
+          });
+        }
 
-      const { error } = await supabase
-        .from("tenants")
-        .update({
-          fee_plan: {
-            card_rate: parseFloat(config.cardRate),
-            qr_rate: parseFloat(config.qrRate),
-            bank_transfer_rate: parseFloat(config.bankTransferRate),
-            installment_rate: parseFloat(config.installmentRate),
-            fixed_fee: parseFloat(config.fixedFee),
-          },
-        })
-        .eq("id", activeTenantId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant-fees"] });
-      setIsEditing(false);
-      toast.success("Fee configuration updated successfully");
-    },
-    onError: (error: any) => {
-      toast.error("Failed to update fee configuration", {
-        description: error.message,
+        const dayData = dailyMap.get(date)!;
+        
+        // Calculate based on status (3 = completed)
+        if (item.status === "3" && amount > 0) {
+          dayData.totalDeposit += amount;
+          // Calculate MDR (assume 1.6% for deposits)
+          dayData.mdrDeposit += amount * 0.016;
+          
+          // For settlement (assuming all deposits go to settlement)
+          dayData.totalSettlement += amount;
+        }
+        
+        // Calculate total MDR
+        dayData.totalMDR = dayData.mdrDeposit + dayData.mdrTopup + dayData.mdrPayout + dayData.mdrSettlement;
       });
+
+      const dailyData = Array.from(dailyMap.values());
+
+      // Calculate summary
+      const summary = dailyData.reduce(
+        (acc, day) => ({
+          depositAmount: acc.depositAmount + day.totalDeposit,
+          topupAmount: acc.topupAmount + day.totalTopup,
+          payoutAmount: acc.payoutAmount + day.totalPayout,
+          settlementAmount: acc.settlementAmount + day.totalSettlement,
+          mdrDeposit: acc.mdrDeposit + day.mdrDeposit,
+          mdrTopup: acc.mdrTopup + day.mdrTopup,
+          mdrPayout: acc.mdrPayout + day.mdrPayout,
+          mdrSettlement: acc.mdrSettlement + day.mdrSettlement,
+        }),
+        {
+          depositAmount: 0,
+          topupAmount: 0,
+          payoutAmount: 0,
+          settlementAmount: 0,
+          mdrDeposit: 0,
+          mdrTopup: 0,
+          mdrPayout: 0,
+          mdrSettlement: 0,
+        }
+      );
+
+      return { dailyData, summary };
     },
+    enabled: true,
   });
 
-  const calculateMDR = (amount: number, method: string) => {
-    let rate = 0;
-    switch (method) {
-      case "card":
-        rate = parseFloat(feeConfig.cardRate);
-        break;
-      case "promptpay":
-      case "qr_payment":
-        rate = parseFloat(feeConfig.qrRate);
-        break;
-      case "bank_transfer":
-        rate = parseFloat(feeConfig.bankTransferRate);
-        break;
-      case "installment":
-        rate = parseFloat(feeConfig.installmentRate);
-        break;
-      default:
-        rate = 2.0;
-    }
-    return (amount * rate) / 100 + parseFloat(feeConfig.fixedFee);
+  const formatNumber = (num: number) => {
+    return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("th-TH", {
-      style: "currency",
-      currency: "THB",
-    }).format(amount / 100);
-  };
-
-  const handleSave = () => {
-    updateFeePlan.mutate(feeConfig);
+  const handleSubmit = () => {
+    refetch();
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Receipt className="h-8 w-8" />
-              MDR Configuration
-            </h1>
-            <p className="text-muted-foreground">
-              Configure Merchant Discount Rate (MDR) for different payment methods
-            </p>
-          </div>
+      <div className="space-y-6 p-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">MDR Report</h1>
         </div>
 
+        {/* Filters */}
         <Card>
-          <CardHeader>
-            <CardTitle>Fee Structure</CardTitle>
-            <CardDescription>
-              Set the fee rates for each payment method (percentage %)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="pt-6">
+            <div className="flex flex-wrap items-end gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cardRate">Credit/Debit Card Rate (%)</Label>
+                <Label>Date</Label>
                 <Input
-                  id="cardRate"
-                  type="number"
-                  step="0.01"
-                  value={feeConfig.cardRate}
-                  onChange={(e) =>
-                    setFeeConfig({ ...feeConfig, cardRate: e.target.value })
-                  }
-                  disabled={!isEditing}
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-[180px]"
+                />
+              </div>
+              
+              <span className="text-muted-foreground pb-2">—</span>
+              
+              <div className="space-y-2">
+                <Label className="invisible">End</Label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-[180px]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="qrRate">QR Payment / PromptPay Rate (%)</Label>
-                <Input
-                  id="qrRate"
-                  type="number"
-                  step="0.01"
-                  value={feeConfig.qrRate}
-                  onChange={(e) =>
-                    setFeeConfig({ ...feeConfig, qrRate: e.target.value })
-                  }
-                  disabled={!isEditing}
-                />
+                <Label>Merchant</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={merchantFilter}
+                    onChange={(e) => setMerchantFilter(e.target.value)}
+                    placeholder="Merchant ID"
+                    className="w-[200px]"
+                  />
+                  {merchantFilter && (
+                    <Badge 
+                      variant="secondary" 
+                      className="px-3 py-2 cursor-pointer hover:bg-destructive"
+                      onClick={() => setMerchantFilter("")}
+                    >
+                      {merchantFilter} ×
+                    </Badge>
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="bankTransferRate">Bank Transfer Rate (%)</Label>
-                <Input
-                  id="bankTransferRate"
-                  type="number"
-                  step="0.01"
-                  value={feeConfig.bankTransferRate}
-                  onChange={(e) =>
-                    setFeeConfig({ ...feeConfig, bankTransferRate: e.target.value })
-                  }
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="installmentRate">Installment Rate (%)</Label>
-                <Input
-                  id="installmentRate"
-                  type="number"
-                  step="0.01"
-                  value={feeConfig.installmentRate}
-                  onChange={(e) =>
-                    setFeeConfig({ ...feeConfig, installmentRate: e.target.value })
-                  }
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fixedFee">Fixed Fee per Transaction (THB)</Label>
-                <Input
-                  id="fixedFee"
-                  type="number"
-                  step="0.01"
-                  value={feeConfig.fixedFee}
-                  onChange={(e) =>
-                    setFeeConfig({ ...feeConfig, fixedFee: e.target.value })
-                  }
-                  disabled={!isEditing}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              {isEditing ? (
-                <>
-                  <Button onClick={handleSave} disabled={updateFeePlan.isPending}>
-                    <Save className="mr-2 h-4 w-4" />
-                    {updateFeePlan.isPending ? "Saving..." : "Save Changes"}
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={() => setIsEditing(true)}>Edit Configuration</Button>
-              )}
+              <Button onClick={handleSubmit} disabled={isLoading}>
+                Submit
+              </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium text-muted-foreground">Deposit Amount</h3>
+                <p className="text-3xl font-bold text-green-600">
+                  {formatNumber(mdrData?.summary.depositAmount || 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  [ MDR {formatNumber(mdrData?.summary.mdrDeposit || 0)} ]
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium text-muted-foreground">Topup Amount</h3>
+                <p className="text-3xl font-bold text-blue-600">
+                  {formatNumber(mdrData?.summary.topupAmount || 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  [ MDR {formatNumber(mdrData?.summary.mdrTopup || 0)} ]
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium text-muted-foreground">Payout Amount</h3>
+                <p className="text-3xl font-bold text-red-600">
+                  {formatNumber(mdrData?.summary.payoutAmount || 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  [ MDR {formatNumber(mdrData?.summary.mdrPayout || 0)} ]
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium text-muted-foreground">Settlement Amount</h3>
+                <p className="text-3xl font-bold text-purple-600">
+                  {formatNumber(mdrData?.summary.settlementAmount || 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  [ MDR {formatNumber(mdrData?.summary.mdrSettlement || 0)} ]
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Data Table */}
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Transactions with MDR</CardTitle>
-            <CardDescription>
-              MDR calculations based on current fee structure
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
+          <CardContent className="pt-6">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Transaction ID</TableHead>
-                    <TableHead>Payment Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">MDR Fee</TableHead>
-                    <TableHead className="text-right">Net Amount</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead rowSpan={2} className="border-r">Date</TableHead>
+                    <TableHead rowSpan={2} className="border-r">Merchant</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-green-50 border-r">Deposit</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-blue-50 border-r">Topup</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-red-50 border-r">Payout</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-purple-50 border-r">Settlement</TableHead>
+                    <TableHead rowSpan={2} className="text-center">Total<br/>MDR</TableHead>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="text-center bg-green-50">Total Deposit</TableHead>
+                    <TableHead className="text-center bg-green-50 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-blue-50">Total Topup</TableHead>
+                    <TableHead className="text-center bg-blue-50 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-red-50">Total Payout</TableHead>
+                    <TableHead className="text-center bg-red-50 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-purple-50">Total Settlement</TableHead>
+                    <TableHead className="text-center bg-purple-50 border-r">MDR</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center">
+                      <TableCell colSpan={11} className="text-center py-8">
                         Loading...
                       </TableCell>
                     </TableRow>
-                  ) : recentPayments?.length === 0 ? (
+                  ) : mdrData?.dailyData && mdrData.dailyData.length > 0 ? (
+                    mdrData.dailyData.map((row, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="border-r">{row.date}</TableCell>
+                        <TableCell className="border-r">{row.merchant}</TableCell>
+                        <TableCell className="text-right bg-green-50">{formatNumber(row.totalDeposit)}</TableCell>
+                        <TableCell className="text-right bg-green-50 border-r">{formatNumber(row.mdrDeposit)}</TableCell>
+                        <TableCell className="text-right bg-blue-50">{formatNumber(row.totalTopup)}</TableCell>
+                        <TableCell className="text-right bg-blue-50 border-r">{formatNumber(row.mdrTopup)}</TableCell>
+                        <TableCell className="text-right bg-red-50">{formatNumber(row.totalPayout)}</TableCell>
+                        <TableCell className="text-right bg-red-50 border-r">{formatNumber(row.mdrPayout)}</TableCell>
+                        <TableCell className="text-right bg-purple-50">{formatNumber(row.totalSettlement)}</TableCell>
+                        <TableCell className="text-right bg-purple-50 border-r">{formatNumber(row.mdrSettlement)}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatNumber(row.totalMDR)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        No transactions found
+                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                        No data found
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    recentPayments?.map((payment) => {
-                      const mdrFee = calculateMDR(payment.amount, payment.method || "card");
-                      const netAmount = payment.amount - mdrFee;
-
-                      return (
-                        <TableRow key={payment.id}>
-                          <TableCell className="font-mono text-sm">
-                            {payment.provider_payment_id?.substring(0, 16)}...
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            {payment.method?.replace("_", " ")}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(payment.amount)}
-                          </TableCell>
-                          <TableCell className="text-right text-red-500">
-                            -{formatCurrency(mdrFee)}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {formatCurrency(netAmount)}
-                          </TableCell>
-                          <TableCell>
-                            {new Date(payment.paid_at || payment.created_at).toLocaleDateString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
                   )}
                 </TableBody>
               </Table>
