@@ -229,7 +229,7 @@ const MDR = () => {
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-medium text-muted-foreground">Deposit Amount</h3>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                   {formatNumber(mdrData?.summary.depositAmount || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -243,7 +243,7 @@ const MDR = () => {
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-medium text-muted-foreground">Topup Amount</h3>
-                <p className="text-3xl font-bold text-blue-600">
+                <p className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
                   {formatNumber(mdrData?.summary.topupAmount || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -257,7 +257,7 @@ const MDR = () => {
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-medium text-muted-foreground">Payout Amount</h3>
-                <p className="text-3xl font-bold text-red-600">
+                <p className="text-3xl font-bold text-rose-600 dark:text-rose-400">
                   {formatNumber(mdrData?.summary.payoutAmount || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -271,7 +271,7 @@ const MDR = () => {
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-medium text-muted-foreground">Settlement Amount</h3>
-                <p className="text-3xl font-bold text-purple-600">
+                <p className="text-3xl font-bold text-violet-600 dark:text-violet-400">
                   {formatNumber(mdrData?.summary.settlementAmount || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -291,21 +291,21 @@ const MDR = () => {
                   <TableRow>
                     <TableHead rowSpan={2} className="border-r">Date</TableHead>
                     <TableHead rowSpan={2} className="border-r">Merchant</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-green-50 border-r">Deposit</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-blue-50 border-r">Topup</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-red-50 border-r">Payout</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-purple-50 border-r">Settlement</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-emerald-50 dark:bg-emerald-950/30 border-r">Deposit</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-cyan-50 dark:bg-cyan-950/30 border-r">Topup</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-rose-50 dark:bg-rose-950/30 border-r">Payout</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-violet-50 dark:bg-violet-950/30 border-r">Settlement</TableHead>
                     <TableHead rowSpan={2} className="text-center">Total<br/>MDR</TableHead>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="text-center bg-green-50">Total Deposit</TableHead>
-                    <TableHead className="text-center bg-green-50 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-blue-50">Total Topup</TableHead>
-                    <TableHead className="text-center bg-blue-50 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-red-50">Total Payout</TableHead>
-                    <TableHead className="text-center bg-red-50 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-purple-50">Total Settlement</TableHead>
-                    <TableHead className="text-center bg-purple-50 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30">Total Deposit</TableHead>
+                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30">Total Topup</TableHead>
+                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30">Total Payout</TableHead>
+                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30">Total Settlement</TableHead>
+                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 border-r">MDR</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -320,14 +320,14 @@ const MDR = () => {
                       <TableRow key={index}>
                         <TableCell className="border-r">{row.date}</TableCell>
                         <TableCell className="border-r">{row.merchant}</TableCell>
-                        <TableCell className="text-right bg-green-50">{formatNumber(row.totalDeposit)}</TableCell>
-                        <TableCell className="text-right bg-green-50 border-r">{formatNumber(row.mdrDeposit)}</TableCell>
-                        <TableCell className="text-right bg-blue-50">{formatNumber(row.totalTopup)}</TableCell>
-                        <TableCell className="text-right bg-blue-50 border-r">{formatNumber(row.mdrTopup)}</TableCell>
-                        <TableCell className="text-right bg-red-50">{formatNumber(row.totalPayout)}</TableCell>
-                        <TableCell className="text-right bg-red-50 border-r">{formatNumber(row.mdrPayout)}</TableCell>
-                        <TableCell className="text-right bg-purple-50">{formatNumber(row.totalSettlement)}</TableCell>
-                        <TableCell className="text-right bg-purple-50 border-r">{formatNumber(row.mdrSettlement)}</TableCell>
+                        <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30">{formatNumber(row.totalDeposit)}</TableCell>
+                        <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30 border-r">{formatNumber(row.mdrDeposit)}</TableCell>
+                        <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30">{formatNumber(row.totalTopup)}</TableCell>
+                        <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30 border-r">{formatNumber(row.mdrTopup)}</TableCell>
+                        <TableCell className="text-right bg-rose-50 dark:bg-rose-950/30">{formatNumber(row.totalPayout)}</TableCell>
+                        <TableCell className="text-right bg-rose-50 dark:bg-rose-950/30 border-r">{formatNumber(row.mdrPayout)}</TableCell>
+                        <TableCell className="text-right bg-violet-50 dark:bg-violet-950/30">{formatNumber(row.totalSettlement)}</TableCell>
+                        <TableCell className="text-right bg-violet-50 dark:bg-violet-950/30 border-r">{formatNumber(row.mdrSettlement)}</TableCell>
                         <TableCell className="text-right font-semibold">{formatNumber(row.totalMDR)}</TableCell>
                       </TableRow>
                     ))
