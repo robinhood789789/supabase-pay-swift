@@ -29,29 +29,26 @@ export const SettlementsTable = () => {
   const [dateTo, setDateTo] = useState<string>("");
 
   const { data: settlements = [], isLoading } = useQuery({
-    queryKey: ["settlements", activeTenantId, statusFilter, providerFilter, searchQuery, dateFrom, dateTo],
+    queryKey: ["settlement-transfers", activeTenantId, statusFilter, providerFilter, searchQuery, dateFrom, dateTo],
     queryFn: async () => {
       if (!activeTenantId) return [];
 
-      let query = supabase
-        .from("settlements")
+      let query: any = supabase
+        .from("settlement_transfers" as any)
         .select("*")
-        .eq("tenant_id", activeTenantId)
         .order("created_at", { ascending: false });
 
       // Apply filters
-      if (statusFilter === "paid") {
-        query = query.not("paid_out_at", "is", null);
-      } else if (statusFilter === "pending") {
-        query = query.is("paid_out_at", null);
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
       }
 
       if (providerFilter !== "all") {
-        query = query.eq("provider", providerFilter);
+        query = query.eq("sys_bank", providerFilter);
       }
 
       if (searchQuery) {
-        query = query.or(`id.ilike.%${searchQuery}%,cycle.ilike.%${searchQuery}%`);
+        query = query.or(`settlement_ref.ilike.%${searchQuery}%,tx_id.ilike.%${searchQuery}%,beneficiary_name.ilike.%${searchQuery}%`);
       }
 
       if (dateFrom) {
@@ -65,7 +62,7 @@ export const SettlementsTable = () => {
       }
 
       const { data, error } = await query;
-
+      
       if (error) throw error;
       return data || [];
     },
@@ -75,17 +72,21 @@ export const SettlementsTable = () => {
   const handleExportCSV = async () => {
     try {
       const csv = [
-        ['ID', 'Provider', 'Cycle', 'Gross Amount', 'Fees', 'Net Amount', 'Status', 'Paid Out', 'Created'],
+        ['Create At', 'Ref ID', 'TX ID', 'Client', 'Merchant', 'Name', 'Amount', 'Bank', 'Acc Num', 'Status', 'Sys Bank', 'Sys Acc Name', 'Ops Type'],
         ...settlements.map((s: any) => [
-          s.id,
-          s.provider,
-          s.cycle,
-          (s.net_amount + s.fees) / 100,
-          s.fees / 100,
-          s.net_amount / 100,
-          s.paid_out_at ? 'Paid' : 'Pending',
-          s.paid_out_at || '',
-          s.created_at
+          s.created_at ? format(new Date(s.created_at), 'yyyy-MM-dd HH:mm:ss') : '',
+          s.settlement_ref || '',
+          s.tx_id || '',
+          s.client_code || '',
+          s.merchant_code || '',
+          s.beneficiary_name || '',
+          s.amount || '',
+          s.bank_name || '',
+          s.account_number || '',
+          s.status || '',
+          s.sys_bank || '',
+          s.sys_account_name || '',
+          s.ops_type || ''
         ])
       ].map(row => row.join(',')).join('\n');
 
@@ -93,7 +94,7 @@ export const SettlementsTable = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `settlements-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `settlement-transfers-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
 
@@ -154,8 +155,9 @@ export const SettlementsTable = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('settlements.allStatus')}</SelectItem>
-                <SelectItem value="paid">{t('settlements.paid')}</SelectItem>
-                <SelectItem value="pending">{t('settlements.pending')}</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -202,20 +204,26 @@ export const SettlementsTable = () => {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="font-semibold">{t('settlements.id')}</TableHead>
-              <TableHead className="font-semibold">{t('settlements.provider')}</TableHead>
-              <TableHead className="font-semibold">{t('settlements.cycle')}</TableHead>
-              <TableHead className="text-right font-semibold">{t('settlements.grossAmount')}</TableHead>
-              <TableHead className="text-right font-semibold">{t('settlements.fees')}</TableHead>
-              <TableHead className="text-right font-semibold">{t('settlements.netAmount')}</TableHead>
-              <TableHead className="font-semibold">{t('settlements.status')}</TableHead>
-              <TableHead className="font-semibold">{t('settlements.created')}</TableHead>
+              <TableHead className="font-semibold">Create At</TableHead>
+              <TableHead className="font-semibold">Ref ID</TableHead>
+              <TableHead className="font-semibold">TX ID</TableHead>
+              <TableHead className="font-semibold">Client</TableHead>
+              <TableHead className="font-semibold">Merchant</TableHead>
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="text-right font-semibold">Amount</TableHead>
+              <TableHead className="font-semibold">Bank</TableHead>
+              <TableHead className="font-semibold">Acc Num</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">Sys Bank</TableHead>
+              <TableHead className="font-semibold">Sys Acc Name</TableHead>
+              <TableHead className="font-semibold">Ops Type</TableHead>
+              <TableHead className="font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {settlements.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center">
+                <TableCell colSpan={14} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <Wallet className="h-8 w-8 mb-2 opacity-50" />
                     <p className="font-medium">{t('settlements.noData')}</p>
@@ -225,9 +233,6 @@ export const SettlementsTable = () => {
               </TableRow>
             ) : (
               settlements.map((settlement: any) => {
-                const grossAmount = settlement.net_amount + settlement.fees;
-                const isPaid = !!settlement.paid_out_at;
-                
                 return (
                   <TableRow
                     key={settlement.id}
@@ -235,28 +240,44 @@ export const SettlementsTable = () => {
                     onClick={() => handleRowClick(settlement)}
                   >
                     <TableCell className="font-mono text-xs">
-                      {settlement.id.slice(0, 8)}...
+                      {settlement.created_at ? format(new Date(settlement.created_at), 'yyyy-MM-dd HH:mm:ss') : '-'}
                     </TableCell>
-                    <TableCell>
-                      <span className="font-medium capitalize">{settlement.provider}</span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{settlement.cycle}</TableCell>
+                    <TableCell className="font-mono text-xs">{settlement.settlement_ref || '-'}</TableCell>
+                    <TableCell className="font-mono text-xs">{settlement.tx_id || '-'}</TableCell>
+                    <TableCell className="text-xs">{settlement.client_code || '-'}</TableCell>
+                    <TableCell className="text-xs">{settlement.merchant_code || '-'}</TableCell>
+                    <TableCell className="text-sm">{settlement.beneficiary_name || '-'}</TableCell>
                     <TableCell className="text-right font-medium">
-                      ฿{(grossAmount / 100).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right text-destructive font-medium">
-                      -฿{(settlement.fees / 100).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right font-bold">
-                      ฿{(settlement.net_amount / 100).toLocaleString()}
+                      {settlement.amount ? new Intl.NumberFormat('th-TH').format(parseFloat(settlement.amount)) : '-'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={isPaid ? "default" : "secondary"} className="font-medium">
-                        {isPaid ? t('settlements.paid') : t('settlements.pending')}
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {settlement.bank_code || settlement.bank_name || '-'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(settlement.created_at), "PP")}
+                    <TableCell className="font-mono text-xs">{settlement.account_number || '-'}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          settlement.status === 'completed' ? 'default' : 
+                          settlement.status === 'pending' ? 'secondary' : 
+                          settlement.status === 'failed' ? 'destructive' : 
+                          'outline'
+                        }
+                      >
+                        {settlement.status || '-'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs">{settlement.sys_bank || '-'}</TableCell>
+                    <TableCell className="text-xs">{settlement.sys_account_name || '-'}</TableCell>
+                    <TableCell className="text-xs">{settlement.ops_type || '-'}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm" onClick={(e) => {
+                        e.stopPropagation();
+                        handleRowClick(settlement);
+                      }}>
+                        Manage
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
