@@ -49,6 +49,9 @@ export default function ShareholderTeam() {
   const [checkingPublicId, setCheckingPublicId] = useState(false);
   const [publicIdAvailable, setPublicIdAvailable] = useState<boolean | null>(null);
   const [publicIdError, setPublicIdError] = useState<string>("");
+  const [existingPublicIds, setExistingPublicIds] = useState<string[]>([]);
+  const [loadingPublicIds, setLoadingPublicIds] = useState(false);
+  const [publicIdSearchQuery, setPublicIdSearchQuery] = useState("");
 
   const [formData, setFormData] = useState({
     business_name: "",
@@ -59,7 +62,33 @@ export default function ShareholderTeam() {
 
   useEffect(() => {
     fetchOwners();
+    fetchExistingPublicIds();
   }, []);
+
+  const fetchExistingPublicIds = async () => {
+    try {
+      setLoadingPublicIds(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('public_id')
+        .not('public_id', 'is', null)
+        .order('public_id', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching public IDs:', error);
+        return;
+      }
+
+      const publicIds = data
+        .map(p => p.public_id)
+        .filter((id): id is string => id !== null);
+      setExistingPublicIds(publicIds);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoadingPublicIds(false);
+    }
+  };
 
   // Check public_id availability with debouncing
   useEffect(() => {
@@ -608,7 +637,64 @@ export default function ShareholderTeam() {
                   </p>
                 </div>
 
-                <Button 
+                {/* Existing Public IDs List */}
+                <Card className="border-dashed">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium flex items-center justify-between">
+                      <span>Public ID ที่ใช้งานแล้ว ({existingPublicIds.length})</span>
+                      {loadingPublicIds && <Loader2 className="h-4 w-4 animate-spin" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Input
+                      placeholder="ค้นหา Public ID..."
+                      value={publicIdSearchQuery}
+                      onChange={(e) => setPublicIdSearchQuery(e.target.value)}
+                      className="h-8"
+                    />
+                    <div className="max-h-40 overflow-y-auto space-y-1 text-xs">
+                      {existingPublicIds
+                        .filter(id => 
+                          publicIdSearchQuery === "" || 
+                          id.toLowerCase().includes(publicIdSearchQuery.toLowerCase())
+                        )
+                        .slice(0, 50)
+                        .map((id, idx) => (
+                          <div
+                            key={idx}
+                            className="font-mono px-2 py-1 bg-muted rounded hover:bg-muted/80 cursor-pointer transition-colors"
+                            onClick={() => {
+                              const [prefix, number] = id.split('-');
+                              toast({ 
+                                title: "คัดลอกแล้ว", 
+                                description: `${id} (คลิกเพื่อใช้เป็นแนวทาง)` 
+                              });
+                            }}
+                          >
+                            {id}
+                          </div>
+                        ))}
+                      {existingPublicIds.filter(id => 
+                        publicIdSearchQuery === "" || 
+                        id.toLowerCase().includes(publicIdSearchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <p className="text-muted-foreground text-center py-2">
+                          ไม่พบ Public ID
+                        </p>
+                      )}
+                      {existingPublicIds.filter(id => 
+                        publicIdSearchQuery === "" || 
+                        id.toLowerCase().includes(publicIdSearchQuery.toLowerCase())
+                      ).length > 50 && (
+                        <p className="text-muted-foreground text-center py-1 text-xs">
+                          แสดง 50 รายการแรก...
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Button
                   onClick={handleCreate} 
                   disabled={
                     creating || 
