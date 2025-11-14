@@ -201,10 +201,8 @@ export default function WithdrawalList() {
                     <TableRow className={cn(compactMode && "h-8")}>
                       <TableHead className={cn("w-12", compactMode && "py-1 px-2")}>#</TableHead>
                       <TableHead className={cn("w-32", compactMode && "py-1 px-2")}>เวลาสมัคร</TableHead>
-                      <TableHead className={cn("w-28", compactMode && "py-1 px-2")}>Ref ID</TableHead>
                       <TableHead className={cn("w-28", compactMode && "py-1 px-2")}>TX ID</TableHead>
                       <TableHead className={cn("min-w-32", compactMode && "py-1 px-2")}>ลูกค้า</TableHead>
-                      <TableHead className={cn("w-24", compactMode && "py-1 px-2")}>ร้านค้า</TableHead>
                       <TableHead className={cn("w-24 text-right", compactMode && "py-1 px-2")}>จำนวน</TableHead>
                       <TableHead className={cn("w-24 text-right", compactMode && "py-1 px-2")}>Payout</TableHead>
                       <TableHead className={cn("w-20", compactMode && "py-1 px-2")}>ธนาคาร</TableHead>
@@ -218,7 +216,7 @@ export default function WithdrawalList() {
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
-                        <TableCell colSpan={14} className="text-center py-8">
+                        <TableCell colSpan={12} className="text-center py-8">
                           กำลังโหลด...
                         </TableCell>
                       </TableRow>
@@ -231,9 +229,6 @@ export default function WithdrawalList() {
                           <TableCell className={cn("whitespace-nowrap", compactMode ? "text-[10px] py-1 px-2" : "text-xs")}>
                             {withdrawal.createdate ? format(new Date(withdrawal.createdate), "yyyy-MM-dd HH:mm") : "-"}
                           </TableCell>
-                          <TableCell className={cn("font-mono text-primary truncate max-w-28", compactMode ? "text-[10px] py-1 px-2" : "text-xs")} title={withdrawal.ref_id}>
-                            {withdrawal.ref_id || "-"}
-                          </TableCell>
                           <TableCell className={cn("font-mono text-blue-600 truncate max-w-28", compactMode ? "text-[10px] py-1 px-2" : "text-xs")} title={withdrawal.withdrawid}>
                             {withdrawal.withdrawid || "-"}
                           </TableCell>
@@ -243,7 +238,6 @@ export default function WithdrawalList() {
                               <span className={cn("text-muted-foreground truncate", compactMode ? "text-[9px]" : "text-xs")} title={withdrawal.username}>{withdrawal.username}</span>
                             </div>
                           </TableCell>
-                          <TableCell className={cn("truncate", compactMode ? "text-[10px] py-1 px-2" : "text-sm")} title={withdrawal.memberid}>{withdrawal.memberid || "-"}</TableCell>
                           <TableCell className={cn("text-right font-semibold whitespace-nowrap", compactMode ? "text-[10px] py-1 px-2" : "text-sm")}>
                             ฿{Number(withdrawal.beforewithdrawamt || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </TableCell>
@@ -285,7 +279,7 @@ export default function WithdrawalList() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                           ไม่พบรายการถอนเงิน
                         </TableCell>
                       </TableRow>
