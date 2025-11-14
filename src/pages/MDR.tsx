@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -19,6 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DailyMDRData {
   date: string;
@@ -36,8 +40,8 @@ interface DailyMDRData {
 
 const MDR = () => {
   const { activeTenantId } = useTenantSwitcher();
-  const [startDate, setStartDate] = useState("2025-07-01");
-  const [endDate, setEndDate] = useState("2025-08-05");
+  const [startDate, setStartDate] = useState<Date>(new Date("2025-07-01"));
+  const [endDate, setEndDate] = useState<Date>(new Date("2025-08-05"));
   const [merchantFilter, setMerchantFilter] = useState("no13");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -58,16 +62,19 @@ const MDR = () => {
       mdrSettlement: number;
     };
   }>({
-    queryKey: ["mdr-report", startDate, endDate, merchantFilter, page, itemsPerPage],
+    queryKey: ["mdr-report", format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), merchantFilter, page, itemsPerPage],
     queryFn: async () => {
-      console.log("Fetching MDR data with filters:", { startDate, endDate, merchantFilter });
+      const startDateStr = format(startDate, "yyyy-MM-dd");
+      const endDateStr = format(endDate, "yyyy-MM-dd");
+      
+      console.log("Fetching MDR data with filters:", { startDateStr, endDateStr, merchantFilter });
       
       // Query deposit_transfers data
       let query = (supabase as any)
         .from("deposit_transfers")
         .select("*")
-        .gte("depositdate", startDate)
-        .lte("depositdate", endDate)
+        .gte("depositdate", startDateStr)
+        .lte("depositdate", endDateStr)
         .order("depositdate", { ascending: true });
 
       if (merchantFilter && merchantFilter !== "all") {
@@ -187,24 +194,58 @@ const MDR = () => {
             <div className="flex flex-wrap items-end gap-4">
               <div className="space-y-2">
                 <Label>Date</Label>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-[180px]"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[180px] justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "dd/MM/yyyy") : <span>เลือกวันที่</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => date && setStartDate(date)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               
               <span className="text-muted-foreground pb-2">—</span>
               
               <div className="space-y-2">
                 <Label className="invisible">End</Label>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-[180px]"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[180px] justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "dd/MM/yyyy") : <span>เลือกวันที่</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => date && setEndDate(date)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
