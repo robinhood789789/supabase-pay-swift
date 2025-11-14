@@ -67,16 +67,14 @@ export default function SystemWithdrawal() {
     enabled: !!activeTenantId && isOwner,
   });
 
-  // Fetch withdrawals
+  // Fetch withdrawals from settlement_transfers
   const { data: withdrawals, refetch: refetchWithdrawals } = useQuery({
-    queryKey: ["withdrawals", statusFilter, activeTenantId],
+    queryKey: ["settlement-transfers-withdrawal", statusFilter, activeTenantId],
     queryFn: async () => {
       if (!activeTenantId) return [];
-      let query = supabase
-        .from("payments")
+      let query: any = supabase
+        .from("settlement_transfers" as any)
         .select("*")
-        .eq("tenant_id", activeTenantId)
-        .eq("type", "withdrawal")
         .order("created_at", { ascending: false });
 
       if (statusFilter !== "all") {
@@ -85,7 +83,7 @@ export default function SystemWithdrawal() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!activeTenantId && isOwner,
   });
@@ -94,16 +92,17 @@ export default function SystemWithdrawal() {
     { value: "all", label: "ทั้งหมด" },
     { value: "pending", label: "รอดำเนินการ" },
     { value: "processing", label: "กำลังดำเนินการ" },
-    { value: "succeeded", label: "สำเร็จ" },
+    { value: "completed" as any, label: "สำเร็จ" },
+    { value: "failed" as any, label: "ล้มเหลว" },
     { value: "rejected", label: "ถูกปฏิเสธ" },
   ];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      succeeded: { label: "สำเร็จ", variant: "default" as const },
+      completed: { label: "สำเร็จ", variant: "default" as const },
       pending: { label: "รอดำเนินการ", variant: "secondary" as const },
       processing: { label: "กำลังดำเนินการ", variant: "default" as const },
-      expired: { label: "หมดอายุ", variant: "destructive" as const },
+      failed: { label: "ล้มเหลว", variant: "destructive" as const },
       rejected: { label: "ถูกปฏิเสธ", variant: "destructive" as const },
     };
 
@@ -185,7 +184,7 @@ export default function SystemWithdrawal() {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="ค้นหา (เลขบัญชี, ชื่อธนาคาร)"
+                  placeholder="ค้นหา (Ref ID, TX ID, ชื่อผู้รับ, เลขบัญชี)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -200,46 +199,65 @@ export default function SystemWithdrawal() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>วันที่</TableHead>
-                    <TableHead>จำนวนเงิน</TableHead>
+                    <TableHead>วันที่สร้าง</TableHead>
+                    <TableHead>Ref ID</TableHead>
+                    <TableHead>TX ID</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Merchant</TableHead>
+                    <TableHead>ชื่อผู้รับ</TableHead>
+                    <TableHead className="text-right">จำนวนเงิน</TableHead>
                     <TableHead>ธนาคาร</TableHead>
                     <TableHead>เลขที่บัญชี</TableHead>
-                    <TableHead>ชื่อบัญชี</TableHead>
                     <TableHead>สถานะ</TableHead>
-                    <TableHead>หมายเหตุ</TableHead>
+                    <TableHead>Sys Bank</TableHead>
+                    <TableHead>Ops Type</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!withdrawals || withdrawals.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                         ไม่มีประวัติการถอนเงิน
                       </TableCell>
                     </TableRow>
                   ) : (
                     withdrawals
-                      .filter((w) => {
-                      if (!searchQuery) return true;
+                      .filter((w: any) => {
+                        if (!searchQuery) return true;
                         const search = searchQuery.toLowerCase();
                         return (
-                          w.id.toLowerCase().includes(search) ||
-                          w.method?.toLowerCase().includes(search)
+                          w.settlement_ref?.toLowerCase().includes(search) ||
+                          w.tx_id?.toLowerCase().includes(search) ||
+                          w.beneficiary_name?.toLowerCase().includes(search) ||
+                          w.account_number?.toLowerCase().includes(search) ||
+                          w.bank_name?.toLowerCase().includes(search)
                         );
                       })
-                      .map((withdrawal) => (
+                      .map((withdrawal: any) => (
                         <TableRow key={withdrawal.id}>
+                          <TableCell className="text-xs">
+                            {withdrawal.created_at ? format(new Date(withdrawal.created_at), "yyyy-MM-dd HH:mm:ss") : "-"}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{withdrawal.settlement_ref || "-"}</TableCell>
+                          <TableCell className="font-mono text-xs">{withdrawal.tx_id || "-"}</TableCell>
+                          <TableCell className="text-xs">{withdrawal.client_code || "-"}</TableCell>
+                          <TableCell className="text-xs">{withdrawal.merchant_code || "-"}</TableCell>
+                          <TableCell className="text-sm font-medium">{withdrawal.beneficiary_name || "-"}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            ฿{withdrawal.amount ? parseFloat(withdrawal.amount).toLocaleString("th-TH", { minimumFractionDigits: 2 }) : "0.00"}
+                          </TableCell>
                           <TableCell>
-                            {format(new Date(withdrawal.created_at), "yyyy-MM-dd HH:mm")}
+                            <Badge variant="outline" className="text-xs font-mono">
+                              {withdrawal.bank_code || withdrawal.bank_name || "-"}
+                            </Badge>
                           </TableCell>
-                          <TableCell className="font-medium">
-                            ฿{(withdrawal.amount / 100).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                          </TableCell>
-                          <TableCell>{withdrawal.method || "-"}</TableCell>
-                          <TableCell className="font-mono">-</TableCell>
-                          <TableCell>-</TableCell>
+                          <TableCell className="font-mono text-xs">{withdrawal.account_number || "-"}</TableCell>
                           <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                            {withdrawal.provider_payment_id || "-"}
+                          <TableCell className="text-xs">{withdrawal.sys_bank || "-"}</TableCell>
+                          <TableCell className="text-xs">
+                            <Badge variant="secondary" className="text-xs">
+                              {withdrawal.ops_type || "-"}
+                            </Badge>
                           </TableCell>
                         </TableRow>
                       ))
