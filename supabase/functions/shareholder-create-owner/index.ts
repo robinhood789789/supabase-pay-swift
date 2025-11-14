@@ -138,26 +138,19 @@ Deno.serve(async (req) => {
       console.error('Tenant creation error:', tenantError);
       throw new Error(`Failed to create tenant: ${tenantError?.message || 'No tenant data returned'}`);
     }
+    const finalTenantId = (createdTenant as any).id as string;
+    console.log('Tenant created successfully:', finalTenantId);
 
-    console.log('Tenant created successfully:', createdTenant.id);
-
-    // Create owner role
-    const ownerRoleId = crypto.randomUUID();
-    const { data: createdRole, error: roleError } = await supabaseClient
+    // Find existing owner role (roles are global)
+    const { data: ownerRole, error: ownerRoleError } = await supabaseClient
       .from('roles')
-      .insert({
-        id: ownerRoleId,
-        tenant_id: tenantId,
-        name: 'owner',
-        description: 'Full system access',
-        is_system: true,
-      })
-      .select()
-      .single();
+      .select('id')
+      .eq('name', 'owner')
+      .maybeSingle();
 
-    if (roleError || !createdRole) {
-      console.error('Role creation error:', roleError);
-      throw new Error(`Failed to create owner role: ${roleError?.message || 'No role data returned'}`);
+    if (ownerRoleError || !ownerRole?.id) {
+      console.error('Owner role lookup error:', ownerRoleError);
+      throw new Error(`Owner role not configured: ${ownerRoleError?.message || 'role not found'}`);
     }
 
     // Create membership
@@ -165,11 +158,11 @@ Deno.serve(async (req) => {
       .from('memberships')
       .insert({
         user_id: ownerUserId,
-        tenant_id: tenantId,
-        role_id: ownerRoleId,
+        tenant_id: finalTenantId,
+        role_id: ownerRole.id,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (membershipError || !createdMembership) {
       console.error('Membership creation error:', membershipError);
@@ -181,20 +174,20 @@ Deno.serve(async (req) => {
       .from('shareholder_clients')
       .insert({
         shareholder_id: shareholder.id,
-        tenant_id: tenantId,
+        tenant_id: finalTenantId,
         commission_rate: 5.0,
         status: 'active',
         referral_source: 'shareholder_portal',
       })
       .select()
-      .single();
+      .maybeSingle();
       
     if (linkError || !linkData) {
       console.error('Shareholder link error:', linkError);
       throw new Error(`Failed to link shareholder: ${linkError?.message || 'No link data returned'}`);
     }
     
-    console.log('Shareholder linked successfully to tenant:', tenantId);
+    console.log('Shareholder linked successfully to tenant:', finalTenantId);
 
     // Update tenant with referral info after link is created
     const { error: tenantReferralError } = await supabaseClient
@@ -204,7 +197,7 @@ Deno.serve(async (req) => {
         referred_by_shareholder_id: shareholder.id,
         referral_accepted_at: new Date().toISOString(),
       })
-      .eq('id', tenantId);
+      .eq('id', finalTenantId);
     if (tenantReferralError) {
       console.warn('Failed to update tenant referral info:', tenantReferralError);
     }
