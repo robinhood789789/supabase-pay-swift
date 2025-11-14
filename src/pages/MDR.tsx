@@ -411,22 +411,22 @@ const MDR = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead rowSpan={2} className="border-r">Date</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100 border-r">Deposit</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100 border-r">Topup</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 border-r">Payout</TableHead>
-                    <TableHead colSpan={2} className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-900 dark:text-violet-100 border-r">Settlement</TableHead>
-                    <TableHead rowSpan={2} className="text-center">Total<br/>MDR</TableHead>
+                    <TableHead rowSpan={2} className="border-r font-bold text-gray-900 dark:text-gray-100">Date</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-r font-bold">Deposit</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-800 dark:text-cyan-200 border-r font-bold">Topup</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 border-r font-bold">Payout</TableHead>
+                    <TableHead colSpan={2} className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-800 dark:text-violet-200 border-r font-bold">Settlement</TableHead>
+                    <TableHead rowSpan={2} className="text-center font-bold text-gray-900 dark:text-gray-100">Total<br/>MDR</TableHead>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100">Total Deposit</TableHead>
-                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100">Total Topup</TableHead>
-                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-900 dark:text-cyan-100 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100">Total Payout</TableHead>
-                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 border-r">MDR</TableHead>
-                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-900 dark:text-violet-100">Total Settlement</TableHead>
-                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-900 dark:text-violet-100 border-r">MDR</TableHead>
+                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 font-semibold">Total Deposit</TableHead>
+                    <TableHead className="text-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-r font-semibold">MDR</TableHead>
+                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-800 dark:text-cyan-200 font-semibold">Total Topup</TableHead>
+                    <TableHead className="text-center bg-cyan-50 dark:bg-cyan-950/30 text-cyan-800 dark:text-cyan-200 border-r font-semibold">MDR</TableHead>
+                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 font-semibold">Total Payout</TableHead>
+                    <TableHead className="text-center bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 border-r font-semibold">MDR</TableHead>
+                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-800 dark:text-violet-200 font-semibold">Total Settlement</TableHead>
+                    <TableHead className="text-center bg-violet-50 dark:bg-violet-950/30 text-violet-800 dark:text-violet-200 border-r font-semibold">MDR</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -449,16 +449,16 @@ const MDR = () => {
                   ) : mdrData?.paginatedData && mdrData.paginatedData.length > 0 ? (
                     mdrData.paginatedData.map((row, index) => (
                       <TableRow key={index}>
-                        <TableCell className="border-r">{row.date}</TableCell>
-                        <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30">{formatNumber(row.totalDeposit)}</TableCell>
-                        <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30 border-r">{formatNumber(row.mdrDeposit)}</TableCell>
-                        <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30">{formatNumber(row.totalTopup)}</TableCell>
-                        <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30 border-r">{formatNumber(row.mdrTopup)}</TableCell>
-                        <TableCell className="text-right bg-rose-50 dark:bg-rose-950/30">{formatNumber(row.totalPayout)}</TableCell>
-                        <TableCell className="text-right bg-rose-50 dark:bg-rose-950/30 border-r">{formatNumber(row.mdrPayout)}</TableCell>
-                        <TableCell className="text-right bg-violet-50 dark:bg-violet-950/30">{formatNumber(row.totalSettlement)}</TableCell>
-                        <TableCell className="text-right bg-violet-50 dark:bg-violet-950/30 border-r">{formatNumber(row.mdrSettlement)}</TableCell>
-                        <TableCell className="text-right font-semibold">{formatNumber(row.totalMDR)}</TableCell>
+                        <TableCell className="border-r font-medium text-gray-900 dark:text-gray-100">{row.date}</TableCell>
+                        <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30 text-gray-900 dark:text-gray-100 font-medium">{formatNumber(row.totalDeposit)}</TableCell>
+                        <TableCell className="text-right bg-emerald-50 dark:bg-emerald-950/30 border-r text-emerald-700 dark:text-emerald-300 font-semibold">{formatNumber(row.mdrDeposit)}</TableCell>
+                        <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30 text-gray-900 dark:text-gray-100 font-medium">{formatNumber(row.totalTopup)}</TableCell>
+                        <TableCell className="text-right bg-cyan-50 dark:bg-cyan-950/30 border-r text-cyan-700 dark:text-cyan-300 font-semibold">{formatNumber(row.mdrTopup)}</TableCell>
+                        <TableCell className="text-right bg-rose-50 dark:bg-rose-950/30 text-gray-900 dark:text-gray-100 font-medium">{formatNumber(row.totalPayout)}</TableCell>
+                        <TableCell className="text-right bg-rose-50 dark:bg-rose-950/30 border-r text-rose-700 dark:text-rose-300 font-semibold">{formatNumber(row.mdrPayout)}</TableCell>
+                        <TableCell className="text-right bg-violet-50 dark:bg-violet-950/30 text-gray-900 dark:text-gray-100 font-medium">{formatNumber(row.totalSettlement)}</TableCell>
+                        <TableCell className="text-right bg-violet-50 dark:bg-violet-950/30 border-r text-violet-700 dark:text-violet-300 font-semibold">{formatNumber(row.mdrSettlement)}</TableCell>
+                        <TableCell className="text-right font-bold text-gray-900 dark:text-gray-100 text-lg">{formatNumber(row.totalMDR)}</TableCell>
                       </TableRow>
                     ))
                   ) : (
