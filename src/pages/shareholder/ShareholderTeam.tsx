@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Copy, Eye, EyeOff, Trash2, Search, Edit, KeyRound } from "lucide-react";
+import { Plus, Loader2, Copy, Eye, EyeOff, Trash2, Search, Edit, KeyRound, CheckCircle2, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,9 @@ export default function ShareholderTeam() {
   const [resetting, setResetting] = useState(false);
   const [newPassword, setNewPassword] = useState<string | null>(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [checkingPublicId, setCheckingPublicId] = useState(false);
+  const [publicIdAvailable, setPublicIdAvailable] = useState<boolean | null>(null);
+  const [publicIdError, setPublicIdError] = useState<string>("");
 
   const [formData, setFormData] = useState({
     business_name: "",
@@ -57,6 +60,63 @@ export default function ShareholderTeam() {
   useEffect(() => {
     fetchOwners();
   }, []);
+
+  // Check public_id availability with debouncing
+  useEffect(() => {
+    const checkPublicIdAvailability = async () => {
+      const publicId = `${formData.prefix}-${formData.number}`;
+      
+      // Reset state if inputs are incomplete
+      if (!formData.prefix || !formData.number || formData.number.length !== 6) {
+        setPublicIdAvailable(null);
+        setPublicIdError("");
+        return;
+      }
+
+      // Validate format
+      if (!/^[A-Z0-9]{2,6}$/.test(formData.prefix) || !/^\d{6}$/.test(formData.number)) {
+        setPublicIdAvailable(false);
+        setPublicIdError("รูปแบบไม่ถูกต้อง");
+        return;
+      }
+
+      setCheckingPublicId(true);
+      setPublicIdError("");
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('public_id', publicId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking public_id:', error);
+          setPublicIdAvailable(null);
+          setPublicIdError("ไม่สามารถตรวจสอบได้");
+          return;
+        }
+
+        if (data) {
+          setPublicIdAvailable(false);
+          setPublicIdError(`Public ID "${publicId}" ถูกใช้งานแล้ว`);
+        } else {
+          setPublicIdAvailable(true);
+          setPublicIdError("");
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setPublicIdAvailable(null);
+        setPublicIdError("เกิดข้อผิดพลาด");
+      } finally {
+        setCheckingPublicId(false);
+      }
+    };
+
+    // Debounce the check
+    const timeoutId = setTimeout(checkPublicIdAvailability, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.prefix, formData.number]);
 
   const fetchOwners = async () => {
     try {
@@ -102,6 +162,12 @@ export default function ShareholderTeam() {
       return;
     }
 
+    // Check if public_id is available
+    if (publicIdAvailable === false) {
+      toast({ title: "Public ID ถูกใช้งานแล้ว", description: "กรุณาเลือก Public ID อื่น", variant: "destructive" });
+      return;
+    }
+
     // Validate email format if provided
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       toast({ title: "รูปแบบอีเมลไม่ถูกต้อง", variant: "destructive" });
@@ -138,6 +204,8 @@ export default function ShareholderTeam() {
         prefix: "",
         number: "",
       });
+      setPublicIdAvailable(null);
+      setPublicIdError("");
 
       fetchOwners();
     } catch (error: any) {
@@ -164,6 +232,16 @@ export default function ShareholderTeam() {
     setTempPassword(null);
     setCreatedPublicId(null);
     setShowPassword(false);
+    setPublicIdAvailable(null);
+    setPublicIdError("");
+    setCheckingPublicId(false);
+    // Reset form data when dialog closes
+    setFormData({
+      business_name: "",
+      email: "",
+      prefix: "",
+      number: "",
+    });
   };
 
   const handleDeleteClick = (owner: Owner) => {
@@ -479,11 +557,40 @@ export default function ShareholderTeam() {
                     </div>
                   </div>
                   {formData.prefix && formData.number && (
-                    <div className="mt-2 p-2 bg-muted rounded-md">
-                      <p className="text-sm text-muted-foreground">Preview:</p>
-                      <p className="font-mono font-bold text-lg text-primary">
-                        {formData.prefix}-{formData.number}
-                      </p>
+                    <div className="mt-2">
+                      <div className="p-3 bg-muted rounded-md">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Preview:</p>
+                            <p className="font-mono font-bold text-lg">
+                              {formData.prefix}-{formData.number}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {checkingPublicId ? (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>กำลังตรวจสอบ...</span>
+                              </div>
+                            ) : publicIdAvailable === true ? (
+                              <div className="flex items-center gap-2 text-sm text-green-600">
+                                <CheckCircle2 className="h-5 w-5" />
+                                <span className="font-semibold">ใช้ได้</span>
+                              </div>
+                            ) : publicIdAvailable === false ? (
+                              <div className="flex items-center gap-2 text-sm text-red-600">
+                                <XCircle className="h-5 w-5" />
+                                <span className="font-semibold">ถูกใช้งานแล้ว</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      {publicIdError && (
+                        <p className="text-xs text-red-600 mt-1 font-medium">
+                          {publicIdError}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -503,7 +610,14 @@ export default function ShareholderTeam() {
 
                 <Button 
                   onClick={handleCreate} 
-                  disabled={creating}
+                  disabled={
+                    creating || 
+                    checkingPublicId || 
+                    publicIdAvailable === false || 
+                    !formData.business_name || 
+                    !formData.prefix || 
+                    !formData.number
+                  }
                   className="w-full"
                 >
                   {creating ? (
@@ -511,6 +625,13 @@ export default function ShareholderTeam() {
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       กำลังสร้าง...
                     </>
+                  ) : checkingPublicId ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      กำลังตรวจสอบ Public ID...
+                    </>
+                  ) : publicIdAvailable === false ? (
+                    "Public ID ถูกใช้งานแล้ว"
                   ) : (
                     "สร้าง Owner"
                   )}
