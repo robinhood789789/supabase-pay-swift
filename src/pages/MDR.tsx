@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -37,10 +39,14 @@ const MDR = () => {
   const [startDate, setStartDate] = useState("2025-07-01");
   const [endDate, setEndDate] = useState("2025-08-05");
   const [merchantFilter, setMerchantFilter] = useState("no13");
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Fetch and calculate MDR data from deposit_transfers
   const { data: mdrData, isLoading, refetch } = useQuery<{
     dailyData: DailyMDRData[];
+    paginatedData: DailyMDRData[];
+    totalPages: number;
     summary: {
       depositAmount: number;
       topupAmount: number;
@@ -52,7 +58,7 @@ const MDR = () => {
       mdrSettlement: number;
     };
   }>({
-    queryKey: ["mdr-report", startDate, endDate, merchantFilter],
+    queryKey: ["mdr-report", startDate, endDate, merchantFilter, page, itemsPerPage],
     queryFn: async () => {
       // Query deposit_transfers data
       let query = (supabase as any)
@@ -111,6 +117,12 @@ const MDR = () => {
 
       const dailyData = Array.from(dailyMap.values());
 
+      // Calculate pagination
+      const totalPages = Math.ceil(dailyData.length / itemsPerPage);
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedData = dailyData.slice(startIndex, endIndex);
+
       // Calculate summary
       const summary = dailyData.reduce(
         (acc, day) => ({
@@ -135,7 +147,7 @@ const MDR = () => {
         }
       );
 
-      return { dailyData, summary };
+      return { dailyData, paginatedData, totalPages, summary };
     },
     enabled: true,
   });
@@ -145,6 +157,7 @@ const MDR = () => {
   };
 
   const handleSubmit = () => {
+    setPage(1); // Reset to page 1 when filters change
     refetch();
   };
 
@@ -302,8 +315,8 @@ const MDR = () => {
                         Loading...
                       </TableCell>
                     </TableRow>
-                  ) : mdrData?.dailyData && mdrData.dailyData.length > 0 ? (
-                    mdrData.dailyData.map((row, index) => (
+                  ) : mdrData?.paginatedData && mdrData.paginatedData.length > 0 ? (
+                    mdrData.paginatedData.map((row, index) => (
                       <TableRow key={index}>
                         <TableCell className="border-r">{row.date}</TableCell>
                         <TableCell className="border-r">{row.merchant}</TableCell>
@@ -327,6 +340,89 @@ const MDR = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pagination Controls */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">แสดง</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setPage(1);
+                }}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              {/* Page info */}
+              <div className="text-sm text-muted-foreground">
+                หน้า {page} จาก {mdrData?.totalPages || 0} ({mdrData?.dailyData?.length || 0} รายการทั้งหมด)
+              </div>
+
+              {/* Pagination */}
+              {mdrData && mdrData.totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, mdrData.totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (mdrData.totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (page <= 3) {
+                        pageNum = i + 1;
+                      } else if (page >= mdrData.totalPages - 2) {
+                        pageNum = mdrData.totalPages - 4 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setPage(pageNum)}
+                            isActive={page === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    {mdrData.totalPages > 5 && page < mdrData.totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setPage(p => Math.min(mdrData.totalPages, p + 1))}
+                        className={page === mdrData.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </div>
           </CardContent>
         </Card>
