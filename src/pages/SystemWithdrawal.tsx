@@ -317,56 +317,56 @@ export default function SystemWithdrawal() {
               });
 
               const totalPages = Math.ceil(filteredWithdrawals.length / itemsPerPage);
-              
-              if (totalPages <= 1) return null;
 
               return (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
                   <div className="text-sm text-muted-foreground">
-                    แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredWithdrawals.length)} จาก {filteredWithdrawals.length} รายการ
+                    แสดง {Math.min(filteredWithdrawals.length, ((currentPage - 1) * itemsPerPage) + 1)} - {Math.min(currentPage * itemsPerPage, filteredWithdrawals.length)} จาก {filteredWithdrawals.length} รายการทั้งหมด
                   </div>
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNumber;
-                        if (totalPages <= 5) {
-                          pageNumber = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNumber = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNumber = totalPages - 4 + i;
-                        } else {
-                          pageNumber = currentPage - 2 + i;
-                        }
+                  {totalPages > 1 && (
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
                         
-                        return (
-                          <PaginationItem key={pageNumber}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(pageNumber)}
-                              isActive={currentPage === pageNumber}
-                              className="cursor-pointer"
-                            >
-                              {pageNumber}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNumber = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + i;
+                          } else {
+                            pageNumber = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNumber)}
+                                isActive={currentPage === pageNumber}
+                                className="cursor-pointer"
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
 
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
                 </div>
               );
             })()}
