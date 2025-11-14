@@ -110,6 +110,14 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to set public_id: ${profileError.message}`);
     }
 
+    // Generate public_id for tenant
+    const { data: tenantPublicId, error: publicIdError } = await supabaseClient
+      .rpc('generate_public_id', { prefix_code: 'TNT' });
+    
+    if (publicIdError || !tenantPublicId) {
+      throw new Error(`Failed to generate tenant public_id: ${publicIdError?.message || 'No ID returned'}`);
+    }
+
     // Create tenant with referral tracking
     const tenantId = crypto.randomUUID();
     const { error: tenantError } = await supabaseClient
@@ -117,8 +125,11 @@ Deno.serve(async (req) => {
       .insert({
         id: tenantId,
         name: business_name,
+        public_id: tenantPublicId,
         user_id: public_id,
         status: 'trial',
+        referred_by_code: shareholder.referral_code,
+        referred_by_shareholder_id: shareholder.id
       });
 
     if (tenantError) {
