@@ -243,7 +243,7 @@ const MDR = () => {
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-medium text-muted-foreground">Topup Amount</h3>
-                <p className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
+                <p className="text-3xl font-bold text-cyan-700 dark:text-cyan-400">
                   {formatNumber(mdrData?.summary.topupAmount || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
