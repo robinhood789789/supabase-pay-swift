@@ -411,12 +411,12 @@ const MDR = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead rowSpan={2} className="border-r bg-slate-100 dark:bg-slate-800 font-bold text-slate-900 dark:text-slate-100">Date</TableHead>
+                    <TableHead rowSpan={2} className="border-r bg-white dark:bg-slate-800 font-bold text-slate-900 dark:text-slate-100">Date</TableHead>
                     <TableHead colSpan={2} className="text-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 border-r font-bold">Deposit</TableHead>
                     <TableHead colSpan={2} className="text-center bg-cyan-100 dark:bg-cyan-900/40 text-cyan-900 dark:text-cyan-100 border-r font-bold">Topup</TableHead>
                     <TableHead colSpan={2} className="text-center bg-rose-100 dark:bg-rose-900/40 text-rose-900 dark:text-rose-100 border-r font-bold">Payout</TableHead>
                     <TableHead colSpan={2} className="text-center bg-violet-100 dark:bg-violet-900/40 text-violet-900 dark:text-violet-100 border-r font-bold">Settlement</TableHead>
-                    <TableHead rowSpan={2} className="text-center bg-slate-100 dark:bg-slate-800 font-bold text-slate-900 dark:text-slate-100">Total<br/>MDR</TableHead>
+                    <TableHead rowSpan={2} className="text-center bg-white dark:bg-slate-800 font-bold text-slate-900 dark:text-slate-100">Total<br/>MDR</TableHead>
                   </TableRow>
                   <TableRow>
                     <TableHead className="text-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 font-semibold text-xs">Total Deposit</TableHead>
@@ -448,7 +448,7 @@ const MDR = () => {
                     </TableRow>
                   ) : mdrData?.paginatedData && mdrData.paginatedData.length > 0 ? (
                     mdrData.paginatedData.map((row, index) => (
-                      <TableRow key={index} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                      <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-slate-900/50">
                         <TableCell className="border-r bg-white dark:bg-slate-950 font-semibold text-slate-900 dark:text-slate-100">{row.date}</TableCell>
                         <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/20 text-slate-900 dark:text-slate-100 font-medium">{formatNumber(row.totalDeposit)}</TableCell>
                         <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">{formatNumber(row.mdrDeposit)}</TableCell>
