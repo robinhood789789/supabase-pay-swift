@@ -206,7 +206,6 @@ export default function WithdrawalList() {
                       <TableHead className={cn("w-24 text-right", compactMode && "py-1 px-2")}>จำนวน</TableHead>
                       <TableHead className={cn("w-24 text-right", compactMode && "py-1 px-2")}>Payout</TableHead>
                       <TableHead className={cn("w-20", compactMode && "py-1 px-2")}>ธนาคาร</TableHead>
-                      <TableHead className={cn("w-28", compactMode && "py-1 px-2")}>ผู้ดำเนินการ</TableHead>
                       <TableHead className={cn("w-28", compactMode && "py-1 px-2")}>สถานะกระบวนการ</TableHead>
                       <TableHead className={cn("w-24", compactMode && "py-1 px-2")}>สถานะ</TableHead>
                       <TableHead className={cn("w-20", compactMode && "py-1 px-2")}>ประเภท</TableHead>
@@ -216,7 +215,7 @@ export default function WithdrawalList() {
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-8">
+                        <TableCell colSpan={11} className="text-center py-8">
                           กำลังโหลด...
                         </TableCell>
                       </TableRow>
@@ -250,12 +249,6 @@ export default function WithdrawalList() {
                             </Badge>
                           </TableCell>
                           <TableCell className={cn(compactMode && "py-1 px-2")}>
-                            <div className="flex flex-col max-w-28">
-                              <span className={cn("truncate", compactMode ? "text-[10px]" : "text-xs")} title={withdrawal.staff_activename}>{withdrawal.staff_activename || "-"}</span>
-                              <span className={cn("text-muted-foreground truncate", compactMode ? "text-[9px]" : "text-xs")} title={withdrawal.staff_activeid}>{withdrawal.staff_activeid || ""}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className={cn(compactMode && "py-1 px-2")}>
                             {withdrawal.statusbanktranfer ? (
                               <Badge variant="default" className={cn(compactMode && "text-[9px] px-1 py-0")}>สำเร็จ</Badge>
                             ) : (
@@ -279,7 +272,7 @@ export default function WithdrawalList() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                           ไม่พบรายการถอนเงิน
                         </TableCell>
                       </TableRow>
