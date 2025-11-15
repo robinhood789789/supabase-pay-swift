@@ -256,13 +256,13 @@ export default function ShareholderMDR() {
 
         <Card className="border border-cyan-200 shadow-soft bg-cyan-50 dark:bg-cyan-950/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-cyan-900 dark:text-cyan-400 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
               <Percent className="h-4 w-4" />
               ค่าคอมมิชชั่น Owner
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-cyan-900 dark:text-cyan-400">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summary?.ownerCommission || 0)}
             </div>
           </CardContent>
@@ -295,7 +295,7 @@ export default function ShareholderMDR() {
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">MDR รวม</TableHead>
-                    <TableHead className="text-right border-r bg-cyan-100 dark:bg-cyan-950/20 text-cyan-950 dark:text-cyan-400 font-semibold">
+                    <TableHead className="text-right border-r bg-cyan-100 dark:bg-cyan-950/20 text-foreground font-semibold">
                       Shareholder %
                     </TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
@@ -304,7 +304,7 @@ export default function ShareholderMDR() {
                     <TableHead className="text-right border-r bg-violet-100 dark:bg-violet-950/20 text-violet-900 dark:text-violet-400 font-semibold">
                       Owner %
                     </TableHead>
-                    <TableHead className="text-right border-r bg-cyan-100 dark:bg-cyan-950/20 text-cyan-950 dark:text-cyan-400 font-semibold">
+                    <TableHead className="text-right border-r bg-cyan-100 dark:bg-cyan-950/20 text-foreground font-semibold">
                       ค่าคอม Owner
                     </TableHead>
                     <TableHead className="text-right bg-white dark:bg-slate-950 font-semibold">คงเหลือสุทธิ</TableHead>
@@ -330,7 +330,7 @@ export default function ShareholderMDR() {
                           {formatCurrency(row.total_mdr)}
                         </TableCell>
                         <TableCell className="text-right bg-white dark:bg-cyan-950/20 border-r font-medium">
-                          <Badge variant="outline" className="bg-cyan-100 dark:bg-cyan-950/20 text-cyan-950 dark:text-cyan-400">
+                          <Badge variant="outline" className="bg-cyan-100 dark:bg-cyan-950/20 text-foreground">
                             {row.shareholder_commission_rate.toFixed(2)}%
                           </Badge>
                         </TableCell>
@@ -342,7 +342,7 @@ export default function ShareholderMDR() {
                             {row.owner_commission_rate.toFixed(2)}%
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-cyan-950/20 border-r text-cyan-950 dark:text-cyan-400 font-bold">
+                        <TableCell className="text-right bg-white dark:bg-cyan-950/20 border-r text-foreground font-bold">
                           {formatCurrency(row.owner_commission_amount)}
                         </TableCell>
                         <TableCell className="text-right bg-white dark:bg-slate-950 font-bold">
