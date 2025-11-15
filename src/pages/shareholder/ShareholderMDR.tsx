@@ -295,7 +295,7 @@ export default function ShareholderMDR() {
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">MDR รวม</TableHead>
-                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
+                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
                       Shareholder %
                     </TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
@@ -304,7 +304,7 @@ export default function ShareholderMDR() {
                     <TableHead className="text-right border-r bg-purple-100 dark:bg-purple-950/20 text-purple-900 dark:text-purple-400 font-semibold">
                       Owner %
                     </TableHead>
-                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
+                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
                       ค่าคอม Owner
                     </TableHead>
                     <TableHead className="text-right bg-white dark:bg-slate-950 font-semibold">คงเหลือสุทธิ</TableHead>
