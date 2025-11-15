@@ -330,7 +330,7 @@ export default function ShareholderMDR() {
                           {formatCurrency(row.total_mdr)}
                         </TableCell>
                         <TableCell className="text-right bg-white dark:bg-blue-950/20 border-r font-medium">
-                          <Badge variant="outline" className="bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 border-blue-300">
+                          <Badge variant="outline" className="bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 border-blue-300">
                             {row.shareholder_commission_rate.toFixed(2)}%
                           </Badge>
                         </TableCell>
@@ -342,7 +342,7 @@ export default function ShareholderMDR() {
                             {row.owner_commission_rate.toFixed(2)}%
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-blue-950/20 border-r text-blue-900 dark:text-blue-400 font-bold">
+                        <TableCell className="text-right bg-white dark:bg-blue-950/20 border-r text-foreground dark:text-blue-400 font-bold">
                           {formatCurrency(row.owner_commission_amount)}
                         </TableCell>
                         <TableCell className="text-right bg-white dark:bg-slate-950 font-bold">
