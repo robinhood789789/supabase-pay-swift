@@ -13,32 +13,32 @@
      ============================================ */
   
   /* Primary Aurora Colors - HSL Format */
-  --background: 222 47% 11%;           /* Deep space blue-black */
-  --foreground: 180 100% 90%;          /* Bright cyan-white */
+  --background: 0 0% 100%;           /* Light: white */
+  --foreground: 222 47% 11%;          /* Light: near-black */
   
-  --card: 222 47% 15%;                 /* Slightly lighter space */
-  --card-foreground: 180 100% 90%;
+  --card: 0 0% 100%;                 /* Light surface */
+  --card-foreground: 222 47% 11%;
   
-  --popover: 222 47% 11%;
-  --popover-foreground: 180 100% 90%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
   
   --primary: 188 86% 53%;              /* Bright cyan */
-  --primary-foreground: 222 47% 11%;
+  --primary-foreground: 0 0% 100%;
   
   --secondary: 271 81% 56%;            /* Purple */
-  --secondary-foreground: 222 47% 11%;
+  --secondary-foreground: 0 0% 100%;
   
-  --muted: 222 47% 20%;
-  --muted-foreground: 180 40% 70%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
   
   --accent: 326 78% 56%;               /* Pink accent */
-  --accent-foreground: 222 47% 11%;
+  --accent-foreground: 0 0% 100%;
   
   --destructive: 0 84% 60%;
-  --destructive-foreground: 180 100% 90%;
+  --destructive-foreground: 0 0% 100%;
   
-  --border: 188 86% 53% / 0.2;         /* Cyan with transparency */
-  --input: 188 86% 53% / 0.3;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
   --ring: 188 86% 53%;
   
   /* Chart Colors - Neon palette */
@@ -89,8 +89,8 @@
   --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 180 100% 90%;
-  --border: 188 86% 53% / 0.2;
-  --input: 188 86% 53% / 0.3;
+  --border: 222 47% 20%;
+  --input: 222 47% 20%;
   --ring: 188 86% 53%;
 }
 
