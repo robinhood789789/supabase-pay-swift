@@ -75,6 +75,7 @@ import ShareholderSettings from "./pages/shareholder/ShareholderSettings";
 import ShareholderDashboard from "./pages/shareholder/ShareholderDashboard";
 import ShareholderClients from "./pages/shareholder/ShareholderClients";
 import ShareholderEarnings from "./pages/shareholder/ShareholderEarnings";
+import ShareholderMDR from "./pages/shareholder/ShareholderMDR";
 import FirstLogin2FASetup from "./pages/auth/FirstLogin2FASetup";
 import FirstLoginPasswordChange from "./pages/auth/FirstLoginPasswordChange";
 import PlatformPartners from "./pages/admin/PlatformPartners";
@@ -511,10 +512,11 @@ function AppContent() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/shareholder/dashboard" replace />} />
+      <Route index element={<Navigate to="/shareholder/dashboard" replace />} />
         <Route path="dashboard" element={<ShareholderDashboard />} />
         <Route path="clients" element={<ShareholderClients />} />
         <Route path="earnings" element={<ShareholderEarnings />} />
+        <Route path="mdr" element={<ShareholderMDR />} />
         <Route path="team" element={<ShareholderTeam />} />
         <Route path="settings" element={<ShareholderSettings />} />
       </Route>

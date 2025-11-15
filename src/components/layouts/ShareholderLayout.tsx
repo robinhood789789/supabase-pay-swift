@@ -38,6 +38,7 @@ const mainMenuItems = [
   { icon: LayoutDashboard, label: "แดชบอร์ด", path: "/shareholder/dashboard" },
   { icon: Users, label: "ลูกค้าของฉัน", path: "/shareholder/clients" },
   { icon: TrendingUp, label: "รายได้", path: "/shareholder/earnings" },
+  { icon: TrendingUp, label: "MDR & คอมมิชชั่น", path: "/shareholder/mdr" },
   { icon: Wallet, label: "การถอนเงิน", path: "/shareholder/withdrawals" },
 ];
 

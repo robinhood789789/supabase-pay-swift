@@ -454,6 +454,105 @@ export type Database = {
           },
         ]
       }
+      deposit_transfers: {
+        Row: {
+          adminbank_bankaccountcode: string | null
+          adminbank_bankcode: string | null
+          adminbank_bankname: string | null
+          afterdepositamt: number | null
+          amountpaid: number | null
+          bankcode: string | null
+          beforedepositamt: number | null
+          cashtype: string | null
+          created_at: string | null
+          created_by: string | null
+          createdate: string | null
+          custaccountname: string | null
+          custaccountnumber: string | null
+          custphonenumber: string | null
+          depositdate: string | null
+          deposittid: string | null
+          fullname: string | null
+          id: number
+          memberid: string | null
+          note: string | null
+          providerid: string | null
+          ref_id: string
+          remark: string | null
+          status: string | null
+          statusprocess: boolean | null
+          transactionid: string | null
+          updated_at: string | null
+          updated_by: string | null
+          updatedate: string | null
+          username: string | null
+        }
+        Insert: {
+          adminbank_bankaccountcode?: string | null
+          adminbank_bankcode?: string | null
+          adminbank_bankname?: string | null
+          afterdepositamt?: number | null
+          amountpaid?: number | null
+          bankcode?: string | null
+          beforedepositamt?: number | null
+          cashtype?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          createdate?: string | null
+          custaccountname?: string | null
+          custaccountnumber?: string | null
+          custphonenumber?: string | null
+          depositdate?: string | null
+          deposittid?: string | null
+          fullname?: string | null
+          id?: number
+          memberid?: string | null
+          note?: string | null
+          providerid?: string | null
+          ref_id: string
+          remark?: string | null
+          status?: string | null
+          statusprocess?: boolean | null
+          transactionid?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          updatedate?: string | null
+          username?: string | null
+        }
+        Update: {
+          adminbank_bankaccountcode?: string | null
+          adminbank_bankcode?: string | null
+          adminbank_bankname?: string | null
+          afterdepositamt?: number | null
+          amountpaid?: number | null
+          bankcode?: string | null
+          beforedepositamt?: number | null
+          cashtype?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          createdate?: string | null
+          custaccountname?: string | null
+          custaccountnumber?: string | null
+          custphonenumber?: string | null
+          depositdate?: string | null
+          deposittid?: string | null
+          fullname?: string | null
+          id?: number
+          memberid?: string | null
+          note?: string | null
+          providerid?: string | null
+          ref_id?: string
+          remark?: string | null
+          status?: string | null
+          statusprocess?: boolean | null
+          transactionid?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          updatedate?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           amount: number
@@ -1593,6 +1692,84 @@ export type Database = {
           },
         ]
       }
+      settlement_transfers: {
+        Row: {
+          account_number: string | null
+          amount: number
+          bank_code: string | null
+          bank_name: string | null
+          beneficiary_name: string | null
+          client_code: string | null
+          completed_at: string | null
+          created_at: string
+          currency: string | null
+          failed_reason: string | null
+          id: number
+          inserted_at: string
+          merchant_code: string | null
+          metadata: Json | null
+          ops_type: string | null
+          priority: string | null
+          ref_id: string
+          settlement_ref: string
+          status: string
+          sys_account_name: string | null
+          sys_bank: string | null
+          tx_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          amount: number
+          bank_code?: string | null
+          bank_name?: string | null
+          beneficiary_name?: string | null
+          client_code?: string | null
+          completed_at?: string | null
+          created_at: string
+          currency?: string | null
+          failed_reason?: string | null
+          id?: number
+          inserted_at?: string
+          merchant_code?: string | null
+          metadata?: Json | null
+          ops_type?: string | null
+          priority?: string | null
+          ref_id: string
+          settlement_ref: string
+          status: string
+          sys_account_name?: string | null
+          sys_bank?: string | null
+          tx_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          amount?: number
+          bank_code?: string | null
+          bank_name?: string | null
+          beneficiary_name?: string | null
+          client_code?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          failed_reason?: string | null
+          id?: number
+          inserted_at?: string
+          merchant_code?: string | null
+          metadata?: Json | null
+          ops_type?: string | null
+          priority?: string | null
+          ref_id?: string
+          settlement_ref?: string
+          status?: string
+          sys_account_name?: string | null
+          sys_bank?: string | null
+          tx_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       settlements: {
         Row: {
           created_at: string | null
@@ -2097,6 +2274,119 @@ export type Database = {
         }
         Relationships: []
       }
+      topup_transfers: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          amount: number
+          bank_code: string | null
+          bank_name: string | null
+          client_code: string | null
+          created_at: string
+          currency: string | null
+          id: number
+          inserted_at: string
+          merchant_code: string | null
+          metadata: Json | null
+          method: string | null
+          ref_id: string
+          status: string
+          sys_account_name: string | null
+          sys_account_number: string | null
+          sys_bank: string | null
+          topup_ref: string
+          transfer_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          amount: number
+          bank_code?: string | null
+          bank_name?: string | null
+          client_code?: string | null
+          created_at: string
+          currency?: string | null
+          id?: number
+          inserted_at?: string
+          merchant_code?: string | null
+          metadata?: Json | null
+          method?: string | null
+          ref_id: string
+          status: string
+          sys_account_name?: string | null
+          sys_account_number?: string | null
+          sys_bank?: string | null
+          topup_ref: string
+          transfer_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          amount?: number
+          bank_code?: string | null
+          bank_name?: string | null
+          client_code?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: number
+          inserted_at?: string
+          merchant_code?: string | null
+          metadata?: Json | null
+          method?: string | null
+          ref_id?: string
+          status?: string
+          sys_account_name?: string | null
+          sys_account_number?: string | null
+          sys_bank?: string | null
+          topup_ref?: string
+          transfer_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transaction_filters: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          is_default: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          is_default?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          is_default?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_filters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -2334,6 +2624,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      withdraw_transfers: {
+        Row: {
+          afterwithdrawamt: number | null
+          bankcode: string | null
+          beforewithdrawamt: number | null
+          cashtype: string | null
+          created_at: string | null
+          createdate: string | null
+          custaccountnumber: string | null
+          custphonenumber: string | null
+          fullname: string | null
+          id: number
+          memberid: string | null
+          note: string | null
+          ref_id: string
+          remark: string | null
+          staff_activeid: string | null
+          staff_activename: string | null
+          status: string | null
+          statusbanktranfer: boolean | null
+          updated_at: string | null
+          updatedate: string | null
+          user_type: string | null
+          username: string | null
+          withdrawamt: number | null
+          withdrawdate: string | null
+          withdrawid: string | null
+          withdrawkey: string | null
+        }
+        Insert: {
+          afterwithdrawamt?: number | null
+          bankcode?: string | null
+          beforewithdrawamt?: number | null
+          cashtype?: string | null
+          created_at?: string | null
+          createdate?: string | null
+          custaccountnumber?: string | null
+          custphonenumber?: string | null
+          fullname?: string | null
+          id?: number
+          memberid?: string | null
+          note?: string | null
+          ref_id: string
+          remark?: string | null
+          staff_activeid?: string | null
+          staff_activename?: string | null
+          status?: string | null
+          statusbanktranfer?: boolean | null
+          updated_at?: string | null
+          updatedate?: string | null
+          user_type?: string | null
+          username?: string | null
+          withdrawamt?: number | null
+          withdrawdate?: string | null
+          withdrawid?: string | null
+          withdrawkey?: string | null
+        }
+        Update: {
+          afterwithdrawamt?: number | null
+          bankcode?: string | null
+          beforewithdrawamt?: number | null
+          cashtype?: string | null
+          created_at?: string | null
+          createdate?: string | null
+          custaccountnumber?: string | null
+          custphonenumber?: string | null
+          fullname?: string | null
+          id?: number
+          memberid?: string | null
+          note?: string | null
+          ref_id?: string
+          remark?: string | null
+          staff_activeid?: string | null
+          staff_activename?: string | null
+          status?: string | null
+          statusbanktranfer?: boolean | null
+          updated_at?: string | null
+          updatedate?: string | null
+          user_type?: string | null
+          username?: string | null
+          withdrawamt?: number | null
+          withdrawdate?: string | null
+          withdrawid?: string | null
+          withdrawkey?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
