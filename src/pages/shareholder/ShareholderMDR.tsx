@@ -36,7 +36,7 @@ export default function ShareholderMDR() {
   const { shareholder } = useShareholder();
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1))); // First day of current month
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [useMockData, setUseMockData] = useState(false); // Toggle for mock data
+  const [useMockData, setUseMockData] = useState(true); // เริ่มต้นด้วยข้อมูลจำลอง
 
   // Fetch client MDR data with commission calculation
   const { data: clientMDRData, isLoading } = useQuery<ClientMDRData[]>({
@@ -140,7 +140,7 @@ export default function ShareholderMDR() {
 
       return Promise.all(mdrPromises);
     },
-    enabled: !!shareholder?.id,
+    enabled: useMockData || !!shareholder?.id, // Enable if using mock data or if shareholder exists
   });
 
   // Calculate summary totals
