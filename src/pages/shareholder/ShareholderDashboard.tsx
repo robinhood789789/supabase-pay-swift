@@ -388,7 +388,6 @@ export default function ShareholderDashboard() {
                 <tr className="text-left text-muted-foreground">
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Owner ID</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Business</th>
-                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap hidden md:table-cell">Email</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap hidden lg:table-cell">Created</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Status</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium text-right whitespace-nowrap">Commission %</th>
@@ -398,7 +397,7 @@ export default function ShareholderDashboard() {
               <tbody>
                 {owners.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
                       ยังไม่มี Owner ที่มาจาก referral link ของคุณ
                     </td>
                   </tr>
@@ -407,7 +406,6 @@ export default function ShareholderDashboard() {
                     <tr key={o.ownerId} className="border-t hover:bg-accent/50 transition-colors">
                       <td className="py-2 px-2 sm:pr-4 font-mono text-[10px] sm:text-xs">{o.publicId || o.ownerId.slice(0, 8)}</td>
                       <td className="py-2 px-2 sm:pr-4 font-medium text-xs sm:text-sm">{o.businessName}</td>
-                      <td className="py-2 px-2 sm:pr-4 text-muted-foreground text-xs sm:text-sm hidden md:table-cell">{o.email}</td>
                       <td className="py-2 px-2 sm:pr-4 text-xs sm:text-sm hidden lg:table-cell">{new Date(o.createdAt).toLocaleDateString('th-TH')}</td>
                       <td className="py-2 px-2 sm:pr-4">
                         <Badge 
