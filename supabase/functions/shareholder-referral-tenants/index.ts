@@ -119,13 +119,19 @@ serve(async (req) => {
 
     const owners = (clientLinks || []).map((link: any) => {
       const tenant = tenantsById[link.tenant_id] || {};
-      const publicId = publicIdsMap[link.tenant_id] || '';
+      // Get public_id from the map, or fallback to userId if it looks like a public_id format
+      let displayPublicId = publicIdsMap[link.tenant_id] || '';
+      
+      // If publicIdsMap doesn't have it but tenant.user_id looks like a public_id (e.g., "OWA-123456")
+      if (!displayPublicId && tenant.user_id && tenant.user_id.match(/^[A-Z0-9]+-\d{6}$/)) {
+        displayPublicId = tenant.user_id;
+      }
       
       return {
         ownerId: tenant.id || link.tenant_id,
         businessName: tenant.name || 'Unknown',
         userId: tenant.user_id || '',
-        publicId: publicId || '-',
+        publicId: displayPublicId || '-',
         createdAt: link.referred_at || tenant.created_at || null,
         status: link.status === 'active' ? 'Active' : link.status === 'trial' ? 'Trial' : (link.status || 'Churned'),
         mrr: link.status === 'active' ? Math.round(Math.random() * 5000 + 1000) : 0, // TODO: Replace with real MRR when available
