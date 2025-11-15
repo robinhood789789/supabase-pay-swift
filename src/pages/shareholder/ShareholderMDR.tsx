@@ -96,16 +96,18 @@ export default function ShareholderMDR() {
         const baseMDRRate = 0.01; // 1% base MDR
         const totalMDR = (totalDeposit + totalTopup + totalPayout + totalSettlement) * baseMDRRate;
 
-        // Calculate commissions in cascading manner
+        // Calculate commissions directly from transfer amount
         const shareholderRate = client.commission_rate / 100; // Convert percentage to decimal
         const ownerRate = 0.005; // 0.5% for owner (example - should come from database)
         
-        // Shareholder gets their % of total MDR
-        const shareholderCommission = totalMDR * shareholderRate;
+        // Total transfer amount
+        const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
         
-        // Owner gets their % of what remains after shareholder
-        const remainingAfterShareholder = totalMDR - shareholderCommission;
-        const ownerCommission = remainingAfterShareholder * (ownerRate / (1 - shareholderRate));
+        // Shareholder gets their % of total transfer amount
+        const shareholderCommission = totalTransferAmount * shareholderRate;
+        
+        // Owner gets their % of total transfer amount
+        const ownerCommission = totalTransferAmount * ownerRate;
         
         // Net amount after both commissions
         const netAfterOwner = totalMDR - shareholderCommission - ownerCommission;
@@ -358,25 +360,20 @@ export default function ShareholderMDR() {
           <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
               <Percent className="h-4 w-4" />
-              การคำนวณค่าคอมมิชชั่นแบบลดหลั่น
+              การคำนวณค่าคอมมิชชั่น
             </h3>
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                <strong>ขั้นตอนที่ 1:</strong> Shareholder ได้รับค่าคอมมิชชั่นตามเปอร์เซนต์ที่กำหนดจาก MDR รวม
+                <strong>หลักการคำนวณ:</strong> Shareholder และ Owner ได้รับค่าคอมมิชชั่นตามเปอร์เซนต์ที่กำหนดจากยอดการโอนโดยตรง
               </p>
               <p>
-                <strong>ขั้นตอนที่ 2:</strong> Owner ได้รับค่าคอมมิชชั่นจากยอดที่เหลือหลังหัก Shareholder
-              </p>
-              <p>
-                <strong>ตัวอย่าง:</strong> หาก MDR = 10,000 บาท, Shareholder 1%, Owner 0.5%
+                <strong>ตัวอย่าง:</strong> หากยอดการโอน = 10,000 บาท, Shareholder 1%, Owner 0.5%
                 <br />
                 - Shareholder ได้: 10,000 × 1% = 100 บาท
                 <br />
-                - ยอดคงเหลือ: 10,000 - 100 = 9,900 บาท
+                - Owner ได้: 10,000 × 0.5% = 50 บาท
                 <br />
-                - Owner ได้: 9,900 × 0.5% = 49.50 บาท
-                <br />
-                - คงเหลือสุทธิ: 9,900 - 49.50 = 9,850.50 บาท
+                - คงเหลือสุทธิ: MDR รวม - (100 + 50) บาท
               </p>
             </div>
           </div>
