@@ -362,6 +362,9 @@ export default function PlatformSuperAdminEarnings() {
                       </TableCell>
                       <TableCell className="font-bold text-primary">
                         {formatCurrency(superAdminShare)}
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({superAdminPercentage}%)
+                        </span>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
