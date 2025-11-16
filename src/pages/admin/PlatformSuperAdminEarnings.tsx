@@ -320,7 +320,6 @@ export default function PlatformSuperAdminEarnings() {
                 <TableHead>Date to Date</TableHead>
                 <TableHead>Shareholder ID</TableHead>
                 <TableHead>Total Deposits</TableHead>
-                <TableHead>Total Amount</TableHead>
                 <TableHead>Total Commission</TableHead>
                 <TableHead>Net Amount</TableHead>
                 <TableHead>Super Admin Share ({superAdminPercentage}%)</TableHead>
@@ -330,7 +329,7 @@ export default function PlatformSuperAdminEarnings() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     Loading...
                   </TableCell>
                 </TableRow>
@@ -348,9 +347,6 @@ export default function PlatformSuperAdminEarnings() {
                         {group.shareholderId}
                       </TableCell>
                       <TableCell className="font-bold text-green-600">
-                        {formatCurrency(group.totalAmount)}
-                      </TableCell>
-                      <TableCell className="font-semibold">
                         {formatCurrency(group.totalAmount)}
                       </TableCell>
                       <TableCell className="text-orange-600">
@@ -372,7 +368,7 @@ export default function PlatformSuperAdminEarnings() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No transfers found for selected period
                   </TableCell>
                 </TableRow>
