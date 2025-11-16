@@ -53,7 +53,7 @@ export default function PlatformSuperAdminEarnings() {
     queryKey: ["super-admin-transfers", start, end, useMockData],
     queryFn: async () => {
       if (useMockData) {
-        return mockIncomingTransfers;
+        return Promise.resolve(mockIncomingTransfers);
       }
 
       const { data, error } = await supabase
