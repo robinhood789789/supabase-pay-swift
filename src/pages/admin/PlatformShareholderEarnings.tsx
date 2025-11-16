@@ -309,21 +309,32 @@ export default function PlatformShareholderEarnings() {
         return mockShareholdersList;
       }
 
-      const { data, error } = await supabase
+      const { data: shareholdersData, error } = await supabase
         .from("shareholders")
-        .select(`
-          *,
-          profiles!shareholders_user_id_fkey(public_id, email, full_name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // Transform the data to ensure profiles is a single object
-      return data?.map(sh => ({
-        ...sh,
-        profile: Array.isArray(sh.profiles) ? sh.profiles[0] : sh.profiles
-      }));
+      if (!shareholdersData) return [];
+
+      // Fetch profiles separately for each shareholder
+      const shareholdersWithProfiles = await Promise.all(
+        shareholdersData.map(async (sh) => {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("public_id, email, full_name")
+            .eq("id", sh.user_id)
+            .single();
+
+          return {
+            ...sh,
+            profile: profileData || null
+          };
+        })
+      );
+
+      return shareholdersWithProfiles;
     },
   });
 
@@ -446,32 +457,60 @@ export default function PlatformShareholderEarnings() {
       // Get all shareholder-client relationships
       const { data: clientRelations, error: relationsError } = await supabase
         .from("shareholder_clients")
-        .select(`
-          tenant_id,
-          shareholder_id,
-          commission_rate,
-          tenants!inner (
-            name,
-            user_id,
-            profiles:user_id (
-              full_name
-            )
-          ),
-          shareholders!inner (
-            user_id,
-            profiles:user_id (
-              full_name,
-              public_id
-            )
-          )
-        `)
+        .select("tenant_id, shareholder_id, commission_rate")
         .eq("status", "active");
 
       if (relationsError) throw relationsError;
       if (!clientRelations || clientRelations.length === 0) return [];
 
+      // Fetch related data separately
+      const enrichedRelations = await Promise.all(
+        clientRelations.map(async (relation) => {
+          // Fetch tenant data
+          const { data: tenantData } = await supabase
+            .from("tenants")
+            .select("name, user_id")
+            .eq("id", relation.tenant_id)
+            .single();
+
+          // Fetch tenant owner profile
+          const { data: ownerProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", tenantData?.user_id)
+            .single();
+
+          // Fetch shareholder data
+          const { data: shareholderData } = await supabase
+            .from("shareholders")
+            .select("user_id")
+            .eq("id", relation.shareholder_id)
+            .single();
+
+          // Fetch shareholder profile
+          const { data: shareholderProfile } = await supabase
+            .from("profiles")
+            .select("full_name, public_id")
+            .eq("id", shareholderData?.user_id)
+            .single();
+
+          return {
+            ...relation,
+            tenants: {
+              name: tenantData?.name,
+              user_id: tenantData?.user_id,
+              profiles: ownerProfile
+            },
+            shareholders: {
+              user_id: shareholderData?.user_id,
+              profiles: shareholderProfile
+            }
+          };
+        })
+      );
+
       // For each client, fetch transaction data
-      const mdrPromises = clientRelations.map(async (relation) => {
+      const mdrPromises = enrichedRelations.map(async (relation) => {
         // Fetch deposit_transfers
         const { data: deposits } = await supabase
           .from("deposit_transfers")
