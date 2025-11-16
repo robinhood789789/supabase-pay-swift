@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Download, TrendingUp, Wallet, Percent } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { Calendar as CalendarIcon, Download, TrendingUp, Wallet, Percent } from "lucide-react";
+import { formatCurrency, cn } from "@/lib/utils";
 import { 
   Table,
   TableBody,
@@ -15,45 +14,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { mockIncomingTransfers } from "@/data/mockSuperAdminEarnings";
-
-type DateRange = "7d" | "30d" | "90d" | "all";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function PlatformSuperAdminEarnings() {
-  const [dateRange, setDateRange] = useState<DateRange>("30d");
   const [useMockData, setUseMockData] = useState(true);
   const superAdminPercentage = 10; // Fixed percentage for Super Admin share
+  
+  // Initialize with last 30 days
+  const [startDate, setStartDate] = useState<Date>(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    return date;
+  });
+  const [endDate, setEndDate] = useState<Date>(new Date());
 
-  const getDateRange = () => {
-    const end = new Date();
-    const start = new Date();
-    
-    switch (dateRange) {
-      case "7d":
-        start.setDate(end.getDate() - 7);
-        break;
-      case "30d":
-        start.setDate(end.getDate() - 30);
-        break;
-      case "90d":
-        start.setDate(end.getDate() - 90);
-        break;
-      case "all":
-        start.setFullYear(2020, 0, 1);
-        break;
-    }
-    
-    return { start: start.toISOString(), end: end.toISOString() };
-  };
-
-  const { start, end } = useMemo(() => getDateRange(), [dateRange]);
+  const start = startDate.toISOString();
+  const end = endDate.toISOString();
 
   // Fetch incoming transfers data
   const { data: transfersData, isLoading: transfersLoading } = useQuery({
-    queryKey: ["super-admin-transfers", start, end, useMockData],
+    queryKey: ["super-admin-transfers", start, end, useMockData, startDate, endDate],
     queryFn: async () => {
       if (useMockData) {
         return Promise.resolve(mockIncomingTransfers);
@@ -102,22 +90,22 @@ export default function PlatformSuperAdminEarnings() {
 
   const metrics = calculateMetrics();
 
-  // Group transfers by shareholder and month
+  // Group transfers by shareholder and date
   const groupedTransfers = useMemo(() => {
     if (!transfersData) return [];
 
     const groups = new Map<string, {
       shareholderId: string;
-      month: string;
+      date: string;
       totalAmount: number;
       totalCommission: number;
       count: number;
     }>();
 
     transfersData.forEach((transfer) => {
-      const monthKey = format(new Date(transfer.created_at), "yyyy-MM");
+      const dateKey = format(new Date(transfer.created_at), "yyyy-MM-dd");
       const shareholderId = transfer.shareholder_public_id || "N/A";
-      const groupKey = `${shareholderId}-${monthKey}`;
+      const groupKey = `${shareholderId}-${dateKey}`;
       const commission = commissionsData.find(c => c.transfer_id === transfer.id);
       const commissionAmount = commission?.commission_amount || 0;
 
@@ -129,7 +117,7 @@ export default function PlatformSuperAdminEarnings() {
       } else {
         groups.set(groupKey, {
           shareholderId,
-          month: monthKey,
+          date: dateKey,
           totalAmount: Number(transfer.amount || 0),
           totalCommission: commissionAmount,
           count: 1,
@@ -138,18 +126,18 @@ export default function PlatformSuperAdminEarnings() {
     });
 
     return Array.from(groups.values()).sort((a, b) => 
-      b.month.localeCompare(a.month) || a.shareholderId.localeCompare(b.shareholderId)
+      b.date.localeCompare(a.date) || a.shareholderId.localeCompare(b.shareholderId)
     );
   }, [transfersData, commissionsData]);
 
   const handleExportCSV = () => {
-    const headers = ["Month", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Super Admin Share", "Transfer Count"];
+    const headers = ["Date", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Super Admin Share", "Transfer Count"];
     const rows = groupedTransfers.map((group) => {
       const netAmount = group.totalAmount - group.totalCommission;
       const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
       
       return [
-        format(new Date(group.month + "-01"), "MMMM yyyy"),
+        format(new Date(group.date), "dd MMM yyyy"),
         group.shareholderId,
         group.totalAmount,
         group.totalCommission,
@@ -164,7 +152,7 @@ export default function PlatformSuperAdminEarnings() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `super-admin-earnings-monthly-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `super-admin-earnings-daily-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -194,17 +182,61 @@ export default function PlatformSuperAdminEarnings() {
         </div>
       </div>
 
-      <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-        <TabsList>
-          <TabsTrigger value="7d">
-            <Calendar className="w-4 h-4 mr-2" />
-            Last 7 Days
-          </TabsTrigger>
-          <TabsTrigger value="30d">Last 30 Days</TabsTrigger>
-          <TabsTrigger value="90d">Last 90 Days</TabsTrigger>
-          <TabsTrigger value="all">All Time</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex gap-4">
+        <div className="space-y-2">
+          <Label>Start Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !startDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => date && setStartDate(date)}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="space-y-2">
+          <Label>End Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !endDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => date && setEndDate(date)}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -270,7 +302,7 @@ export default function PlatformSuperAdminEarnings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Month</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Shareholder ID</TableHead>
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Total Commission</TableHead>
@@ -292,9 +324,9 @@ export default function PlatformSuperAdminEarnings() {
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
 
                   return (
-                    <TableRow key={`${group.shareholderId}-${group.month}-${index}`}>
+                    <TableRow key={`${group.shareholderId}-${group.date}-${index}`}>
                       <TableCell className="font-medium">
-                        {format(new Date(group.month + "-01"), "MMMM yyyy")}
+                        {format(new Date(group.date), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-semibold">
                         {group.shareholderId}
