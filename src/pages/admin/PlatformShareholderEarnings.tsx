@@ -13,11 +13,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatCurrency, cn } from "@/lib/utils";
-import { Search, TrendingUp, Wallet, Clock, Users, Download, ChevronRight, CalendarIcon, X, ChevronDown, DollarSign, Percent } from "lucide-react";
+import { Search, TrendingUp, Wallet, Clock, Users, Download, ChevronRight, CalendarIcon, X, ChevronDown, DollarSign, Percent, TestTube } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { th } from "date-fns/locale";
 import JSZip from "jszip";
+import { mockPlatformMDRData, mockPlatformMDRSummary } from "@/data/mockPlatformMDR";
 
 interface ClientMDRData {
   tenant_id: string;
@@ -37,6 +38,7 @@ export default function PlatformShareholderEarnings() {
   const [customStartDate, setCustomStartDate] = useState<Date>();
   const [customEndDate, setCustomEndDate] = useState<Date>();
   const [selectedShareholders, setSelectedShareholders] = useState<Set<string>>(new Set());
+  const [useMockMDR, setUseMockMDR] = useState(false);
 
   // Calculate date range based on selection
   const getDateRange = () => {
@@ -407,8 +409,13 @@ export default function PlatformShareholderEarnings() {
 
   // Fetch MDR data for all shareholders and their clients
   const { data: mdrData, isLoading: mdrLoading } = useQuery({
-    queryKey: ["platform-mdr-data", startDate, endDate],
+    queryKey: ["platform-mdr-data", startDate, endDate, useMockMDR],
     queryFn: async () => {
+      // Use mock data if enabled
+      if (useMockMDR) {
+        return mockPlatformMDRData as ClientMDRData[];
+      }
+
       const startDateStr = startDate ? format(startDate, "yyyy-MM-dd") : format(startOfMonth(new Date()), "yyyy-MM-dd");
       const endDateStr = endDate ? format(endDate, "yyyy-MM-dd") : format(endOfMonth(new Date()), "yyyy-MM-dd");
 
@@ -486,10 +493,13 @@ export default function PlatformShareholderEarnings() {
       const results = await Promise.all(mdrPromises);
       return results.filter(r => r.total_transfer_amount > 0); // Only show clients with transactions
     },
+    enabled: !useMockMDR, // Only fetch real data when not using mock
   });
 
   // Calculate MDR summary
-  const mdrSummary = mdrData?.reduce(
+  const mdrSummary = useMockMDR 
+    ? mockPlatformMDRSummary 
+    : mdrData?.reduce(
     (acc, curr) => ({
       totalTransferAmount: acc.totalTransferAmount + curr.total_transfer_amount,
       totalCommission: acc.totalCommission + curr.shareholder_commission_amount,
@@ -831,15 +841,28 @@ export default function PlatformShareholderEarnings() {
       {/* MDR Table Section */}
       <Card>
         <CardHeader>
-          <CardTitle>รายละเอียดการคำนวณ MDR และค่าคอมมิชชั่น</CardTitle>
-          <CardDescription>
-            แสดงการคำนวณ MDR และค่าคอมมิชชั่นของทุก Shareholder
-            {startDate && endDate && (
-              <span className="ml-2 font-medium text-foreground">
-                ({format(startDate, "d MMM", { locale: th })} - {format(endDate, "d MMM yyyy", { locale: th })})
-              </span>
-            )}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>รายละเอียดการคำนวณ MDR และค่าคอมมิชชั่น</CardTitle>
+              <CardDescription>
+                แสดงการคำนวณ MDR และค่าคอมมิชชั่นของทุก Shareholder
+                {startDate && endDate && (
+                  <span className="ml-2 font-medium text-foreground">
+                    ({format(startDate, "d MMM", { locale: th })} - {format(endDate, "d MMM yyyy", { locale: th })})
+                  </span>
+                )}
+              </CardDescription>
+            </div>
+            <Button
+              variant={useMockMDR ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUseMockMDR(!useMockMDR)}
+              className="gap-2"
+            >
+              <TestTube className="h-4 w-4" />
+              {useMockMDR ? "ข้อมูลจำลอง" : "ข้อมูลจริง"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {/* MDR Summary Cards */}
