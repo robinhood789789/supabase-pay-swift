@@ -339,6 +339,7 @@ export default function PlatformSuperAdminEarnings() {
                   const netAmount = group.totalAmount - group.totalCommission;
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
                   const mdrRate = group.totalAmount > 0 ? (group.totalCommission / group.totalAmount) * 100 : 0;
+                  const shareholderPercentage = group.totalAmount > 0 ? (netAmount / group.totalAmount) * 100 : 0;
 
                   return (
                     <TableRow key={`${group.shareholderId}-${index}`}>
@@ -359,6 +360,9 @@ export default function PlatformSuperAdminEarnings() {
                       </TableCell>
                       <TableCell className="font-bold text-muted-foreground">
                         {formatCurrency(netAmount)}
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({shareholderPercentage.toFixed(2)}%)
+                        </span>
                       </TableCell>
                       <TableCell className="font-bold text-primary">
                         {formatCurrency(superAdminShare)}
