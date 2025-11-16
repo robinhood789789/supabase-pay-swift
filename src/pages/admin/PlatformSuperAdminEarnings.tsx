@@ -97,29 +97,67 @@ export default function PlatformSuperAdminEarnings() {
 
   const metrics = calculateMetrics();
 
-  const handleExportCSV = () => {
-    const headers = ["Date", "Shareholder ID", "From Account", "Amount", "Commission Paid", "Net Amount"];
-    const rows = transfersData?.map((transfer) => {
+  // Group transfers by shareholder and month
+  const groupedTransfers = useMemo(() => {
+    if (!transfersData) return [];
+
+    const groups = new Map<string, {
+      shareholderId: string;
+      month: string;
+      totalAmount: number;
+      totalCommission: number;
+      count: number;
+    }>();
+
+    transfersData.forEach((transfer) => {
+      const monthKey = format(new Date(transfer.created_at), "yyyy-MM");
+      const shareholderId = transfer.shareholder_public_id || "N/A";
+      const groupKey = `${shareholderId}-${monthKey}`;
       const commission = commissionsData.find(c => c.transfer_id === transfer.id);
       const commissionAmount = commission?.commission_amount || 0;
-      const netAmount = Number(transfer.amount || 0) - commissionAmount;
+
+      if (groups.has(groupKey)) {
+        const existing = groups.get(groupKey)!;
+        existing.totalAmount += Number(transfer.amount || 0);
+        existing.totalCommission += commissionAmount;
+        existing.count += 1;
+      } else {
+        groups.set(groupKey, {
+          shareholderId,
+          month: monthKey,
+          totalAmount: Number(transfer.amount || 0),
+          totalCommission: commissionAmount,
+          count: 1,
+        });
+      }
+    });
+
+    return Array.from(groups.values()).sort((a, b) => 
+      b.month.localeCompare(a.month) || a.shareholderId.localeCompare(b.shareholderId)
+    );
+  }, [transfersData, commissionsData]);
+
+  const handleExportCSV = () => {
+    const headers = ["Month", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Transfer Count"];
+    const rows = groupedTransfers.map((group) => {
+      const netAmount = group.totalAmount - group.totalCommission;
       
       return [
-        format(new Date(transfer.created_at || ""), "yyyy-MM-dd HH:mm"),
-        transfer.shareholder_public_id || "-",
-        transfer.from_account || "-",
-        Number(transfer.amount || 0),
-        commissionAmount,
+        format(new Date(group.month + "-01"), "MMMM yyyy"),
+        group.shareholderId,
+        group.totalAmount,
+        group.totalCommission,
         netAmount,
+        group.count,
       ].join(",");
-    }) || [];
+    });
 
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `super-admin-earnings-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `super-admin-earnings-monthly-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -225,49 +263,45 @@ export default function PlatformSuperAdminEarnings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
+                <TableHead>Month</TableHead>
                 <TableHead>Shareholder ID</TableHead>
-                <TableHead>From Account</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Commission</TableHead>
+                <TableHead>Total Amount</TableHead>
+                <TableHead>Total Commission</TableHead>
                 <TableHead>Net Amount</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Transfer Count</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     Loading...
                   </TableCell>
                 </TableRow>
-              ) : transfersData && transfersData.length > 0 ? (
-                transfersData.slice(0, 50).map((transfer) => {
-                  const commission = commissionsData.find(c => c.transfer_id === transfer.id);
-                  const commissionAmount = commission?.commission_amount || 0;
-                  const netAmount = Number(transfer.amount || 0) - commissionAmount;
+              ) : groupedTransfers && groupedTransfers.length > 0 ? (
+                groupedTransfers.map((group, index) => {
+                  const netAmount = group.totalAmount - group.totalCommission;
 
                   return (
-                    <TableRow key={transfer.id}>
-                      <TableCell>
-                        {format(new Date(transfer.created_at || ""), "MMM dd, yyyy HH:mm")}
+                    <TableRow key={`${group.shareholderId}-${group.month}-${index}`}>
+                      <TableCell className="font-medium">
+                        {format(new Date(group.month + "-01"), "MMMM yyyy")}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-semibold">
-                        {transfer.shareholder_public_id || "-"}
+                        {group.shareholderId}
                       </TableCell>
-                      <TableCell>{transfer.from_account || "-"}</TableCell>
                       <TableCell className="font-semibold">
-                        {formatCurrency(Number(transfer.amount || 0))}
+                        {formatCurrency(group.totalAmount)}
                       </TableCell>
                       <TableCell className="text-orange-600">
-                        {formatCurrency(commissionAmount)}
+                        {formatCurrency(group.totalCommission)}
                       </TableCell>
                       <TableCell className="font-bold text-primary">
                         {formatCurrency(netAmount)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={transfer.status === "completed" ? "default" : "secondary"}>
-                          {transfer.status || "pending"}
+                        <Badge variant="outline">
+                          {group.count} transfers
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -275,7 +309,7 @@ export default function PlatformSuperAdminEarnings() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No transfers found for selected period
                   </TableCell>
                 </TableRow>
