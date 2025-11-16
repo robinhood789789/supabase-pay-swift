@@ -78,8 +78,9 @@ export default function PlatformSuperAdminEarnings() {
     refetchOnWindowFocus: false,
   });
 
-  // Calculate commissions (5% average commission rate)
-  const AVERAGE_COMMISSION_RATE = 0.05;
+  // Calculate commissions (1.5% MDR rate)
+  const AVERAGE_COMMISSION_RATE = 0.015;
+  const shareholderPercentage = 0.5; // Fixed percentage for Shareholder share (0.5% of total)
   
   const commissionsData = transfersData?.map(transfer => ({
     transfer_id: transfer.id,
@@ -338,8 +339,8 @@ export default function PlatformSuperAdminEarnings() {
                 paginatedTransfers.map((group, index) => {
                   const netAmount = group.totalAmount - group.totalCommission;
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
-                  const mdrRate = group.totalAmount > 0 ? (group.totalCommission / group.totalAmount) * 100 : 0;
-                  const shareholderPercentage = group.totalAmount > 0 ? (netAmount / group.totalAmount) * 100 : 0;
+                  const mdrRate = 1.5; // Fixed MDR rate
+                  const shareholderShare = 0.5; // Fixed Shareholder rate
 
                   return (
                     <TableRow key={`${group.shareholderId}-${index}`}>
@@ -353,7 +354,7 @@ export default function PlatformSuperAdminEarnings() {
                         {formatCurrency(group.totalAmount)}
                       </TableCell>
                       <TableCell className="font-semibold text-blue-600">
-                        {mdrRate.toFixed(2)}%
+                        {mdrRate.toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-orange-600">
                         {formatCurrency(group.totalCommission)}
@@ -361,7 +362,7 @@ export default function PlatformSuperAdminEarnings() {
                       <TableCell className="font-bold text-muted-foreground">
                         {formatCurrency(netAmount)}
                         <span className="text-xs text-muted-foreground ml-2">
-                          ({shareholderPercentage.toFixed(2)}%)
+                          ({shareholderShare.toFixed(1)}%)
                         </span>
                       </TableCell>
                       <TableCell className="font-bold text-primary">
