@@ -336,11 +336,11 @@ export default function PlatformSuperAdminEarnings() {
                 </TableRow>
               ) : paginatedTransfers && paginatedTransfers.length > 0 ? (
                 paginatedTransfers.map((group, index) => {
-                  const netAmount = group.totalAmount - group.totalCommission;
-                  const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
-                  const mdrRate = 1.5; // Fixed MDR rate
-                  const mdrAmount = group.totalAmount * (mdrRate / 100); // Calculate MDR amount
-                  const shareholderShare = 0.5; // Fixed Shareholder rate
+                  const superAdminShare = group.totalAmount * (superAdminPercentage / 100); // 1%
+                  const shareholderManShare = group.totalAmount * (shareholderPercentage / 100); // 0.5%
+                  const mdrAmount = superAdminShare + shareholderManShare; // 1.5%
+                  const mdrRate = 1.5;
+                  const shareholderShare = 0.5;
 
                   return (
                     <TableRow key={`${group.shareholderId}-${index}`}>
@@ -360,7 +360,7 @@ export default function PlatformSuperAdminEarnings() {
                         </span>
                       </TableCell>
                       <TableCell className="font-bold text-muted-foreground">
-                        {formatCurrency(netAmount)}
+                        {formatCurrency(shareholderManShare)}
                         <span className="text-xs text-muted-foreground ml-2">
                           ({shareholderShare.toFixed(1)}%)
                         </span>
