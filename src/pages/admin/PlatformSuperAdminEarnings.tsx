@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { mockIncomingTransfers } from "@/data/mockSuperAdminEarnings";
 
 type DateRange = "7d" | "30d" | "90d" | "all";
 
@@ -52,7 +53,7 @@ export default function PlatformSuperAdminEarnings() {
     queryKey: ["super-admin-transfers", start, end, useMockData],
     queryFn: async () => {
       if (useMockData) {
-        return mockTransfersData;
+        return mockIncomingTransfers;
       }
 
       const { data, error } = await supabase
@@ -281,48 +282,4 @@ export default function PlatformSuperAdminEarnings() {
     </div>
   );
 }
-
-// Mock data
-const mockTransfersData = [
-  {
-    id: "txn_001",
-    amount: 500000,
-    from_account: "1234567890",
-    from_name: "Client A",
-    status: "completed",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: "txn_002",
-    amount: 750000,
-    from_account: "0987654321",
-    from_name: "Client B",
-    status: "completed",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-  },
-  {
-    id: "txn_003",
-    amount: 1000000,
-    from_account: "1122334455",
-    from_name: "Client C",
-    status: "completed",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-  },
-  {
-    id: "txn_004",
-    amount: 250000,
-    from_account: "5544332211",
-    from_name: "Client D",
-    status: "completed",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
-  },
-  {
-    id: "txn_005",
-    amount: 600000,
-    from_account: "6677889900",
-    from_name: "Client E",
-    status: "completed",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
-  },
-];
 
