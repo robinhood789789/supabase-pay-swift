@@ -534,8 +534,8 @@ const DashboardSidebar = () => {
           {!isCollapsed && <LocaleSwitcher />}
           <Button
             onClick={signOut}
-            variant="ghost"
-            className="w-full justify-start font-medium"
+            variant="outline"
+            className="w-full justify-start font-medium bg-background border border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-smooth"
             size={isCollapsed ? "icon" : "default"}
           >
             <LogOut className={isCollapsed ? "" : "mr-2 h-4 w-4"} />
