@@ -120,9 +120,9 @@ const PlatformSidebar = () => {
 
         <div className="mt-auto p-4 border-t border-border bg-background">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={handleSignOut}
-            className="w-full justify-start text-sm font-medium"
+            className="w-full justify-start text-sm font-medium bg-background border border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-smooth"
           >
             <LogOut className="mr-3 h-4 w-4" />
             {!isCollapsed && <span>Sign Out</span>}
