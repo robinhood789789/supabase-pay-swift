@@ -15,6 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { mockIncomingTransfers } from "@/data/mockSuperAdminEarnings";
 
@@ -23,6 +25,7 @@ type DateRange = "7d" | "30d" | "90d" | "all";
 export default function PlatformSuperAdminEarnings() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const [useMockData, setUseMockData] = useState(true);
+  const [superAdminPercentage, setSuperAdminPercentage] = useState<number>(10);
 
   const getDateRange = () => {
     const end = new Date();
@@ -85,12 +88,14 @@ export default function PlatformSuperAdminEarnings() {
     const totalCommissions = commissionsData.reduce((sum, c) => sum + c.commission_amount, 0);
     const netEarnings = totalRevenue - totalCommissions;
     const commissionRate = totalRevenue > 0 ? (totalCommissions / totalRevenue) * 100 : 0;
+    const superAdminShare = totalRevenue * (superAdminPercentage / 100);
 
     return {
       totalRevenue,
       totalCommissions,
       netEarnings,
       commissionRate,
+      superAdminShare,
       transferCount: transfersData?.length || 0,
     };
   };
@@ -138,9 +143,10 @@ export default function PlatformSuperAdminEarnings() {
   }, [transfersData, commissionsData]);
 
   const handleExportCSV = () => {
-    const headers = ["Month", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Transfer Count"];
+    const headers = ["Month", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Super Admin Share", "Transfer Count"];
     const rows = groupedTransfers.map((group) => {
       const netAmount = group.totalAmount - group.totalCommission;
+      const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
       
       return [
         format(new Date(group.month + "-01"), "MMMM yyyy"),
@@ -148,6 +154,7 @@ export default function PlatformSuperAdminEarnings() {
         group.totalAmount,
         group.totalCommission,
         netAmount,
+        superAdminShare,
         group.count,
       ].join(",");
     });
@@ -187,17 +194,40 @@ export default function PlatformSuperAdminEarnings() {
         </div>
       </div>
 
-      <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-        <TabsList>
-          <TabsTrigger value="7d">
-            <Calendar className="w-4 h-4 mr-2" />
-            Last 7 Days
-          </TabsTrigger>
-          <TabsTrigger value="30d">Last 30 Days</TabsTrigger>
-          <TabsTrigger value="90d">Last 90 Days</TabsTrigger>
-          <TabsTrigger value="all">All Time</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex justify-between items-end gap-4">
+        <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+          <TabsList>
+            <TabsTrigger value="7d">
+              <Calendar className="w-4 h-4 mr-2" />
+              Last 7 Days
+            </TabsTrigger>
+            <TabsTrigger value="30d">Last 30 Days</TabsTrigger>
+            <TabsTrigger value="90d">Last 90 Days</TabsTrigger>
+            <TabsTrigger value="all">All Time</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <div className="flex items-end gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="percentage" className="text-sm font-medium">
+              Super Admin Share (%)
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="percentage"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={superAdminPercentage}
+                onChange={(e) => setSuperAdminPercentage(Number(e.target.value))}
+                className="w-24"
+              />
+              <Percent className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -241,15 +271,15 @@ export default function PlatformSuperAdminEarnings() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Super Admin Share</CardTitle>
+            <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {(100 - metrics.commissionRate).toFixed(2)}%
+            <div className="text-2xl font-bold text-primary">
+              {formatCurrency(metrics.superAdminShare)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Net retention rate
+              {superAdminPercentage}% of total revenue
             </p>
           </CardContent>
         </Card>
@@ -268,19 +298,21 @@ export default function PlatformSuperAdminEarnings() {
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Total Commission</TableHead>
                 <TableHead>Net Amount</TableHead>
+                <TableHead>Super Admin Share ({superAdminPercentage}%)</TableHead>
                 <TableHead>Transfer Count</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : groupedTransfers && groupedTransfers.length > 0 ? (
                 groupedTransfers.map((group, index) => {
                   const netAmount = group.totalAmount - group.totalCommission;
+                  const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
 
                   return (
                     <TableRow key={`${group.shareholderId}-${group.month}-${index}`}>
@@ -296,8 +328,11 @@ export default function PlatformSuperAdminEarnings() {
                       <TableCell className="text-orange-600">
                         {formatCurrency(group.totalCommission)}
                       </TableCell>
-                      <TableCell className="font-bold text-primary">
+                      <TableCell className="font-bold text-muted-foreground">
                         {formatCurrency(netAmount)}
+                      </TableCell>
+                      <TableCell className="font-bold text-primary">
+                        {formatCurrency(superAdminShare)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
@@ -309,7 +344,7 @@ export default function PlatformSuperAdminEarnings() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No transfers found for selected period
                   </TableCell>
                 </TableRow>
