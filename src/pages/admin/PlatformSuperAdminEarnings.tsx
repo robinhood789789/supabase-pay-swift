@@ -340,6 +340,7 @@ export default function PlatformSuperAdminEarnings() {
                   const netAmount = group.totalAmount - group.totalCommission;
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
                   const mdrRate = 1.5; // Fixed MDR rate
+                  const mdrAmount = group.totalAmount * (mdrRate / 100); // Calculate MDR amount
                   const shareholderShare = 0.5; // Fixed Shareholder rate
 
                   return (
@@ -354,7 +355,10 @@ export default function PlatformSuperAdminEarnings() {
                         {formatCurrency(group.totalAmount)}
                       </TableCell>
                       <TableCell className="font-semibold text-blue-600">
-                        {mdrRate.toFixed(1)}%
+                        {formatCurrency(mdrAmount)}
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({mdrRate.toFixed(1)}%)
+                        </span>
                       </TableCell>
                       <TableCell className="text-orange-600">
                         {formatCurrency(group.totalCommission)}
