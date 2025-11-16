@@ -266,7 +266,7 @@ export default function PlatformSuperAdminEarnings() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                {startDate ? format(startDate, "dd/MM/yy") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -293,7 +293,7 @@ export default function PlatformSuperAdminEarnings() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                {endDate ? format(endDate, "dd/MM/yy") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
