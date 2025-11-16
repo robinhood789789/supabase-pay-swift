@@ -324,6 +324,7 @@ export default function PlatformSuperAdminEarnings() {
                 <TableHead>MDR (%)</TableHead>
                 <TableHead>Total Commission</TableHead>
                 <TableHead>Net Amount</TableHead>
+                <TableHead>Shareholder (%)</TableHead>
                 <TableHead>Super Admin Share ({superAdminPercentage}%)</TableHead>
                 <TableHead>Transfer Count</TableHead>
               </TableRow>
@@ -331,7 +332,7 @@ export default function PlatformSuperAdminEarnings() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     Loading...
                   </TableCell>
                 </TableRow>
@@ -361,9 +362,9 @@ export default function PlatformSuperAdminEarnings() {
                       </TableCell>
                       <TableCell className="font-bold text-muted-foreground">
                         {formatCurrency(netAmount)}
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({shareholderShare.toFixed(1)}%)
-                        </span>
+                      </TableCell>
+                      <TableCell className="font-semibold text-purple-600">
+                        {shareholderShare.toFixed(1)}%
                       </TableCell>
                       <TableCell className="font-bold text-primary">
                         {formatCurrency(superAdminShare)}
@@ -381,7 +382,7 @@ export default function PlatformSuperAdminEarnings() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     No transfers found for selected period
                   </TableCell>
                 </TableRow>
