@@ -25,7 +25,7 @@ type DateRange = "7d" | "30d" | "90d" | "all";
 export default function PlatformSuperAdminEarnings() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const [useMockData, setUseMockData] = useState(true);
-  const [superAdminPercentage, setSuperAdminPercentage] = useState<number>(10);
+  const superAdminPercentage = 10; // Fixed percentage for Super Admin share
 
   const getDateRange = () => {
     const end = new Date();
@@ -194,40 +194,17 @@ export default function PlatformSuperAdminEarnings() {
         </div>
       </div>
 
-      <div className="flex justify-between items-end gap-4">
-        <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-          <TabsList>
-            <TabsTrigger value="7d">
-              <Calendar className="w-4 h-4 mr-2" />
-              Last 7 Days
-            </TabsTrigger>
-            <TabsTrigger value="30d">Last 30 Days</TabsTrigger>
-            <TabsTrigger value="90d">Last 90 Days</TabsTrigger>
-            <TabsTrigger value="all">All Time</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <div className="flex items-end gap-2">
-          <div className="space-y-2">
-            <Label htmlFor="percentage" className="text-sm font-medium">
-              Super Admin Share (%)
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="percentage"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={superAdminPercentage}
-                onChange={(e) => setSuperAdminPercentage(Number(e.target.value))}
-                className="w-24"
-              />
-              <Percent className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+        <TabsList>
+          <TabsTrigger value="7d">
+            <Calendar className="w-4 h-4 mr-2" />
+            Last 7 Days
+          </TabsTrigger>
+          <TabsTrigger value="30d">Last 30 Days</TabsTrigger>
+          <TabsTrigger value="90d">Last 90 Days</TabsTrigger>
+          <TabsTrigger value="all">All Time</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
