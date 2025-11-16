@@ -90,34 +90,30 @@ export default function PlatformSuperAdminEarnings() {
 
   const metrics = calculateMetrics();
 
-  // Group transfers by shareholder and date
+  // Group transfers by shareholder only
   const groupedTransfers = useMemo(() => {
     if (!transfersData) return [];
 
     const groups = new Map<string, {
       shareholderId: string;
-      date: string;
       totalAmount: number;
       totalCommission: number;
       count: number;
     }>();
 
     transfersData.forEach((transfer) => {
-      const dateKey = format(new Date(transfer.created_at), "yyyy-MM-dd");
       const shareholderId = transfer.shareholder_public_id || "N/A";
-      const groupKey = `${shareholderId}-${dateKey}`;
       const commission = commissionsData.find(c => c.transfer_id === transfer.id);
       const commissionAmount = commission?.commission_amount || 0;
 
-      if (groups.has(groupKey)) {
-        const existing = groups.get(groupKey)!;
+      if (groups.has(shareholderId)) {
+        const existing = groups.get(shareholderId)!;
         existing.totalAmount += Number(transfer.amount || 0);
         existing.totalCommission += commissionAmount;
         existing.count += 1;
       } else {
-        groups.set(groupKey, {
+        groups.set(shareholderId, {
           shareholderId,
-          date: dateKey,
           totalAmount: Number(transfer.amount || 0),
           totalCommission: commissionAmount,
           count: 1,
@@ -126,18 +122,19 @@ export default function PlatformSuperAdminEarnings() {
     });
 
     return Array.from(groups.values()).sort((a, b) => 
-      b.date.localeCompare(a.date) || a.shareholderId.localeCompare(b.shareholderId)
+      a.shareholderId.localeCompare(b.shareholderId)
     );
-  }, [transfersData, commissionsData]);
+  }, [transfersData, commissionsData, startDate, endDate]);
 
   const handleExportCSV = () => {
-    const headers = ["Date", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Super Admin Share", "Transfer Count"];
+    const dateRange = `${format(startDate, "dd MMM yyyy")} to ${format(endDate, "dd MMM yyyy")}`;
+    const headers = ["Date Range", "Shareholder ID", "Total Amount", "Total Commission", "Net Amount", "Super Admin Share", "Transfer Count"];
     const rows = groupedTransfers.map((group) => {
       const netAmount = group.totalAmount - group.totalCommission;
       const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
       
       return [
-        format(new Date(group.date), "dd MMM yyyy"),
+        dateRange,
         group.shareholderId,
         group.totalAmount,
         group.totalCommission,
@@ -152,7 +149,7 @@ export default function PlatformSuperAdminEarnings() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `super-admin-earnings-daily-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `super-admin-earnings-${format(startDate, "yyyy-MM-dd")}-to-${format(endDate, "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -302,7 +299,7 @@ export default function PlatformSuperAdminEarnings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
+                <TableHead>Date to Date</TableHead>
                 <TableHead>Shareholder ID</TableHead>
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Total Commission</TableHead>
@@ -324,9 +321,9 @@ export default function PlatformSuperAdminEarnings() {
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
 
                   return (
-                    <TableRow key={`${group.shareholderId}-${group.date}-${index}`}>
+                    <TableRow key={`${group.shareholderId}-${index}`}>
                       <TableCell className="font-medium">
-                        {format(new Date(group.date), "dd MMM yyyy")}
+                        {format(startDate, "dd MMM yyyy")} to {format(endDate, "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-semibold">
                         {group.shareholderId}
