@@ -52,6 +52,7 @@ const PlatformSidebar = () => {
     { title: "Overview", url: "/admin", icon: LayoutDashboard },
     { title: "จัดการพาร์ทเนอร์", url: "/platform/partners", icon: Users },
     { title: "รายได้ Shareholder", url: "/platform/shareholder-earnings", icon: Wallet },
+    { title: "รายได้ Super Admin", url: "/platform/super-admin-earnings", icon: Wallet },
     { title: "Partner Payouts", url: "/platform/partner-payouts", icon: Wallet },
     { title: "รายงานพาร์ทเนอร์", url: "/platform/partner-reports", icon: BarChart3 },
     { title: "ตั้งค่าพาร์ทเนอร์", url: "/platform/partner-settings", icon: Settings },

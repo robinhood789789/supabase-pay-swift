@@ -83,6 +83,7 @@ import PlatformPartnerDetail from "./pages/admin/PlatformPartnerDetail";
 import PlatformPartnerReports from "./pages/admin/PlatformPartnerReports";
 import PlatformPartnerSettings from "./pages/admin/PlatformPartnerSettings";
 import PlatformShareholderEarnings from "./pages/admin/PlatformShareholderEarnings";
+import PlatformSuperAdminEarnings from "./pages/admin/PlatformSuperAdminEarnings";
 import TransactionDashboard from "./pages/TransactionDashboard";
 import StyleGuide from "./pages/StyleGuide";
 import SecurityMonitoring from "./pages/SecurityMonitoring";
@@ -466,6 +467,16 @@ function AppContent() {
           <SuperAdminRoute>
             <PlatformLayout>
               <PlatformShareholderEarnings />
+            </PlatformLayout>
+          </SuperAdminRoute>
+        }
+      />
+      <Route
+        path="/platform/super-admin-earnings"
+        element={
+          <SuperAdminRoute>
+            <PlatformLayout>
+              <PlatformSuperAdminEarnings />
             </PlatformLayout>
           </SuperAdminRoute>
         }
