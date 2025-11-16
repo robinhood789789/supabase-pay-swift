@@ -321,28 +321,6 @@ export default function ShareholderMDR() {
               </Table>
             </div>
           </div>
-
-          {/* Explanation */}
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Percent className="h-4 w-4" />
-              การคำนวณค่าคอมมิชชั่น
-            </h3>
-            <div className="text-sm text-muted-foreground space-y-2">
-              <p>
-                <strong>หลักการคำนวณ:</strong> Shareholder และ Owner ได้รับค่าคอมมิชชั่นตามเปอร์เซนต์ที่กำหนดจากยอดการโอนโดยตรง
-              </p>
-              <p>
-                <strong>ตัวอย่าง:</strong> หากยอดการโอน = 10,000 บาท, Shareholder 1%, Owner 0.5%
-                <br />
-                - Shareholder ได้: 10,000 × 1% = 100 บาท
-                <br />
-                - Owner ได้: 10,000 × 0.5% = 50 บาท
-                <br />
-                - คงเหลือสุทธิ: MDR รวม - (100 + 50) บาท
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
