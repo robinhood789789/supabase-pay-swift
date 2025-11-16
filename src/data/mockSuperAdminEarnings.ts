@@ -11,6 +11,7 @@ export interface MockIncomingTransfer {
   to_account?: string;
   to_name?: string;
   ref_id?: string;
+  shareholder_public_id?: string;
 }
 
 export const mockIncomingTransfers: MockIncomingTransfer[] = [
@@ -24,6 +25,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF001",
+    shareholder_public_id: "SH-000001",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
   },
   {
@@ -36,6 +38,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF002",
+    shareholder_public_id: "SH-000002",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
   },
   {
@@ -48,6 +51,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF003",
+    shareholder_public_id: "SH-000001",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
   },
   {
@@ -60,6 +64,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF004",
+    shareholder_public_id: "SH-000003",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
   },
   {
@@ -72,6 +77,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF005",
+    shareholder_public_id: "SH-000002",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
   },
   {
@@ -84,6 +90,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF006",
+    shareholder_public_id: "SH-000004",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 144).toISOString(),
   },
   {
@@ -96,6 +103,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF007",
+    shareholder_public_id: "SH-000003",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 168).toISOString(),
   },
   {
@@ -108,6 +116,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF008",
+    shareholder_public_id: "SH-000001",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 192).toISOString(),
   },
   {
@@ -120,6 +129,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF009",
+    shareholder_public_id: "SH-000005",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 216).toISOString(),
   },
   {
@@ -132,6 +142,7 @@ export const mockIncomingTransfers: MockIncomingTransfer[] = [
     to_account: "9876543210",
     to_name: "Platform Account",
     ref_id: "REF010",
+    shareholder_public_id: "SH-000002",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 240).toISOString(),
   },
 ];
