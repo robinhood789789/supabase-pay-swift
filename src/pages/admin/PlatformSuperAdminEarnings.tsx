@@ -23,10 +23,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function PlatformSuperAdminEarnings() {
   const [useMockData, setUseMockData] = useState(true);
   const superAdminPercentage = 1; // Fixed percentage for Super Admin share (1% of each shareholder's total)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Initialize with last 30 days
   const [startDate, setStartDate] = useState<Date>(() => {
@@ -125,6 +135,19 @@ export default function PlatformSuperAdminEarnings() {
       a.shareholderId.localeCompare(b.shareholderId)
     );
   }, [transfersData, commissionsData, startDate, endDate]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(groupedTransfers.length / itemsPerPage);
+  const paginatedTransfers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return groupedTransfers.slice(startIndex, endIndex);
+  }, [groupedTransfers, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when data changes
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [transfersData]);
 
   const handleExportCSV = () => {
     const dateRange = `${format(startDate, "dd MMM yyyy")} to ${format(endDate, "dd MMM yyyy")}`;
@@ -315,8 +338,8 @@ export default function PlatformSuperAdminEarnings() {
                     Loading...
                   </TableCell>
                 </TableRow>
-              ) : groupedTransfers && groupedTransfers.length > 0 ? (
-                groupedTransfers.map((group, index) => {
+              ) : paginatedTransfers && paginatedTransfers.length > 0 ? (
+                paginatedTransfers.map((group, index) => {
                   const netAmount = group.totalAmount - group.totalCommission;
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100);
 
@@ -357,6 +380,59 @@ export default function PlatformSuperAdminEarnings() {
               )}
             </TableBody>
           </Table>
+
+          {groupedTransfers && groupedTransfers.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, groupedTransfers.length)} of {groupedTransfers.length} results
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {[...Array(totalPages)].map((_, i) => {
+                    const pageNumber = i + 1;
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(pageNumber)}
+                            isActive={currentPage === pageNumber}
+                            className="cursor-pointer"
+                          >
+                            {pageNumber}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return <PaginationItem key={pageNumber}>...</PaginationItem>;
+                    }
+                    return null;
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
