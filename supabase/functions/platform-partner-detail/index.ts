@@ -44,7 +44,21 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const partnerId = url.searchParams.get('partnerId');
+    
+    // Try to get partnerId from body first, then fall back to query parameter
+    let partnerId: string | null = null;
+    
+    if (req.method === 'POST') {
+      try {
+        const body = await req.json();
+        partnerId = body.partnerId;
+      } catch (e) {
+        // If body parsing fails, try query parameter
+        partnerId = url.searchParams.get('partnerId');
+      }
+    } else {
+      partnerId = url.searchParams.get('partnerId');
+    }
 
     if (!partnerId) {
       return new Response(
