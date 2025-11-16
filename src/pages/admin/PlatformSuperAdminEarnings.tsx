@@ -341,7 +341,7 @@ export default function PlatformSuperAdminEarnings() {
                   return (
                     <TableRow key={`${group.shareholderId}-${index}`}>
                       <TableCell className="font-medium">
-                        {format(startDate, "dd MMM yyyy")} to {format(endDate, "dd MMM yyyy")}
+                        {format(startDate, "dd/MM/yy")} - {format(endDate, "dd/MM/yy")}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-semibold">
                         {group.shareholderId}
