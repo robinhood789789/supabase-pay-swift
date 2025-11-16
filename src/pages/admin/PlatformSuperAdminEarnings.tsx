@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +46,7 @@ export default function PlatformSuperAdminEarnings() {
     return { start: start.toISOString(), end: end.toISOString() };
   };
 
-  const { start, end } = getDateRange();
+  const { start, end } = useMemo(() => getDateRange(), [dateRange]);
 
   // Fetch incoming transfers data
   const { data: transfersData, isLoading: transfersLoading } = useQuery({
@@ -66,6 +66,8 @@ export default function PlatformSuperAdminEarnings() {
       if (error) throw error;
       return data || [];
     },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   // Calculate commissions (5% average commission rate)
