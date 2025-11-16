@@ -22,7 +22,7 @@ type DateRange = "7d" | "30d" | "90d" | "all";
 
 export default function PlatformSuperAdminEarnings() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
-  const [useMockData, setUseMockData] = useState(false);
+  const [useMockData, setUseMockData] = useState(true);
 
   const getDateRange = () => {
     const end = new Date();
