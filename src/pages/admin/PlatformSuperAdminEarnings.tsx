@@ -31,12 +31,19 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function PlatformSuperAdminEarnings() {
   const [useMockData, setUseMockData] = useState(true);
   const superAdminPercentage = 1; // Fixed percentage for Super Admin share (1% of each shareholder's total)
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   // Initialize with last 30 days
   const [startDate, setStartDate] = useState<Date>(() => {
@@ -381,10 +388,31 @@ export default function PlatformSuperAdminEarnings() {
             </TableBody>
           </Table>
 
-          {groupedTransfers && groupedTransfers.length > 0 && totalPages > 1 && (
+          {groupedTransfers && groupedTransfers.length > 0 && (
             <div className="flex items-center justify-between px-2 py-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, groupedTransfers.length)} of {groupedTransfers.length} results
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, groupedTransfers.length)} of {groupedTransfers.length} results
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Pagination>
                 <PaginationContent>
