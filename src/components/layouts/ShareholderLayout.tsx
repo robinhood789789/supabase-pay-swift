@@ -194,7 +194,7 @@ function ShareholderSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleSignOut}
-              className="group bg-muted border border-border hover:bg-muted/80 transition-smooth"
+              className="group bg-background border border-border text-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-smooth"
             >
               <LogOut className="h-4 w-4" />
               <span className="font-medium">ออกจากระบบ</span>
