@@ -26,7 +26,7 @@ import {
 
 export default function PlatformSuperAdminEarnings() {
   const [useMockData, setUseMockData] = useState(true);
-  const superAdminPercentage = 10; // Fixed percentage for Super Admin share
+  const superAdminPercentage = 1; // Fixed percentage for Super Admin share (1% of each shareholder's total)
   
   // Initialize with last 30 days
   const [startDate, setStartDate] = useState<Date>(() => {
