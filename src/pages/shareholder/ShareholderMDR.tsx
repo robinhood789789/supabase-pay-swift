@@ -24,12 +24,11 @@ interface ClientMDRData {
   total_topup: number;
   total_payout: number;
   total_settlement: number;
-  total_mdr: number;
+  total_transfer_amount: number; // ยอดการโอนรวม
   shareholder_commission_rate: number;
   owner_commission_rate: number;
   shareholder_commission_amount: number;
   owner_commission_amount: number;
-  net_after_owner: number;
 }
 
 export default function ShareholderMDR() {
@@ -99,15 +98,11 @@ export default function ShareholderMDR() {
         const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
         const totalPayout = 0; // You can add payout logic if needed
 
-        // Calculate total MDR (assuming 1% as example base rate)
-        const baseMDRRate = 0.01; // 1% base MDR
-        const totalMDR = (totalDeposit + totalTopup + totalPayout + totalSettlement) * baseMDRRate;
-
         // Calculate commissions directly from transfer amount
         const shareholderRate = client.commission_rate / 100; // Convert percentage to decimal
         const ownerRate = 0.005; // 0.5% for owner (example - should come from database)
         
-        // Total transfer amount
+        // Total transfer amount (ยอดการโอนรวม)
         const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
         
         // Shareholder gets their % of total transfer amount
@@ -115,9 +110,6 @@ export default function ShareholderMDR() {
         
         // Owner gets their % of total transfer amount
         const ownerCommission = totalTransferAmount * ownerRate;
-        
-        // Net amount after both commissions
-        const netAfterOwner = totalMDR - shareholderCommission - ownerCommission;
 
         return {
           tenant_id: client.tenant_id,
@@ -129,12 +121,11 @@ export default function ShareholderMDR() {
           total_topup: totalTopup,
           total_payout: totalPayout,
           total_settlement: totalSettlement,
-          total_mdr: totalMDR,
+          total_transfer_amount: totalTransferAmount,
           shareholder_commission_rate: shareholderRate * 100,
           owner_commission_rate: ownerRate * 100,
           shareholder_commission_amount: shareholderCommission,
           owner_commission_amount: ownerCommission,
-          net_after_owner: netAfterOwner,
         };
       }) || [];
 
@@ -148,12 +139,11 @@ export default function ShareholderMDR() {
     ? mockSummary 
     : clientMDRData?.reduce(
         (acc, curr) => ({
-          totalMDR: acc.totalMDR + curr.total_mdr,
+          totalTransferAmount: acc.totalTransferAmount + curr.total_transfer_amount,
           shareholderCommission: acc.shareholderCommission + curr.shareholder_commission_amount,
           ownerCommission: acc.ownerCommission + curr.owner_commission_amount,
-          netAmount: acc.netAmount + curr.net_after_owner,
         }),
-        { totalMDR: 0, shareholderCommission: 0, ownerCommission: 0, netAmount: 0 }
+        { totalTransferAmount: 0, shareholderCommission: 0, ownerCommission: 0 }
       );
 
   if (isLoading) {
@@ -247,16 +237,16 @@ export default function ShareholderMDR() {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="border border-border shadow-soft bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              MDR รวมทั้งหมด
+              ยอดการโอนรวมทั้งหมด
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-foreground">{formatCurrency(summary?.totalMDR || 0)}</div>
+            <div className="text-2xl font-bold text-foreground">{formatCurrency(summary?.totalTransferAmount || 0)}</div>
           </CardContent>
         </Card>
 
@@ -264,7 +254,7 @@ export default function ShareholderMDR() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              ค่าคอมมิชชั่นของฉัน
+              ส่วนแบ่ง Shareholder
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
@@ -278,25 +268,13 @@ export default function ShareholderMDR() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-400 flex items-center gap-2">
               <Percent className="h-4 w-4" />
-              ค่าคอมมิชชั่น Owner
+              ส่วนแบ่ง Owner
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold text-blue-900 dark:text-blue-400">
               {formatCurrency(summary?.ownerCommission || 0)}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-soft bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              คงเหลือสุทธิ
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-foreground">{formatCurrency(summary?.netAmount || 0)}</div>
           </CardContent>
         </Card>
       </div>
@@ -314,27 +292,26 @@ export default function ShareholderMDR() {
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
-                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">MDR รวม</TableHead>
+                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดการโอน</TableHead>
                     <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
                       Shareholder %
                     </TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
-                      ค่าคอม Shareholder
+                      ส่วนแบ่ง Shareholder
                     </TableHead>
                     <TableHead className="text-right border-r bg-purple-100 dark:bg-purple-950/20 text-purple-900 dark:text-purple-400 font-semibold">
                       Owner %
                     </TableHead>
-                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
-                      ค่าคอม Owner
+                    <TableHead className="text-right bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
+                      ส่วนแบ่ง Owner
                     </TableHead>
-                    <TableHead className="text-right bg-white dark:bg-slate-950 font-semibold">คงเหลือสุทธิ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!clientMDRData || clientMDRData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                        ไม่พบข้อมูล MDR ในช่วงเวลานี้
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -347,7 +324,7 @@ export default function ShareholderMDR() {
                           {row.owner_name}
                         </TableCell>
                         <TableCell className="text-right bg-white dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">
-                          {formatCurrency(row.total_mdr)}
+                          {formatCurrency(row.total_transfer_amount)}
                         </TableCell>
                         <TableCell className="text-right bg-white dark:bg-blue-950/20 border-r font-medium">
                           <Badge variant="outline" className="bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 border-blue-300">
@@ -362,11 +339,8 @@ export default function ShareholderMDR() {
                             {row.owner_commission_rate.toFixed(2)}%
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-blue-950/20 border-r text-foreground dark:text-blue-400 font-bold">
+                        <TableCell className="text-right bg-white dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-bold">
                           {formatCurrency(row.owner_commission_amount)}
-                        </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-slate-950 font-bold">
-                          {formatCurrency(row.net_after_owner)}
                         </TableCell>
                       </TableRow>
                     ))

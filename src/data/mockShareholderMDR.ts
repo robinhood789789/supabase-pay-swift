@@ -11,12 +11,11 @@ export interface MockClientMDRData {
   total_topup: number;
   total_payout: number;
   total_settlement: number;
-  total_mdr: number;
+  total_transfer_amount: number;
   shareholder_commission_rate: number;
   owner_commission_rate: number;
   shareholder_commission_amount: number;
   owner_commission_amount: number;
-  net_after_owner: number;
 }
 
 // Example calculation:
