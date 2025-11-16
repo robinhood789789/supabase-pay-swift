@@ -98,7 +98,7 @@ export default function PlatformSuperAdminEarnings() {
   const metrics = calculateMetrics();
 
   const handleExportCSV = () => {
-    const headers = ["Date", "Transfer ID", "Amount", "Commission Paid", "Net Amount"];
+    const headers = ["Date", "Shareholder ID", "From Account", "Amount", "Commission Paid", "Net Amount"];
     const rows = transfersData?.map((transfer) => {
       const commission = commissionsData.find(c => c.transfer_id === transfer.id);
       const commissionAmount = commission?.commission_amount || 0;
@@ -106,7 +106,8 @@ export default function PlatformSuperAdminEarnings() {
       
       return [
         format(new Date(transfer.created_at || ""), "yyyy-MM-dd HH:mm"),
-        transfer.id,
+        transfer.shareholder_public_id || "-",
+        transfer.from_account || "-",
         Number(transfer.amount || 0),
         commissionAmount,
         netAmount,
@@ -225,7 +226,7 @@ export default function PlatformSuperAdminEarnings() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Transfer ID</TableHead>
+                <TableHead>Shareholder ID</TableHead>
                 <TableHead>From Account</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Commission</TableHead>
@@ -251,7 +252,9 @@ export default function PlatformSuperAdminEarnings() {
                       <TableCell>
                         {format(new Date(transfer.created_at || ""), "MMM dd, yyyy HH:mm")}
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{transfer.id.slice(0, 8)}</TableCell>
+                      <TableCell className="font-mono text-xs font-semibold">
+                        {transfer.shareholder_public_id || "-"}
+                      </TableCell>
                       <TableCell>{transfer.from_account || "-"}</TableCell>
                       <TableCell className="font-semibold">
                         {formatCurrency(Number(transfer.amount || 0))}
