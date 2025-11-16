@@ -19,6 +19,7 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { th } from "date-fns/locale";
 import JSZip from "jszip";
 import { mockPlatformMDRData, mockPlatformMDRSummary } from "@/data/mockPlatformMDR";
+import { mockShareholdersList, mockShareholdersSummary } from "@/data/mockShareholdersList";
 
 interface ClientMDRData {
   tenant_id: string;
@@ -39,6 +40,7 @@ export default function PlatformShareholderEarnings() {
   const [customEndDate, setCustomEndDate] = useState<Date>();
   const [selectedShareholders, setSelectedShareholders] = useState<Set<string>>(new Set());
   const [useMockMDR, setUseMockMDR] = useState(false);
+  const [useMockShareholders, setUseMockShareholders] = useState(false);
 
   // Calculate date range based on selection
   const getDateRange = () => {
@@ -301,8 +303,12 @@ export default function PlatformShareholderEarnings() {
 
   // Fetch all shareholders with their earnings
   const { data: shareholders, isLoading } = useQuery({
-    queryKey: ["platform-shareholders-earnings"],
+    queryKey: ["platform-shareholders-earnings", useMockShareholders],
     queryFn: async () => {
+      if (useMockShareholders) {
+        return mockShareholdersList;
+      }
+
       const { data, error } = await supabase
         .from("shareholders")
         .select(`
@@ -323,8 +329,26 @@ export default function PlatformShareholderEarnings() {
 
   // Fetch earnings summary with date filter
   const { data: earnings } = useQuery({
-    queryKey: ["platform-earnings-summary", startDate, endDate],
+    queryKey: ["platform-earnings-summary", startDate, endDate, useMockShareholders],
     queryFn: async () => {
+      if (useMockShareholders) {
+        // Return mock earnings data derived from shareholders list
+        return mockShareholdersList.flatMap(sh => [
+          {
+            shareholder_id: sh.id,
+            amount: sh.pending_earnings,
+            status: "pending",
+            created_at: sh.updated_at,
+          },
+          {
+            shareholder_id: sh.id,
+            amount: sh.paid_earnings,
+            status: "paid",
+            created_at: sh.created_at,
+          },
+        ]);
+      }
+
       let query = supabase
         .from("shareholder_earnings")
         .select("shareholder_id, amount, status, created_at");
@@ -610,8 +634,21 @@ export default function PlatformShareholderEarnings() {
       {/* Shareholders List */}
       <Card>
         <CardHeader>
-          <CardTitle>รายชื่อ Shareholder และรายได้</CardTitle>
-          <CardDescription>รายละเอียดรายได้ของแต่ละ Shareholder</CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>รายชื่อ Shareholder และรายได้</CardTitle>
+              <CardDescription>รายละเอียดรายได้ของแต่ละ Shareholder</CardDescription>
+            </div>
+            <Button
+              variant={useMockShareholders ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUseMockShareholders(!useMockShareholders)}
+              className="gap-2"
+            >
+              <TestTube className="h-4 w-4" />
+              {useMockShareholders ? "ข้อมูลจำลอง" : "ข้อมูลจริง"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Filters Row */}
