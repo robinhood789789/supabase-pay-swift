@@ -13,11 +13,22 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatCurrency, cn } from "@/lib/utils";
-import { Search, TrendingUp, Wallet, Clock, Users, Download, ChevronRight, CalendarIcon, X, ChevronDown } from "lucide-react";
+import { Search, TrendingUp, Wallet, Clock, Users, Download, ChevronRight, CalendarIcon, X, ChevronDown, DollarSign, Percent } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { th } from "date-fns/locale";
 import JSZip from "jszip";
+
+interface ClientMDRData {
+  tenant_id: string;
+  tenant_name: string;
+  owner_name: string;
+  shareholder_id: string;
+  shareholder_name: string;
+  total_transfer_amount: number;
+  shareholder_commission_rate: number;
+  shareholder_commission_amount: number;
+}
 
 export default function PlatformShareholderEarnings() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -394,6 +405,98 @@ export default function PlatformShareholderEarnings() {
   const allSelected = filteredShareholders && filteredShareholders.length > 0 && 
     filteredShareholders.every(sh => selectedShareholders.has(sh.id));
 
+  // Fetch MDR data for all shareholders and their clients
+  const { data: mdrData, isLoading: mdrLoading } = useQuery({
+    queryKey: ["platform-mdr-data", startDate, endDate],
+    queryFn: async () => {
+      const startDateStr = startDate ? format(startDate, "yyyy-MM-dd") : format(startOfMonth(new Date()), "yyyy-MM-dd");
+      const endDateStr = endDate ? format(endDate, "yyyy-MM-dd") : format(endOfMonth(new Date()), "yyyy-MM-dd");
+
+      // Get all shareholder-client relationships
+      const { data: clientRelations, error: relationsError } = await supabase
+        .from("shareholder_clients")
+        .select(`
+          tenant_id,
+          shareholder_id,
+          commission_rate,
+          tenants!inner (
+            name,
+            user_id,
+            profiles:user_id (
+              full_name
+            )
+          ),
+          shareholders!inner (
+            user_id,
+            profiles:user_id (
+              full_name,
+              public_id
+            )
+          )
+        `)
+        .eq("status", "active");
+
+      if (relationsError) throw relationsError;
+      if (!clientRelations || clientRelations.length === 0) return [];
+
+      // For each client, fetch transaction data
+      const mdrPromises = clientRelations.map(async (relation) => {
+        // Fetch deposit_transfers
+        const { data: deposits } = await supabase
+          .from("deposit_transfers")
+          .select("amountpaid")
+          .gte("depositdate", startDateStr)
+          .lte("depositdate", endDateStr);
+
+        // Fetch topup_transfers  
+        const { data: topups } = await supabase
+          .from("topup_transfers")
+          .select("amount")
+          .gte("transfer_date", startDateStr)
+          .lte("transfer_date", endDateStr);
+
+        // Fetch settlement_transfers
+        const { data: settlements } = await supabase
+          .from("settlement_transfers")
+          .select("amount")
+          .gte("created_at", startDateStr)
+          .lte("created_at", endDateStr);
+
+        const totalDeposit = deposits?.reduce((sum, d) => sum + (Number(d.amountpaid) || 0), 0) || 0;
+        const totalTopup = topups?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
+        const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
+        const totalPayout = 0;
+
+        const shareholderRate = relation.commission_rate / 100;
+        const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
+        const shareholderCommission = totalTransferAmount * shareholderRate;
+
+        return {
+          tenant_id: relation.tenant_id,
+          tenant_name: (relation.tenants as any).name,
+          owner_name: (relation.tenants as any).profiles?.full_name || "N/A",
+          shareholder_id: relation.shareholder_id,
+          shareholder_name: (relation.shareholders as any).profiles?.full_name || "N/A",
+          total_transfer_amount: totalTransferAmount,
+          shareholder_commission_rate: relation.commission_rate,
+          shareholder_commission_amount: shareholderCommission,
+        } as ClientMDRData;
+      });
+
+      const results = await Promise.all(mdrPromises);
+      return results.filter(r => r.total_transfer_amount > 0); // Only show clients with transactions
+    },
+  });
+
+  // Calculate MDR summary
+  const mdrSummary = mdrData?.reduce(
+    (acc, curr) => ({
+      totalTransferAmount: acc.totalTransferAmount + curr.total_transfer_amount,
+      totalCommission: acc.totalCommission + curr.shareholder_commission_amount,
+    }),
+    { totalTransferAmount: 0, totalCommission: 0 }
+  );
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div className="flex items-center justify-between">
@@ -722,6 +825,126 @@ export default function PlatformShareholderEarnings() {
               ไม่พบข้อมูล Shareholder
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* MDR Table Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>รายละเอียดการคำนวณ MDR และค่าคอมมิชชั่น</CardTitle>
+          <CardDescription>
+            แสดงการคำนวณ MDR และค่าคอมมิชชั่นของทุก Shareholder
+            {startDate && endDate && (
+              <span className="ml-2 font-medium text-foreground">
+                ({format(startDate, "d MMM", { locale: th })} - {format(endDate, "d MMM yyyy", { locale: th })})
+              </span>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* MDR Summary Cards */}
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 mb-6">
+            <Card className="border border-border shadow-soft bg-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  ยอดการโอนรวมทั้งหมด
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {mdrLoading ? (
+                  <Skeleton className="h-8 w-32" />
+                ) : (
+                  <div className="text-2xl font-bold text-foreground">
+                    {formatCurrency(mdrSummary?.totalTransferAmount || 0)}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border border-emerald-200 shadow-soft bg-emerald-50 dark:bg-emerald-950/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  ค่าคอมมิชชั่นรวมทั้งหมด
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {mdrLoading ? (
+                  <Skeleton className="h-8 w-32" />
+                ) : (
+                  <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                    {formatCurrency(mdrSummary?.totalCommission || 0)}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* MDR Detail Table */}
+          <div className="rounded-lg border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              {mdrLoading ? (
+                <div className="space-y-2 p-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : mdrData && mdrData.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Shareholder</TableHead>
+                      <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
+                      <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
+                      <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
+                        ยอดการโอน
+                      </TableHead>
+                      <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
+                        <div className="flex items-center justify-end gap-1">
+                          <Percent className="h-3 w-3" />
+                          Shareholder
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
+                        ส่วนแบ่ง Shareholder
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mdrData.map((row, idx) => (
+                      <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
+                        <TableCell className="border-r font-medium">
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{row.shareholder_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="border-r font-medium">
+                          {row.tenant_name}
+                        </TableCell>
+                        <TableCell className="border-r text-muted-foreground">
+                          {row.owner_name}
+                        </TableCell>
+                        <TableCell className="text-right border-r font-semibold bg-emerald-50 dark:bg-emerald-950/10">
+                          {formatCurrency(row.total_transfer_amount)}
+                        </TableCell>
+                        <TableCell className="text-right border-r font-medium bg-blue-50 dark:bg-blue-950/10">
+                          {row.shareholder_commission_rate.toFixed(2)}%
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/10">
+                          {formatCurrency(row.shareholder_commission_amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  ไม่พบข้อมูล MDR ในช่วงเวลาที่เลือก
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
