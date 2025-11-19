@@ -90,28 +90,28 @@ serve(async (req) => {
       }, {});
     }
 
-    // Get public_ids for all tenants user_ids
-    let publicIdsMap: Record<string, string> = {};
+    // Get share_ids for all tenants user_ids
+    let shareIdsMap: Record<string, string> = {};
     const userIds = Object.values(tenantsById).map((t: any) => t.user_id).filter(Boolean);
     
     if (userIds.length > 0) {
       const { data: profiles, error: profilesError } = await supabaseClient
         .from('profiles')
-        .select('id, public_id')
+        .select('id, share_id')
         .in('id', userIds);
       
       if (!profilesError && profiles) {
         const profilesById = profiles.reduce((acc: Record<string, string>, p: any) => {
-          if (p.public_id) {
-            acc[p.id] = p.public_id;
+          if (p.share_id) {
+            acc[p.id] = p.share_id;
           }
           return acc;
         }, {});
         
-        // Map tenant_id -> public_id via user_id
+        // Map tenant_id -> share_id via user_id
         Object.entries(tenantsById).forEach(([tenantId, tenant]: [string, any]) => {
           if (tenant.user_id && profilesById[tenant.user_id]) {
-            publicIdsMap[tenantId] = profilesById[tenant.user_id];
+            shareIdsMap[tenantId] = profilesById[tenant.user_id];
           }
         });
       }
@@ -119,19 +119,14 @@ serve(async (req) => {
 
     const owners = (clientLinks || []).map((link: any) => {
       const tenant = tenantsById[link.tenant_id] || {};
-      // Get public_id from the map, or fallback to userId if it looks like a public_id format
-      let displayPublicId = publicIdsMap[link.tenant_id] || '';
-      
-      // If publicIdsMap doesn't have it but tenant.user_id looks like a public_id (e.g., "OWA-123456")
-      if (!displayPublicId && tenant.user_id && tenant.user_id.match(/^[A-Z0-9]+-\d{6}$/)) {
-        displayPublicId = tenant.user_id;
-      }
+      // Get share_id from the map
+      const shareId = shareIdsMap[link.tenant_id] || '-';
       
       return {
         ownerId: tenant.id || link.tenant_id,
         businessName: tenant.name || 'Unknown',
         userId: tenant.user_id || '',
-        publicId: displayPublicId || '-',
+        shareId: shareId,
         createdAt: link.referred_at || tenant.created_at || null,
         status: link.status === 'active' ? 'Active' : link.status === 'trial' ? 'Trial' : (link.status || 'Churned'),
         mrr: link.status === 'active' ? Math.round(Math.random() * 5000 + 1000) : 0, // TODO: Replace with real MRR when available
