@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
-import ShareholderLayout from "@/components/layouts/ShareholderLayout";
 import { DepositRequestDialog } from "@/components/DepositRequestDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,35 +183,32 @@ export default function DepositList() {
   // Allow access if user has permission OR if they're a shareholder viewing a client's data
   const hasAccess = hasPermission("deposits.view") || (isShareholder && shareholderViewTenantId);
 
-  // Determine which layout to use
-  const Layout = (isShareholder && shareholderViewTenantId) ? ShareholderLayout : DashboardLayout;
-
   if (!hasAccess) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="p-6">
           <h1 className="text-3xl font-bold">Topup List</h1>
           <p className="text-muted-foreground">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>
           <p className="text-sm text-muted-foreground mt-2">Role: {userRole}</p>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   if (queryError) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="p-6">
           <h1 className="text-3xl font-bold">Topup List</h1>
           <p className="text-destructive">เกิดข้อผิดพลาด: {queryError.message}</p>
           <Button onClick={() => refetch()} className="mt-4">ลองใหม่</Button>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -516,6 +512,6 @@ export default function DepositList() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </DashboardLayout>
   );
 }

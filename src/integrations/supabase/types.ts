@@ -781,8 +781,10 @@ export type Database = {
           from_account: string | null
           from_name: string | null
           id: string
+          owner_id: string | null
           raw: Json
           ref_id: string | null
+          share_id: string | null
           slip_bank_from: string | null
           slip_bank_to: string | null
           status: string | null
@@ -800,8 +802,10 @@ export type Database = {
           from_account?: string | null
           from_name?: string | null
           id: string
+          owner_id?: string | null
           raw: Json
           ref_id?: string | null
+          share_id?: string | null
           slip_bank_from?: string | null
           slip_bank_to?: string | null
           status?: string | null
@@ -819,8 +823,10 @@ export type Database = {
           from_account?: string | null
           from_name?: string | null
           id?: string
+          owner_id?: string | null
           raw?: Json
           ref_id?: string | null
+          share_id?: string | null
           slip_bank_from?: string | null
           slip_bank_to?: string | null
           status?: string | null
