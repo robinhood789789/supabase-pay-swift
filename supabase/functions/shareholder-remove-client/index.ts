@@ -73,9 +73,14 @@ serve(async (req) => {
         .select('id')
         .eq('shareholder_id', shareholder.id)
         .eq('tenant_id', tenant_id)
-        .single();
+        .maybeSingle();
 
-      if (linkError || !clientLink) {
+      if (linkError) {
+        console.error('[shareholder-remove-client] Error checking client link:', linkError);
+        throw new Error('Error checking tenant link');
+      }
+
+      if (!clientLink) {
         throw new Error('Tenant not linked to this shareholder');
       }
     }
