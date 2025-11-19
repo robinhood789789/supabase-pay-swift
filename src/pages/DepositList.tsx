@@ -371,43 +371,61 @@ export default function DepositList() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : deposits && deposits.length > 0 ? (
-                    deposits.map((deposit) => (
-                      <TableRow key={deposit.id}>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {deposit.created_at ? format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm") : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{deposit.ref_id}</TableCell>
-                        <TableCell>{deposit.custaccountname || deposit.fullname || "-"}</TableCell>
-                        <TableCell className="font-mono text-xs">{deposit.custaccountnumber || "-"}</TableCell>
-                        <TableCell>{deposit.adminbank_bankname || "-"}</TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {deposit.amountpaid ? `฿${Number(deposit.amountpaid).toLocaleString()}` : "-"}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(deposit.status)}</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <div className="text-4xl">📋</div>
-                          <div>No deposits found</div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  {(() => {
+                    console.log('🎨 Rendering TableBody:', { 
+                      isLoading, 
+                      depositsExists: !!deposits,
+                      depositsLength: deposits?.length,
+                      deposits: deposits
+                    });
+                    
+                    if (isLoading) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-8">
+                            Loading...
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    
+                    if (!deposits || deposits.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-8">
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                              <div className="text-4xl">📋</div>
+                              <div>No deposits found</div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    
+                    return deposits.map((deposit) => {
+                      console.log('🔄 Rendering deposit:', deposit.id);
+                      return (
+                        <TableRow key={deposit.id}>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {deposit.created_at ? format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm") : "-"}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{deposit.ref_id}</TableCell>
+                          <TableCell>{deposit.custaccountname || deposit.fullname || "-"}</TableCell>
+                          <TableCell className="font-mono text-xs">{deposit.custaccountnumber || "-"}</TableCell>
+                          <TableCell>{deposit.adminbank_bankname || "-"}</TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {deposit.amountpaid ? `฿${Number(deposit.amountpaid).toLocaleString()}` : "-"}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(deposit.status)}</TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm">
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                  })()}
                 </TableBody>
               </Table>
 
