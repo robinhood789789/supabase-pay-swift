@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { DepositRequestDialog } from "@/components/DepositRequestDialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useShareholder } from "@/hooks/useShareholder";
+import { toast } from "sonner";
 
 type PaymentStatus = "all" | "pending" | "completed" | "expired" | "rejected";
 
@@ -37,6 +40,8 @@ interface DepositTransfer {
 
 export default function DepositList() {
   const { t } = useI18n();
+  const location = useLocation();
+  const { shareholder, isShareholder } = useShareholder();
   const [statusFilter, setStatusFilter] = useState<PaymentStatus>("all");
   const [sortBy, setSortBy] = useState("created_at");
   const [priority, setPriority] = useState("high");
@@ -51,14 +56,48 @@ export default function DepositList() {
   const { activeTenantId, activeTenant } = useTenantSwitcher();
   const { hasPermission } = usePermissions();
 
+  // Get shareholder view tenant from location state
+  const shareholderViewTenantId = location.state?.tenantId;
+  const shareholderViewTenantName = location.state?.tenantName;
+  const shareholderViewOwnerName = location.state?.ownerName;
+  
+  // Determine which tenant to use
+  const effectiveTenantId = isShareholder && shareholderViewTenantId 
+    ? shareholderViewTenantId 
+    : activeTenantId;
+
+  // Verify shareholder access
+  useEffect(() => {
+    const verifyAccess = async () => {
+      if (isShareholder && shareholderViewTenantId && shareholder?.id) {
+        const { data, error } = await supabase
+          .from("shareholder_clients")
+          .select("*")
+          .eq("shareholder_id", shareholder.id)
+          .eq("tenant_id", shareholderViewTenantId)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (error || !data) {
+          toast.error("คุณไม่มีสิทธิ์เข้าถึงข้อมูลของ tenant นี้");
+          return;
+        }
+
+        toast.success(`กำลังดูข้อมูลของ ${shareholderViewTenantName} (${shareholderViewOwnerName})`);
+      }
+    };
+
+    verifyAccess();
+  }, [isShareholder, shareholderViewTenantId, shareholder?.id, shareholderViewTenantName, shareholderViewOwnerName]);
+
   // Check user role
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
   const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
-    queryKey: ["deposit-transfers", statusFilter, activeTenantId, page, itemsPerPage],
+    queryKey: ["deposit-transfers", statusFilter, effectiveTenantId, page, itemsPerPage],
     queryFn: async () => {
-      console.log("🔍 Fetching deposit_transfers...");
+      console.log("🔍 Fetching deposit_transfers for tenant:", effectiveTenantId);
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -67,6 +106,11 @@ export default function DepositList() {
         .select("*", { count: 'exact' })
         .order("created_at", { ascending: false })
         .range(from, to);
+
+      // Filter by tenant_id
+      if (effectiveTenantId) {
+        query = query.eq("tenant_id", effectiveTenantId);
+      }
 
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter);
@@ -80,7 +124,7 @@ export default function DepositList() {
       }
       return { data: (data || []) as DepositTransfer[], count: count || 0 };
     },
-    enabled: true,
+    enabled: !!effectiveTenantId,
   });
 
   const deposits = queryResult?.data || [];
