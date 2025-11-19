@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
+import ShareholderLayout from "@/components/layouts/ShareholderLayout";
 import { DepositRequestDialog } from "@/components/DepositRequestDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { ChevronDown, ChevronUp, Calendar, Plus, Wallet } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, Plus, Wallet, ArrowLeft } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -41,6 +42,7 @@ interface DepositTransfer {
 export default function DepositList() {
   const { t } = useI18n();
   const location = useLocation();
+  const navigate = useNavigate();
   const { shareholder, isShareholder } = useShareholder();
   const [statusFilter, setStatusFilter] = useState<PaymentStatus>("all");
   const [sortBy, setSortBy] = useState("created_at");
@@ -174,35 +176,56 @@ export default function DepositList() {
   // Allow access if user has permission OR if they're a shareholder viewing a client's data
   const hasAccess = hasPermission("deposits.view") || (isShareholder && shareholderViewTenantId);
 
+  // Determine which layout to use
+  const Layout = (isShareholder && shareholderViewTenantId) ? ShareholderLayout : DashboardLayout;
+
   if (!hasAccess) {
     return (
-      <DashboardLayout>
+      <Layout>
         <div className="p-6">
           <h1 className="text-3xl font-bold">Topup List</h1>
           <p className="text-muted-foreground">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>
           <p className="text-sm text-muted-foreground mt-2">Role: {userRole}</p>
         </div>
-      </DashboardLayout>
+      </Layout>
     );
   }
 
   if (queryError) {
     return (
-      <DashboardLayout>
+      <Layout>
         <div className="p-6">
           <h1 className="text-3xl font-bold">Topup List</h1>
           <p className="text-destructive">เกิดข้อผิดพลาด: {queryError.message}</p>
           <Button onClick={() => refetch()} className="mt-4">ลองใหม่</Button>
         </div>
-      </DashboardLayout>
+      </Layout>
     );
   }
 
   return (
-    <DashboardLayout>
+    <Layout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Topup List</h1>
+          <div>
+            {isShareholder && shareholderViewTenantId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/shareholder/mdr")}
+                className="mb-2"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                กลับไปหน้า MDR
+              </Button>
+            )}
+            <h1 className="text-3xl font-bold">Topup List</h1>
+            {shareholderViewTenantName && (
+              <p className="text-muted-foreground">
+                ข้อมูลของ {shareholderViewTenantName} ({shareholderViewOwnerName})
+              </p>
+            )}
+          </div>
           {canCreateRequest && <DepositRequestDialog />}
         </div>
 
@@ -474,6 +497,6 @@ export default function DepositList() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </Layout>
   );
 }
