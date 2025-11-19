@@ -101,8 +101,119 @@ serve(async (req) => {
       .single();
 
     // Delete in order (respecting foreign key constraints)
+    console.log('[shareholder-remove-client] Starting deletion process for tenant:', tenant_id);
     
-    // 1. Delete shareholder_clients
+    // 1. Delete api_keys (has FK to tenants)
+    const { error: deleteApiKeysError } = await supabaseClient
+      .from('api_keys')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteApiKeysError) {
+      console.error('[shareholder-remove-client] Error deleting api_keys:', deleteApiKeysError);
+    }
+
+    // 2. Delete alerts (has FK to tenants)
+    const { error: deleteAlertsError } = await supabaseClient
+      .from('alerts')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteAlertsError) {
+      console.error('[shareholder-remove-client] Error deleting alerts:', deleteAlertsError);
+    }
+
+    // 3. Delete customers (has FK to tenants)
+    const { error: deleteCustomersError } = await supabaseClient
+      .from('customers')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteCustomersError) {
+      console.error('[shareholder-remove-client] Error deleting customers:', deleteCustomersError);
+    }
+
+    // 4. Delete payment_links (has FK to tenants)
+    const { error: deletePaymentLinksError } = await supabaseClient
+      .from('payment_links')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deletePaymentLinksError) {
+      console.error('[shareholder-remove-client] Error deleting payment_links:', deletePaymentLinksError);
+    }
+
+    // 5. Delete refunds (has FK to tenants)
+    const { error: deleteRefundsError } = await supabaseClient
+      .from('refunds')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteRefundsError) {
+      console.error('[shareholder-remove-client] Error deleting refunds:', deleteRefundsError);
+    }
+
+    // 6. Delete disputes (has FK to tenants)
+    const { error: deleteDisputesError } = await supabaseClient
+      .from('disputes')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteDisputesError) {
+      console.error('[shareholder-remove-client] Error deleting disputes:', deleteDisputesError);
+    }
+
+    // 7. Delete settlements (has FK to tenants)
+    const { error: deleteSettlementsError } = await supabaseClient
+      .from('settlements')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteSettlementsError) {
+      console.error('[shareholder-remove-client] Error deleting settlements:', deleteSettlementsError);
+    }
+
+    // 8. Delete go_live_checklist (has FK to tenants)
+    const { error: deleteChecklistError } = await supabaseClient
+      .from('go_live_checklist')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteChecklistError) {
+      console.error('[shareholder-remove-client] Error deleting go_live_checklist:', deleteChecklistError);
+    }
+
+    // 9. Delete guardrails (has FK to tenants)
+    const { error: deleteGuardrailsError } = await supabaseClient
+      .from('guardrails')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteGuardrailsError) {
+      console.error('[shareholder-remove-client] Error deleting guardrails:', deleteGuardrailsError);
+    }
+
+    // 10. Delete kyc_documents (has FK to tenants)
+    const { error: deleteKycError } = await supabaseClient
+      .from('kyc_documents')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteKycError) {
+      console.error('[shareholder-remove-client] Error deleting kyc_documents:', deleteKycError);
+    }
+
+    // 11. Delete deposit_transfers (has FK to tenants)
+    const { error: deleteDepositsError } = await supabaseClient
+      .from('deposit_transfers')
+      .delete()
+      .eq('tenant_id', tenant_id);
+
+    if (deleteDepositsError) {
+      console.error('[shareholder-remove-client] Error deleting deposit_transfers:', deleteDepositsError);
+    }
+
+    // 12. Delete shareholder_clients
     const { error: deleteClientsError } = await supabaseClient
       .from('shareholder_clients')
       .delete()
@@ -113,7 +224,7 @@ serve(async (req) => {
       throw deleteClientsError;
     }
 
-    // 2. Delete memberships
+    // 13. Delete memberships
     const { error: deleteMembershipsError } = await supabaseClient
       .from('memberships')
       .delete()
@@ -124,7 +235,7 @@ serve(async (req) => {
       throw deleteMembershipsError;
     }
 
-    // 3. Delete profiles linked to this tenant
+    // 14. Delete profiles linked to this tenant
     const { error: deleteProfilesError } = await supabaseClient
       .from('profiles')
       .delete()
@@ -132,10 +243,9 @@ serve(async (req) => {
 
     if (deleteProfilesError) {
       console.error('[shareholder-remove-client] Error deleting profiles:', deleteProfilesError);
-      // Don't throw, continue with tenant deletion
     }
 
-    // 4. Delete tenant
+    // 15. Finally, delete tenant
     const { error: deleteTenantError } = await supabaseClient
       .from('tenants')
       .delete()
@@ -145,6 +255,8 @@ serve(async (req) => {
       console.error('[shareholder-remove-client] Error deleting tenant:', deleteTenantError);
       throw deleteTenantError;
     }
+
+    console.log('[shareholder-remove-client] Successfully deleted all related data for tenant:', tenant_id);
 
     // Log the action
     await supabaseClient
