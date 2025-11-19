@@ -197,6 +197,42 @@ const Settings = () => {
                     </p>
                   </div>
 
+                  {profile?.public_id && (
+                    <div className="space-y-2">
+                      <Label htmlFor="publicId">Public ID</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="publicId"
+                          className="pl-10 font-mono"
+                          value={profile.public_id}
+                          disabled
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        รหัสประจำตัวผู้ใช้งานของคุณ
+                      </p>
+                    </div>
+                  )}
+
+                  {tenantId && (
+                    <div className="space-y-2">
+                      <Label htmlFor="tenantId">Tenant ID</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="tenantId"
+                          className="pl-10 font-mono text-xs"
+                          value={tenantId}
+                          disabled
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        รหัสองค์กร/ลูกค้าที่คุณกำลังใช้งาน
+                      </p>
+                    </div>
+                  )}
+
           <Button type="submit" disabled={isUpdating}>
             {isUpdating ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
           </Button>
