@@ -108,7 +108,6 @@ export default function DepositList() {
   const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
     queryKey: ["deposit-transfers", statusFilter, page, itemsPerPage],
     queryFn: async () => {
-      console.log("🔍 Fetching deposit_transfers with status=3");
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -122,7 +121,6 @@ export default function DepositList() {
       query = query.eq("status", "3");
 
       const { data, error, count } = await query;
-      console.log("📊 Query result:", { count, dataLength: data?.length });
       if (error) {
         console.error("❌ Query error:", error);
         throw error;
@@ -135,20 +133,6 @@ export default function DepositList() {
   const deposits = queryResult?.data || [];
   const totalCount = queryResult?.count || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-  // Debug logs
-  console.log("🔹 DepositList state:", { 
-    isLoading, 
-    hasError: !!queryError, 
-    depositsCount: deposits?.length,
-    totalCount,
-    page,
-    itemsPerPage,
-    totalPages,
-    hasPermission: hasPermission("deposits.view"),
-    userRole,
-    activeTenantId
-  });
 
   const statusButtons: { value: PaymentStatus; label: string }[] = [
     { value: "all", label: "All" },
@@ -364,13 +348,6 @@ export default function DepositList() {
                 </TableHeader>
                 <TableBody>
                   {(() => {
-                    console.log('🎨 Rendering TableBody:', { 
-                      isLoading, 
-                      depositsExists: !!deposits,
-                      depositsLength: deposits?.length,
-                      deposits: deposits
-                    });
-                    
                     if (isLoading) {
                       return (
                         <TableRow>
@@ -395,7 +372,6 @@ export default function DepositList() {
                     }
                     
                     return deposits.map((transfer) => {
-                      console.log('🔄 Rendering transfer:', transfer.id);
                       return (
                         <TableRow key={transfer.id}>
                           <TableCell className="text-xs text-muted-foreground">
