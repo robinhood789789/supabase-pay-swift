@@ -21,21 +21,24 @@ import { toast } from "sonner";
 
 type PaymentStatus = "all" | "pending" | "completed" | "expired" | "rejected";
 
-interface DepositTransfer {
-  id: number;
-  ref_id: string;
-  transactionid: string | null;
-  custaccountname: string | null;
-  custaccountnumber: string | null;
-  fullname: string | null;
-  adminbank_bankname: string | null;
-  adminbank_bankcode: string | null;
-  bankcode: string | null;
-  amountpaid: number | null;
+interface IncomingTransfer {
+  id: string;
+  ref_id: string | null;
+  from_account: string | null;
+  from_name: string | null;
+  to_account: string | null;
+  to_name: string | null;
+  amount: number | null;
+  bank_code: string | null;
+  slip_bank_from: string | null;
+  slip_bank_to: string | null;
+  trans_name_th: string | null;
   status: string | null;
-  depositdate: string | null;
+  txn_time: string | null;
   created_at: string | null;
   updated_at: string | null;
+  adminbank_id: string | null;
+  raw: any;
 }
 
 export default function DepositList() {
@@ -103,23 +106,18 @@ export default function DepositList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
-  const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
-    queryKey: ["deposit-transfers", statusFilter, effectiveTenantId, page, itemsPerPage],
+  const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: IncomingTransfer[], count: number }>({
+    queryKey: ["incoming-transfers", statusFilter, effectiveTenantId, page, itemsPerPage],
     queryFn: async () => {
-      console.log("🔍 Fetching deposit_transfers for tenant:", effectiveTenantId);
+      console.log("🔍 Fetching incoming_transfers");
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
       let query = (supabase as any)
-        .from("deposit_transfers")
+        .from("incoming_transfers")
         .select("*", { count: 'exact' })
         .order("created_at", { ascending: false })
         .range(from, to);
-
-      // Filter by tenant_id
-      if (effectiveTenantId) {
-        query = query.eq("tenant_id", effectiveTenantId);
-      }
 
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter);
@@ -131,9 +129,9 @@ export default function DepositList() {
         console.error("❌ Query error:", error);
         throw error;
       }
-      return { data: (data || []) as DepositTransfer[], count: count || 0 };
+      return { data: (data || []) as IncomingTransfer[], count: count || 0 };
     },
-    enabled: !!effectiveTenantId,
+    enabled: true, // Always enabled for shareholders
   });
 
   const deposits = queryResult?.data || [];
@@ -223,7 +221,7 @@ export default function DepositList() {
                 กลับไปหน้า MDR
               </Button>
             )}
-            <h1 className="text-3xl font-bold">Topup List</h1>
+            <h1 className="text-3xl font-bold">Incoming Transfers</h1>
             {shareholderViewTenantName && (
               <p className="text-muted-foreground">
                 ข้อมูลของ {shareholderViewTenantName} ({shareholderViewOwnerName})
@@ -391,28 +389,29 @@ export default function DepositList() {
                           <TableCell colSpan={8} className="text-center py-8">
                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
                               <div className="text-4xl">📋</div>
-                              <div>No deposits found</div>
+                              <div>No incoming transfers found</div>
                             </div>
                           </TableCell>
                         </TableRow>
                       );
                     }
                     
-                    return deposits.map((deposit) => {
-                      console.log('🔄 Rendering deposit:', deposit.id);
+                    return deposits.map((transfer) => {
+                      console.log('🔄 Rendering transfer:', transfer.id);
                       return (
-                        <TableRow key={deposit.id}>
+                        <TableRow key={transfer.id}>
                           <TableCell className="text-xs text-muted-foreground">
-                            {deposit.created_at ? format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm") : "-"}
+                            {transfer.txn_time ? format(new Date(transfer.txn_time), "dd/MM/yyyy HH:mm") : 
+                             transfer.created_at ? format(new Date(transfer.created_at), "dd/MM/yyyy HH:mm") : "-"}
                           </TableCell>
-                          <TableCell className="font-mono text-xs">{deposit.ref_id}</TableCell>
-                          <TableCell>{deposit.custaccountname || deposit.fullname || "-"}</TableCell>
-                          <TableCell className="font-mono text-xs">{deposit.custaccountnumber || "-"}</TableCell>
-                          <TableCell>{deposit.adminbank_bankname || "-"}</TableCell>
+                          <TableCell className="font-mono text-xs">{transfer.ref_id || "-"}</TableCell>
+                          <TableCell>{transfer.from_name || "-"}</TableCell>
+                          <TableCell className="font-mono text-xs">{transfer.from_account || "-"}</TableCell>
+                          <TableCell>{transfer.slip_bank_from || transfer.bank_code || "-"}</TableCell>
                           <TableCell className="text-right font-semibold">
-                            {deposit.amountpaid ? `฿${Number(deposit.amountpaid).toLocaleString()}` : "-"}
+                            {transfer.amount ? `฿${Number(transfer.amount).toLocaleString()}` : "-"}
                           </TableCell>
-                          <TableCell>{getStatusBadge(deposit.status)}</TableCell>
+                          <TableCell>{getStatusBadge(transfer.status)}</TableCell>
                           <TableCell>
                             <Button variant="outline" size="sm">
                               View
