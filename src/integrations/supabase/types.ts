@@ -476,9 +476,11 @@ export type Database = {
           id: number
           memberid: string | null
           note: string | null
+          owner_id: string | null
           providerid: string | null
           ref_id: string
           remark: string | null
+          share_id: string | null
           status: string | null
           statusprocess: boolean | null
           tenant_id: string | null
@@ -509,9 +511,11 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
+          owner_id?: string | null
           providerid?: string | null
           ref_id: string
           remark?: string | null
+          share_id?: string | null
           status?: string | null
           statusprocess?: boolean | null
           tenant_id?: string | null
@@ -542,9 +546,11 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
+          owner_id?: string | null
           providerid?: string | null
           ref_id?: string
           remark?: string | null
+          share_id?: string | null
           status?: string | null
           statusprocess?: boolean | null
           tenant_id?: string | null
