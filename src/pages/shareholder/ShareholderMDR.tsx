@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { mockShareholderMDRData, mockSummary } from "@/data/mockShareholderMDR";
 import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDialog";
+import { ClientTransferDetailsDrawer } from "@/components/shareholder/ClientTransferDetailsDrawer";
 
 interface ClientMDRData {
   tenant_id: string;
@@ -42,6 +43,12 @@ export default function ShareholderMDR() {
     tenantId: string;
     tenantName: string;
     currentRate: number;
+  } | null>(null);
+  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
+  const [selectedClientDetails, setSelectedClientDetails] = useState<{
+    tenantId: string;
+    tenantName: string;
+    ownerName: string;
   } | null>(null);
 
   // Fetch client MDR data with commission calculation
@@ -301,7 +308,17 @@ export default function ShareholderMDR() {
                   ) : (
                     clientMDRData.map((row, index) => (
                       <TableRow key={index} className="hover:bg-blue-50/30 dark:hover:bg-slate-900/50">
-                        <TableCell className="border-r bg-white dark:bg-slate-950 font-medium">
+                        <TableCell 
+                          className="border-r bg-white dark:bg-slate-950 font-medium text-primary cursor-pointer hover:underline"
+                          onClick={() => {
+                            setSelectedClientDetails({
+                              tenantId: row.tenant_id,
+                              tenantName: row.tenant_name,
+                              ownerName: row.owner_name,
+                            });
+                            setDetailsDrawerOpen(true);
+                          }}
+                        >
                           {row.tenant_name}
                         </TableCell>
                         <TableCell className="border-r bg-white dark:bg-slate-950">
@@ -332,6 +349,19 @@ export default function ShareholderMDR() {
           tenantName={selectedClient.tenantName}
           currentRate={selectedClient.currentRate}
           shareholderId={shareholder.id}
+        />
+      )}
+
+      {/* Client Transfer Details Drawer */}
+      {selectedClientDetails && (
+        <ClientTransferDetailsDrawer
+          open={detailsDrawerOpen}
+          onOpenChange={setDetailsDrawerOpen}
+          tenantId={selectedClientDetails.tenantId}
+          tenantName={selectedClientDetails.tenantName}
+          ownerName={selectedClientDetails.ownerName}
+          startDate={startDate}
+          endDate={endDate}
         />
       )}
     </div>
