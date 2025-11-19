@@ -410,6 +410,10 @@ export default function DepositList() {
                   )}
                 </TableBody>
               </Table>
+
+              <p className="text-xs text-muted-foreground">
+                Debug: totalCount = {totalCount}, deposits on this page = {deposits?.length ?? 0}, isLoading = {String(isLoading)}
+              </p>
           </CardContent>
         </Card>
 
