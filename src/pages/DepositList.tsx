@@ -106,9 +106,9 @@ export default function DepositList() {
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
   const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
-    queryKey: ["deposit-transfers", statusFilter, shareholder?.id, page, itemsPerPage],
+    queryKey: ["deposit-transfers", statusFilter, effectiveTenantId, page, itemsPerPage],
     queryFn: async () => {
-      console.log("🔍 Fetching deposit_transfers for shareholder:", shareholder?.id);
+      console.log("🔍 Fetching deposit_transfers for tenant:", effectiveTenantId);
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -118,23 +118,22 @@ export default function DepositList() {
         .order("createdate", { ascending: false })
         .range(from, to);
 
-      // Filter by shareholder's share_id instead of tenant_id
-      if (shareholder?.id) {
-        query = query.eq("share_id", shareholder.id);
+      if (effectiveTenantId) {
+        query = query.eq("tenant_id", effectiveTenantId);
       }
 
       // Always filter for status 3 only
       query = query.eq("status", "3");
 
       const { data, error, count } = await query;
-      console.log("📊 Query result:", { data, error, count, shareholderId: shareholder?.id });
+      console.log("📊 Query result:", { data, error, count });
       if (error) {
         console.error("❌ Query error:", error);
         throw error;
       }
       return { data: (data || []) as DepositTransfer[], count: count || 0 };
     },
-    enabled: !!shareholder?.id,
+    enabled: !!effectiveTenantId,
   });
 
   const deposits = queryResult?.data || [];
