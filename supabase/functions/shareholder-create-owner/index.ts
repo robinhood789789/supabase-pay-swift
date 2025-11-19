@@ -24,11 +24,11 @@ Deno.serve(async (req) => {
 
     // Authenticate shareholder
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header');
+    if (!authHeader) throw new Error('ไม่พบ authorization header');
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !user) throw new Error('Unauthorized');
+    if (userError || !user) throw new Error('ไม่มีสิทธิ์เข้าถึง');
 
     // Verify user is an active shareholder
     const { data: shareholder, error: shareholderError } = await supabaseClient
@@ -39,24 +39,24 @@ Deno.serve(async (req) => {
       .single();
 
     if (shareholderError || !shareholder) {
-      throw new Error('Not an active shareholder');
+      throw new Error('ไม่ใช่ผู้ถือหุ้นที่ใช้งานอยู่');
     }
 
     // Parse request body
     const { business_name, email, public_id } = await req.json();
 
     if (!business_name) {
-      throw new Error('Missing required field: business_name');
+      throw new Error('กรุณากรอกชื่อธุรกิจ');
     }
 
     if (!public_id) {
-      throw new Error('Missing required field: public_id');
+      throw new Error('กรุณากรอก Public ID');
     }
 
     // Validate public_id format (PREFIX-NNNNNN)
     const publicIdRegex = /^[A-Z0-9]{2,6}-\d{6}$/;
     if (!publicIdRegex.test(public_id)) {
-      throw new Error('Invalid public_id format. Must be PREFIX-NNNNNN (e.g., OWN-123456)');
+      throw new Error('รูปแบบ Public ID ไม่ถูกต้อง ต้องเป็น PREFIX-NNNNNN (เช่น OWA-123456)');
     }
 
     // Check if public_id already exists
@@ -67,11 +67,11 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (checkError) {
-      throw new Error(`Failed to check public_id uniqueness: ${checkError.message}`);
+      throw new Error(`ไม่สามารถตรวจสอบ Public ID ได้: ${checkError.message}`);
     }
 
     if (existingProfile) {
-      throw new Error(`Public ID "${public_id}" already exists. Please choose a different one.`);
+      throw new Error(`Public ID "${public_id}" ถูกใช้งานแล้ว กรุณาเลือก Public ID อื่น`);
     }
 
     // Check if public_id already exists in tenants
@@ -82,11 +82,11 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (tenantCheckError) {
-      throw new Error(`Failed to check tenant public_id uniqueness: ${tenantCheckError.message}`);
+      throw new Error(`ไม่สามารถตรวจสอบ Public ID ของเทนันท์ได้: ${tenantCheckError.message}`);
     }
 
     if (existingTenant) {
-      throw new Error(`Tenant Public ID "${public_id}" already exists. Please choose a different one.`);
+      throw new Error(`Public ID "${public_id}" ถูกใช้งานในเทนันท์แล้ว กรุณาเลือก Public ID อื่น`);
     }
 
     const generated_email = email || `${public_id.replace('-', '')}@owner.local`;
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     });
 
     if (createUserError || !createdUser?.user?.id) {
-      throw new Error(`Failed to create user: ${createUserError?.message || 'No user ID returned'}`);
+      throw new Error(`ไม่สามารถสร้างผู้ใช้ได้: ${createUserError?.message || 'ไม่ได้รับ User ID'}`);
     }
 
     const ownerUserId = createdUser.user.id;
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 
     if (profileError) {
       console.error('Profile update error:', profileError);
-      throw new Error(`Failed to set public_id: ${profileError.message}`);
+      throw new Error(`ไม่สามารถตั้งค่า Public ID ได้: ${profileError.message}`);
     }
 
     // Create tenant using the provided public_id
@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
 
     if (tenantError || !createdTenant) {
       console.error('Tenant creation error:', tenantError);
-      throw new Error(`Failed to create tenant: ${tenantError?.message || 'No tenant data returned'}`);
+      throw new Error(`ไม่สามารถสร้างเทนันท์ได้: ${tenantError?.message || 'ไม่ได้รับข้อมูลเทนันท์'}`);
     }
     const finalTenantId = (createdTenant as any).id as string;
     console.log('Tenant created successfully:', finalTenantId);
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (verifyErr || !verifyTenant) {
       console.error('Tenant verification failed:', verifyErr);
-      throw new Error('Tenant not found after creation');
+      throw new Error('ไม่พบเทนันท์หลังจากสร้างแล้ว');
     }
 
     // Find existing owner role (roles are global)
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
 
     if (ownerRoleError || !ownerRole?.id) {
       console.error('Owner role lookup error:', ownerRoleError);
-      throw new Error(`Owner role not configured: ${ownerRoleError?.message || 'role not found'}`);
+      throw new Error(`ไม่พบบทบาท Owner: ${ownerRoleError?.message || 'ไม่พบบทบาท'}`);
     }
 
     // Create membership
@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
 
     if (membershipError || !createdMembership) {
       console.error('Membership creation error:', membershipError);
-      throw new Error(`Failed to create membership: ${membershipError?.message || 'No membership data returned'}`);
+      throw new Error(`ไม่สามารถสร้าง Membership ได้: ${membershipError?.message || 'ไม่ได้รับข้อมูล Membership'}`);
     }
 
     // Link shareholder to tenant manually to avoid trigger ordering issues
@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
       
     if (linkError || !linkData) {
       console.error('Shareholder link error:', linkError);
-      throw new Error(`Failed to link shareholder: ${linkError?.message || 'No link data returned'}`);
+      throw new Error(`ไม่สามารถเชื่อมโยงผู้ถือหุ้นได้: ${linkError?.message || 'ไม่ได้รับข้อมูลการเชื่อมโยง'}`);
     }
     
     console.log('Shareholder linked successfully to tenant:', finalTenantId);
@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
           business_name: business_name,
           email: generated_email,
           temporary_password: tempPassword,
-          message: 'Owner user created successfully. Please provide the temporary password securely.',
+          message: 'สร้างผู้ใช้ Owner สำเร็จ กรุณาส่งรหัสผ่านชั่วคราวให้กับผู้ใช้อย่างปลอดภัย',
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -270,7 +270,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error?.message || 'Failed to create owner user'
+        error: error?.message || 'ไม่สามารถสร้างผู้ใช้ Owner ได้'
       }),
       { 
         status: 400,
