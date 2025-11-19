@@ -21,24 +21,23 @@ import { toast } from "sonner";
 
 type PaymentStatus = "all" | "pending" | "completed" | "expired" | "rejected";
 
-interface IncomingTransfer {
-  id: string;
-  ref_id: string | null;
-  from_account: string | null;
-  from_name: string | null;
-  to_account: string | null;
-  to_name: string | null;
-  amount: number | null;
-  bank_code: string | null;
-  slip_bank_from: string | null;
-  slip_bank_to: string | null;
-  trans_name_th: string | null;
+interface DepositTransfer {
+  id: number;
+  ref_id: string;
+  custaccountname: string | null;
+  custaccountnumber: string | null;
+  amountpaid: number | null;
+  bankcode: string | null;
   status: string | null;
-  txn_time: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  adminbank_id: string | null;
-  raw: any;
+  createdate: string | null;
+  depositdate: string | null;
+  tenant_id: string | null;
+  adminbank_bankname: string | null;
+  adminbank_bankaccountcode: string | null;
+  custphonenumber: string | null;
+  fullname: string | null;
+  memberid: string | null;
+  username: string | null;
 }
 
 export default function DepositList() {
@@ -106,18 +105,22 @@ export default function DepositList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
-  const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: IncomingTransfer[], count: number }>({
-    queryKey: ["incoming-transfers", statusFilter, effectiveTenantId, page, itemsPerPage],
+  const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
+    queryKey: ["deposit-transfers", statusFilter, effectiveTenantId, page, itemsPerPage],
     queryFn: async () => {
-      console.log("🔍 Fetching incoming_transfers");
+      console.log("🔍 Fetching deposit_transfers for tenant:", effectiveTenantId);
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
       let query = (supabase as any)
-        .from("incoming_transfers")
+        .from("deposit_transfers")
         .select("*", { count: 'exact' })
-        .order("created_at", { ascending: false })
+        .order("createdate", { ascending: false })
         .range(from, to);
+
+      if (effectiveTenantId) {
+        query = query.eq("tenant_id", effectiveTenantId);
+      }
 
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter);
@@ -129,9 +132,9 @@ export default function DepositList() {
         console.error("❌ Query error:", error);
         throw error;
       }
-      return { data: (data || []) as IncomingTransfer[], count: count || 0 };
+      return { data: (data || []) as DepositTransfer[], count: count || 0 };
     },
-    enabled: true, // Always enabled for shareholders
+    enabled: !!effectiveTenantId,
   });
 
   const deposits = queryResult?.data || [];
@@ -221,7 +224,7 @@ export default function DepositList() {
                 กลับไปหน้า MDR
               </Button>
             )}
-            <h1 className="text-3xl font-bold">Incoming Transfers</h1>
+            <h1 className="text-3xl font-bold">Deposit List</h1>
             {shareholderViewTenantName && (
               <p className="text-muted-foreground">
                 ข้อมูลของ {shareholderViewTenantName} ({shareholderViewOwnerName})
@@ -401,17 +404,17 @@ export default function DepositList() {
                       return (
                         <TableRow key={transfer.id}>
                           <TableCell className="text-xs text-muted-foreground">
-                            {transfer.txn_time ? format(new Date(transfer.txn_time), "dd/MM/yyyy HH:mm") : 
-                             transfer.created_at ? format(new Date(transfer.created_at), "dd/MM/yyyy HH:mm") : "-"}
+                            {transfer.depositdate ? format(new Date(transfer.depositdate), "dd/MM/yyyy HH:mm") : 
+                             transfer.createdate ? format(new Date(transfer.createdate), "dd/MM/yyyy HH:mm") : "-"}
                           </TableCell>
                           <TableCell className="font-mono text-xs">{transfer.ref_id || "-"}</TableCell>
-                          <TableCell>{transfer.from_name || "-"}</TableCell>
-                          <TableCell className="font-mono text-xs">{transfer.from_account || "-"}</TableCell>
-                          <TableCell>{transfer.slip_bank_from || transfer.bank_code || "-"}</TableCell>
+                          <TableCell>{transfer.custaccountname || transfer.fullname || "-"}</TableCell>
+                          <TableCell className="font-mono text-xs">{transfer.custaccountnumber || "-"}</TableCell>
+                          <TableCell>{transfer.bankcode || "-"}</TableCell>
                           <TableCell className="text-right font-semibold">
-                            {transfer.amount ? `฿${Number(transfer.amount).toLocaleString()}` : "-"}
+                            {transfer.amountpaid ? `฿${Number(transfer.amountpaid).toLocaleString()}` : "-"}
                           </TableCell>
-                          <TableCell>{getStatusBadge(transfer.status)}</TableCell>
+                          <TableCell>{getStatusBadge(transfer.status || "pending")}</TableCell>
                           <TableCell>
                             <Button variant="outline" size="sm">
                               View
