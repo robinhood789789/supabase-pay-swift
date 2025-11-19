@@ -53,6 +53,7 @@ serve(async (req) => {
       .single();
 
     const isSuperAdmin = profile?.is_super_admin === true;
+    console.log('[shareholder-remove-client] User authorization:', { isSuperAdmin, userId: user.id });
 
     if (!isSuperAdmin) {
       // Check if user is shareholder
@@ -61,7 +62,12 @@ serve(async (req) => {
         .select('id')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
+
+      console.log('[shareholder-remove-client] Shareholder check:', { 
+        shareholderId: shareholder?.id, 
+        error: shareholderError?.message 
+      });
 
       if (shareholderError || !shareholder) {
         throw new Error('Not authorized: must be shareholder or super admin');
@@ -75,6 +81,11 @@ serve(async (req) => {
         .eq('tenant_id', tenant_id)
         .maybeSingle();
 
+      console.log('[shareholder-remove-client] Client link check:', { 
+        linkExists: !!clientLink, 
+        linkError: linkError?.message 
+      });
+
       if (linkError) {
         console.error('[shareholder-remove-client] Error checking client link:', linkError);
         throw new Error('Error checking tenant link');
@@ -83,6 +94,8 @@ serve(async (req) => {
       if (!clientLink) {
         throw new Error('Tenant not linked to this shareholder');
       }
+    } else {
+      console.log('[shareholder-remove-client] Super admin bypass - skipping shareholder check');
     }
 
     // Check for payments (prevent deletion if has transactions)
