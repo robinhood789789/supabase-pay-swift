@@ -286,21 +286,15 @@ export default function ShareholderMDR() {
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดการโอน</TableHead>
-                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
-                      Shareholder %
-                    </TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                       ส่วนแบ่ง Shareholder
-                    </TableHead>
-                    <TableHead className="text-center bg-white dark:bg-slate-950 font-semibold">
-                      การจัดการ
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!clientMDRData || clientMDRData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
@@ -316,29 +310,8 @@ export default function ShareholderMDR() {
                         <TableCell className="text-right bg-white dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.total_transfer_amount)}
                         </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-blue-950/20 border-r font-medium">
-                          <Badge variant="outline" className="bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 border-blue-300">
-                            {row.shareholder_commission_rate.toFixed(2)}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">
+                        <TableCell className="text-right bg-white dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.shareholder_commission_amount)}
-                        </TableCell>
-                        <TableCell className="text-center bg-white dark:bg-slate-950">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedClient({
-                                tenantId: row.tenant_id,
-                                tenantName: row.tenant_name,
-                                currentRate: row.shareholder_commission_rate,
-                              });
-                              setEditDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
