@@ -55,6 +55,7 @@ export default function DepositList() {
   const [filterExpanded, setFilterExpanded] = useState(true);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | "all">("all");
 
   const { activeTenantId, activeTenant } = useTenantSwitcher();
   const { hasPermission } = usePermissions();
@@ -105,8 +106,49 @@ export default function DepositList() {
   const userRole = activeTenant?.roles?.name;
   const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
 
+  // Fetch available owners for the tenant
+  const { data: owners } = useQuery({
+    queryKey: ["deposit-owners", effectiveTenantId],
+    queryFn: async () => {
+      if (!effectiveTenantId) return [];
+      
+      // Get owner counts
+      const { data: countData, error: countError } = await supabase
+        .from("deposit_transfers")
+        .select("owner_id")
+        .eq("status", "3");
+
+      if (countError) throw countError;
+
+      // Count by owner_id
+      const ownerCounts = countData?.reduce((acc: Record<string, number>, item) => {
+        if (item.owner_id) {
+          acc[item.owner_id] = (acc[item.owner_id] || 0) + 1;
+        }
+        return acc;
+      }, {});
+
+      // Get unique owners with their profiles
+      const uniqueOwnerIds = Object.keys(ownerCounts || {});
+      
+      if (uniqueOwnerIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, public_id")
+        .in("id", uniqueOwnerIds);
+
+      // Merge counts with profiles
+      return (profiles || []).map(profile => ({
+        ...profile,
+        count: ownerCounts?.[profile.id] || 0
+      }));
+    },
+    enabled: !!effectiveTenantId && isShareholder,
+  });
+
   const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
-    queryKey: ["deposit-transfers", statusFilter, page, itemsPerPage],
+    queryKey: ["deposit-transfers", statusFilter, selectedOwnerId, page, itemsPerPage],
     queryFn: async () => {
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
@@ -117,8 +159,13 @@ export default function DepositList() {
         .order("createdate", { ascending: false })
         .range(from, to);
 
-      // Only filter by status 3 - let RLS handle access control
+      // Only filter by status 3
       query = query.eq("status", "3");
+
+      // Filter by owner_id if selected
+      if (selectedOwnerId && selectedOwnerId !== "all") {
+        query = query.eq("owner_id", selectedOwnerId);
+      }
 
       const { data, error, count } = await query;
       if (error) {
@@ -243,7 +290,29 @@ export default function DepositList() {
 
             {filterExpanded && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-2 block">Owner</label>
+                    <Select value={selectedOwnerId} onValueChange={(value) => {
+                      setSelectedOwnerId(value);
+                      setPage(1);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">ทั้งหมด ({totalCount})</SelectItem>
+                        {owners?.map((owner: any) => {
+                          return (
+                            <SelectItem key={owner.id} value={owner.id}>
+                              {owner.full_name || owner.email} ({owner.count})
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div>
                     <label className="text-sm text-muted-foreground mb-2 block">Sort By</label>
                     <Select value={sortBy} onValueChange={setSortBy}>
