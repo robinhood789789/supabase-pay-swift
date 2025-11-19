@@ -1301,6 +1301,7 @@ export type Database = {
           is_super_admin: boolean | null
           public_id: string | null
           requires_password_change: boolean | null
+          tenant_id: string | null
           totp_backup_codes: string[] | null
           totp_enabled: boolean | null
           totp_secret: string | null
@@ -1314,6 +1315,7 @@ export type Database = {
           is_super_admin?: boolean | null
           public_id?: string | null
           requires_password_change?: boolean | null
+          tenant_id?: string | null
           totp_backup_codes?: string[] | null
           totp_enabled?: boolean | null
           totp_secret?: string | null
@@ -1327,12 +1329,21 @@ export type Database = {
           is_super_admin?: boolean | null
           public_id?: string | null
           requires_password_change?: boolean | null
+          tenant_id?: string | null
           totp_backup_codes?: string[] | null
           totp_enabled?: boolean | null
           totp_secret?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       provider_events: {
         Row: {
