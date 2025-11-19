@@ -74,6 +74,21 @@ Deno.serve(async (req) => {
       throw new Error(`Public ID "${public_id}" already exists. Please choose a different one.`);
     }
 
+    // Check if public_id already exists in tenants
+    const { data: existingTenant, error: tenantCheckError } = await supabaseClient
+      .from('tenants')
+      .select('id')
+      .eq('public_id', public_id)
+      .maybeSingle();
+
+    if (tenantCheckError) {
+      throw new Error(`Failed to check tenant public_id uniqueness: ${tenantCheckError.message}`);
+    }
+
+    if (existingTenant) {
+      throw new Error(`Tenant Public ID "${public_id}" already exists. Please choose a different one.`);
+    }
+
     const generated_email = email || `${public_id.replace('-', '')}@owner.local`;
 
     // Generate temporary password (12 characters)
@@ -110,22 +125,14 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to set public_id: ${profileError.message}`);
     }
 
-    // Generate public_id for tenant
-    const { data: tenantPublicId, error: publicIdError } = await supabaseClient
-      .rpc('generate_public_id', { prefix_code: 'TNT' });
-    
-    if (publicIdError || !tenantPublicId) {
-      throw new Error(`Failed to generate tenant public_id: ${publicIdError?.message || 'No ID returned'}`);
-    }
-
-    // Create tenant (referral info added after linking to avoid trigger issues)
+    // Create tenant using the provided public_id
     const tenantId = crypto.randomUUID();
     const { data: createdTenant, error: tenantError } = await supabaseClient
       .from('tenants')
       .insert({
         id: tenantId,
         name: business_name,
-        public_id: tenantPublicId,
+        public_id: public_id,
         user_id: public_id,
         status: 'trial'
       })
