@@ -171,7 +171,10 @@ export default function DepositList() {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  if (!hasPermission("deposits.view")) {
+  // Allow access if user has permission OR if they're a shareholder viewing a client's data
+  const hasAccess = hasPermission("deposits.view") || (isShareholder && shareholderViewTenantId);
+
+  if (!hasAccess) {
     return (
       <DashboardLayout>
         <div className="p-6">
