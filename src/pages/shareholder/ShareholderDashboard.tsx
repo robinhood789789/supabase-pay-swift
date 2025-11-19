@@ -295,13 +295,6 @@ export default function ShareholderDashboard() {
               </Badge>
             )}
           </div>
-          {shareholderDetails?.user_id && (
-            <div className="mt-2">
-              <Badge variant="outline" className="font-mono text-xs sm:text-sm px-2 sm:px-3 py-1">
-                🆔 Share ID: {shareholderDetails.user_id}
-              </Badge>
-            </div>
-          )}
         </div>
       </div>
 
