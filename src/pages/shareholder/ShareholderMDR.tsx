@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useShareholder } from "@/hooks/useShareholder";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { mockShareholderMDRData, mockSummary } from "@/data/mockShareholderMDR";
 import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDialog";
-import { ClientTransferDetailsDrawer } from "@/components/shareholder/ClientTransferDetailsDrawer";
 
 interface ClientMDRData {
   tenant_id: string;
@@ -35,6 +35,7 @@ interface ClientMDRData {
 
 export default function ShareholderMDR() {
   const { shareholder } = useShareholder();
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1))); // First day of current month
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [useMockData, setUseMockData] = useState(true); // เริ่มต้นด้วยข้อมูลจำลอง
@@ -43,12 +44,6 @@ export default function ShareholderMDR() {
     tenantId: string;
     tenantName: string;
     currentRate: number;
-  } | null>(null);
-  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
-  const [selectedClientDetails, setSelectedClientDetails] = useState<{
-    tenantId: string;
-    tenantName: string;
-    ownerName: string;
   } | null>(null);
 
   // Fetch client MDR data with commission calculation
@@ -310,14 +305,7 @@ export default function ShareholderMDR() {
                       <TableRow key={index} className="hover:bg-blue-50/30 dark:hover:bg-slate-900/50">
                         <TableCell 
                           className="border-r bg-white dark:bg-slate-950 font-medium text-primary cursor-pointer hover:underline"
-                          onClick={() => {
-                            setSelectedClientDetails({
-                              tenantId: row.tenant_id,
-                              tenantName: row.tenant_name,
-                              ownerName: row.owner_name,
-                            });
-                            setDetailsDrawerOpen(true);
-                          }}
+                          onClick={() => navigate("/deposit-list")}
                         >
                           {row.tenant_name}
                         </TableCell>
@@ -349,19 +337,6 @@ export default function ShareholderMDR() {
           tenantName={selectedClient.tenantName}
           currentRate={selectedClient.currentRate}
           shareholderId={shareholder.id}
-        />
-      )}
-
-      {/* Client Transfer Details Drawer */}
-      {selectedClientDetails && (
-        <ClientTransferDetailsDrawer
-          open={detailsDrawerOpen}
-          onOpenChange={setDetailsDrawerOpen}
-          tenantId={selectedClientDetails.tenantId}
-          tenantName={selectedClientDetails.tenantName}
-          ownerName={selectedClientDetails.ownerName}
-          startDate={startDate}
-          endDate={endDate}
         />
       )}
     </div>
