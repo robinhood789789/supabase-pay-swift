@@ -36,7 +36,7 @@ interface ClientMDRData {
 export default function ShareholderMDR() {
   const { shareholder } = useShareholder();
   const navigate = useNavigate();
-  const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1))); // First day of current month
+  const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1)));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [useMockData, setUseMockData] = useState(true); // เริ่มต้นด้วยข้อมูลจำลอง
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -305,7 +305,13 @@ export default function ShareholderMDR() {
                       <TableRow key={index} className="hover:bg-blue-50/30 dark:hover:bg-slate-900/50">
                         <TableCell 
                           className="border-r bg-white dark:bg-slate-950 font-medium text-primary cursor-pointer hover:underline"
-                          onClick={() => navigate("/deposit-list")}
+                          onClick={() => navigate("/deposit-list", { 
+                            state: { 
+                              tenantId: row.tenant_id,
+                              tenantName: row.tenant_name,
+                              ownerName: row.owner_name 
+                            } 
+                          })}
                         >
                           {row.tenant_name}
                         </TableCell>

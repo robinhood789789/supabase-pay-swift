@@ -481,6 +481,7 @@ export type Database = {
           remark: string | null
           status: string | null
           statusprocess: boolean | null
+          tenant_id: string | null
           transactionid: string | null
           updated_at: string | null
           updated_by: string | null
@@ -513,6 +514,7 @@ export type Database = {
           remark?: string | null
           status?: string | null
           statusprocess?: boolean | null
+          tenant_id?: string | null
           transactionid?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -545,13 +547,22 @@ export type Database = {
           remark?: string | null
           status?: string | null
           statusprocess?: boolean | null
+          tenant_id?: string | null
           transactionid?: string | null
           updated_at?: string | null
           updated_by?: string | null
           updatedate?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "deposit_transfers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       disputes: {
         Row: {
