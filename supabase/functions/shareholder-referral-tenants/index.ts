@@ -90,15 +90,15 @@ serve(async (req) => {
       }, {});
     }
 
-    // Get share_ids and full_names for all tenants user_ids
+    // Get share_ids and public_ids for all tenants user_ids
     let shareIdsMap: Record<string, string> = {};
-    let fullNamesMap: Record<string, string> = {};
+    let publicIdsMap: Record<string, string> = {};
     const userIds = Object.values(tenantsById).map((t: any) => t.user_id).filter(Boolean);
     
     if (userIds.length > 0) {
       const { data: profiles, error: profilesError } = await supabaseClient
         .from('profiles')
-        .select('id, share_id, full_name')
+        .select('id, share_id, public_id')
         .in('id', userIds);
       
       if (!profilesError && profiles) {
@@ -106,19 +106,19 @@ serve(async (req) => {
           if (p.share_id) {
             shareIdsMap[p.id] = p.share_id;
           }
-          if (p.full_name) {
-            fullNamesMap[p.id] = p.full_name;
+          if (p.public_id) {
+            publicIdsMap[p.id] = p.public_id;
           }
         });
         
-        // Map tenant_id -> share_id and full_name via user_id
+        // Map tenant_id -> share_id and public_id via user_id
         Object.entries(tenantsById).forEach(([tenantId, tenant]: [string, any]) => {
           if (tenant.user_id) {
             if (shareIdsMap[tenant.user_id]) {
               tenantsById[tenantId].shareId = shareIdsMap[tenant.user_id];
             }
-            if (fullNamesMap[tenant.user_id]) {
-              tenantsById[tenantId].fullName = fullNamesMap[tenant.user_id];
+            if (publicIdsMap[tenant.user_id]) {
+              tenantsById[tenantId].publicId = publicIdsMap[tenant.user_id];
             }
           }
         });
@@ -127,13 +127,13 @@ serve(async (req) => {
 
     const owners = (clientLinks || []).map((link: any) => {
       const tenant = tenantsById[link.tenant_id] || {};
-      // Get share_id and full_name from tenant object
+      // Get share_id and public_id from tenant object
       const shareId = tenant.shareId || '-';
-      const fullName = tenant.fullName || tenant.name || 'Unknown';
+      const publicId = tenant.publicId || tenant.name || 'Unknown';
       
       return {
         ownerId: tenant.id || link.tenant_id,
-        businessName: fullName,
+        businessName: publicId,
         userId: tenant.user_id || '',
         shareId: shareId,
         createdAt: link.referred_at || tenant.created_at || null,
