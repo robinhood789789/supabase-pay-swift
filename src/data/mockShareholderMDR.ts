@@ -31,94 +31,84 @@ export interface MockClientMDRData {
 export const mockShareholderMDRData: MockClientMDRData[] = [
   {
     tenant_id: "tenant-001",
-    tenant_name: "บริษัท เทคโนโลยี จำกัด",
-    owner_name: "คุณสมชาย ใจดี",
+    tenant_public_id: "OWA/123456",
     period_start: "2024-01-01",
     period_end: "2024-01-31",
-    total_deposit: 1000000,      // 1,000,000 THB
-    total_topup: 500000,          // 500,000 THB
+    total_deposit: 1000000,
+    total_topup: 500000,
     total_payout: 0,
-    total_settlement: 300000,     // 300,000 THB
-    total_transfer_amount: 1800000,   // Total transfer amount: 1,800,000 THB
-    shareholder_commission_rate: 0.01,  // 1%
-    owner_commission_rate: 0.005,        // 0.5%
-    shareholder_commission_amount: 18000,   // 1,800,000 * 1% = 18,000 THB
-    owner_commission_amount: 9000,         // 1,800,000 * 0.5% = 9,000 THB
+    total_settlement: 300000,
+    total_transfer_amount: 1800000,
+    shareholder_commission_rate: 0.01,
+    owner_commission_rate: 0.005,
+    shareholder_commission_amount: 18000,
+    owner_commission_amount: 9000,
   },
   {
     tenant_id: "tenant-002",
-    tenant_name: "ร้านค้าออนไลน์ ABC",
-    owner_name: "คุณสมหญิง ประสบความสำเร็จ",
+    tenant_public_id: "PEA-122356",
     period_start: "2024-01-01",
     period_end: "2024-01-31",
-    total_deposit: 2500000,      // 2,500,000 THB
-    total_topup: 800000,          // 800,000 THB
+    total_deposit: 2500000,
+    total_topup: 800000,
     total_payout: 0,
-    total_settlement: 600000,     // 600,000 THB
-    total_transfer_amount: 3900000,   // Total transfer amount: 3,900,000 THB
-    shareholder_commission_rate: 0.01,  // 1%
-    owner_commission_rate: 0.005,        // 0.5%
-    shareholder_commission_amount: 39000,  // 3,900,000 * 1% = 39,000 THB
-    owner_commission_amount: 19500,         // 3,900,000 * 0.5% = 19,500 THB
+    total_settlement: 600000,
+    total_transfer_amount: 3900000,
+    shareholder_commission_rate: 0.01,
+    owner_commission_rate: 0.005,
+    shareholder_commission_amount: 39000,
+    owner_commission_amount: 19500,
   },
   {
     tenant_id: "tenant-003",
-    tenant_name: "โรงแรม สวยงาม รีสอร์ท",
-    owner_name: "คุณวิชัย มีเงิน",
+    tenant_public_id: "HTL/789012",
     period_start: "2024-01-01",
     period_end: "2024-01-31",
-    total_deposit: 5000000,      // 5,000,000 THB
-    total_topup: 1200000,         // 1,200,000 THB
+    total_deposit: 5000000,
+    total_topup: 1200000,
     total_payout: 0,
-    total_settlement: 1800000,    // 1,800,000 THB
-    total_transfer_amount: 8000000,   // Total transfer amount: 8,000,000 THB
-    shareholder_commission_rate: 0.01,  // 1%
-    owner_commission_rate: 0.005,        // 0.5%
-    shareholder_commission_amount: 80000,  // 8,000,000 * 1% = 80,000 THB
-    owner_commission_amount: 40000,        // 8,000,000 * 0.5% = 40,000 THB
+    total_settlement: 1800000,
+    total_transfer_amount: 8000000,
+    shareholder_commission_rate: 0.01,
+    owner_commission_rate: 0.005,
+    shareholder_commission_amount: 80000,
+    owner_commission_amount: 40000,
   },
   {
     tenant_id: "tenant-004",
-    tenant_name: "ร้านอาหาร มิชลิน สตาร์",
-    owner_name: "คุณอรทัย เชฟมือทอง",
+    tenant_public_id: "RST/345678",
     period_start: "2024-01-01",
     period_end: "2024-01-31",
-    total_deposit: 800000,       // 800,000 THB
-    total_topup: 300000,          // 300,000 THB
+    total_deposit: 800000,
+    total_topup: 300000,
     total_payout: 0,
-    total_settlement: 200000,     // 200,000 THB
-    total_transfer_amount: 1300000,   // Total transfer amount: 1,300,000 THB
-    shareholder_commission_rate: 0.01,  // 1%
-    owner_commission_rate: 0.005,        // 0.5%
-    shareholder_commission_amount: 13000,   // 1,300,000 * 1% = 13,000 THB
-    owner_commission_amount: 6500,         // 1,300,000 * 0.5% = 6,500 THB
+    total_settlement: 200000,
+    total_transfer_amount: 1300000,
+    shareholder_commission_rate: 0.01,
+    owner_commission_rate: 0.005,
+    shareholder_commission_amount: 13000,
+    owner_commission_amount: 6500,
   },
   {
     tenant_id: "tenant-005",
-    tenant_name: "ศูนย์การค้า เมกะมอลล์",
-    owner_name: "คุณประเสริฐ ธุรกิจใหญ่",
+    tenant_public_id: "SPA/901234",
     period_start: "2024-01-01",
     period_end: "2024-01-31",
-    total_deposit: 10000000,     // 10,000,000 THB
-    total_topup: 3000000,         // 3,000,000 THB
+    total_deposit: 1500000,
+    total_topup: 450000,
     total_payout: 0,
-    total_settlement: 2500000,    // 2,500,000 THB
-    total_transfer_amount: 15500000,   // Total transfer amount: 15,500,000 THB
-    shareholder_commission_rate: 0.01,  // 1%
-    owner_commission_rate: 0.005,        // 0.5%
-    shareholder_commission_amount: 155000,  // 15,500,000 * 1% = 155,000 THB
-    owner_commission_amount: 77500,        // 15,500,000 * 0.5% = 77,500 THB
-  },
+    total_settlement: 350000,
+    total_transfer_amount: 2300000,
+    shareholder_commission_rate: 0.01,
+    owner_commission_rate: 0.005,
+    shareholder_commission_amount: 23000,
+    owner_commission_amount: 11500,
+  }
 ];
 
-// Summary calculations for verification
+// Mock summary for quick display
 export const mockSummary = {
-  totalTransferAmount: mockShareholderMDRData.reduce((sum, client) => sum + client.total_transfer_amount, 0),
-  shareholderCommission: mockShareholderMDRData.reduce((sum, client) => sum + client.shareholder_commission_amount, 0),
-  ownerCommission: mockShareholderMDRData.reduce((sum, client) => sum + client.owner_commission_amount, 0),
+  totalTransferAmount: 17300000,
+  shareholderCommission: 173000,
+  ownerCommission: 86500,
 };
-
-// Expected summary values:
-// Total Transfer Amount: 30,500,000 THB
-// Total Shareholder Commission: 305,000 THB
-// Total Owner Commission: 152,500 THB
