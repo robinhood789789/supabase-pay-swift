@@ -9,10 +9,11 @@ import { formatCurrency } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, TrendingUp, DollarSign, Percent, TestTube } from "lucide-react";
+import { CalendarIcon, TrendingUp, DollarSign, Percent, TestTube, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { mockShareholderMDRData, mockSummary } from "@/data/mockShareholderMDR";
+import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDialog";
 
 interface ClientMDRData {
   tenant_id: string;
@@ -36,6 +37,12 @@ export default function ShareholderMDR() {
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1))); // First day of current month
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [useMockData, setUseMockData] = useState(true); // เริ่มต้นด้วยข้อมูลจำลอง
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<{
+    tenantId: string;
+    tenantName: string;
+    currentRate: number;
+  } | null>(null);
 
   // Fetch client MDR data with commission calculation
   const { data: clientMDRData, isLoading } = useQuery<ClientMDRData[]>({
@@ -282,15 +289,18 @@ export default function ShareholderMDR() {
                     <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
                       Shareholder %
                     </TableHead>
-                    <TableHead className="text-right bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
+                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                       ส่วนแบ่ง Shareholder
+                    </TableHead>
+                    <TableHead className="text-center bg-white dark:bg-slate-950 font-semibold">
+                      การจัดการ
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!clientMDRData || clientMDRData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
@@ -314,6 +324,22 @@ export default function ShareholderMDR() {
                         <TableCell className="text-right bg-white dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.shareholder_commission_amount)}
                         </TableCell>
+                        <TableCell className="text-center bg-white dark:bg-slate-950">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedClient({
+                                tenantId: row.tenant_id,
+                                tenantName: row.tenant_name,
+                                currentRate: row.shareholder_commission_rate,
+                              });
+                              setEditDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -323,6 +349,18 @@ export default function ShareholderMDR() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Commission Dialog */}
+      {selectedClient && shareholder && (
+        <EditCommissionDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          tenantId={selectedClient.tenantId}
+          tenantName={selectedClient.tenantName}
+          currentRate={selectedClient.currentRate}
+          shareholderId={shareholder.id}
+        />
+      )}
     </div>
   );
 }
