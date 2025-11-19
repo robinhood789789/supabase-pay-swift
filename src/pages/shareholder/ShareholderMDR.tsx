@@ -38,7 +38,7 @@ export default function ShareholderMDR() {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1)));
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [useMockData, setUseMockData] = useState(true); // เริ่มต้นด้วยข้อมูลจำลอง
+  const [useMockData, setUseMockData] = useState(false); // ใช้ข้อมูลจริงจาก database
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<{
     tenantId: string;
@@ -68,37 +68,61 @@ export default function ShareholderMDR() {
           commission_rate,
           tenants!inner (
             name,
-            user_id,
-            profiles:user_id (
-              full_name
-            )
+            public_id
           )
         `)
         .eq("shareholder_id", shareholder.id)
         .eq("status", "active");
 
-      if (clientsError) throw clientsError;
+      if (clientsError) {
+        console.error("Error fetching clients:", clientsError);
+        throw clientsError;
+      }
 
-      // For each client, fetch MDR data
+      console.log("Fetched clients:", clients);
+
+      // For each client, fetch MDR data and owner info
       const mdrPromises = clients?.map(async (client) => {
-        // Fetch deposit_transfers
+        // Get owner name from memberships -> profiles
+        const { data: memberships } = await supabase
+          .from("memberships")
+          .select("user_id")
+          .eq("tenant_id", client.tenant_id)
+          .limit(1);
+
+        let ownerName = (client.tenants as any).public_id || "N/A";
+        
+        if (memberships && memberships.length > 0) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name, public_id")
+            .eq("id", memberships[0].user_id)
+            .maybeSingle();
+          
+          ownerName = profile?.full_name || profile?.public_id || ownerName;
+        }
+
+        // Fetch deposit_transfers for this tenant
         const { data: deposits } = await supabase
           .from("deposit_transfers")
           .select("amountpaid")
+          .eq("tenant_id", client.tenant_id)
           .gte("depositdate", startDateStr)
           .lte("depositdate", endDateStr);
 
-        // Fetch topup_transfers  
+        // Fetch topup_transfers for this tenant (match by merchant_code = tenant public_id)
         const { data: topups } = await supabase
           .from("topup_transfers")
           .select("amount")
+          .eq("merchant_code", (client.tenants as any).public_id)
           .gte("transfer_date", startDateStr)
           .lte("transfer_date", endDateStr);
 
-        // Fetch settlement_transfers
+        // Fetch settlement_transfers for this tenant
         const { data: settlements } = await supabase
           .from("settlement_transfers")
           .select("amount")
+          .eq("merchant_code", (client.tenants as any).public_id)
           .gte("created_at", startDateStr)
           .lte("created_at", endDateStr);
 
@@ -123,7 +147,7 @@ export default function ShareholderMDR() {
         return {
           tenant_id: client.tenant_id,
           tenant_name: (client.tenants as any).name,
-          owner_name: (client.tenants as any).profiles?.full_name || "N/A",
+          owner_name: ownerName,
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
