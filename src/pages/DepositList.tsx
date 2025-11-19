@@ -352,20 +352,13 @@ export default function DepositList() {
             <Table>
               <TableHeader>
                   <TableRow>
-                    <TableHead>Create At</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Ref ID</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Merchant</TableHead>
-                    <TableHead>Amount</TableHead>
+                    <TableHead>Customer Name</TableHead>
+                    <TableHead>Account Number</TableHead>
                     <TableHead>Bank</TableHead>
-                    <TableHead>Acc Num</TableHead>
-                    <TableHead>Acc Name</TableHead>
-                    <TableHead>Sys Bank</TableHead>
-                    <TableHead>Sys Acc Num</TableHead>
-                    <TableHead>Sys Acc Name</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Transfer Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -379,25 +372,21 @@ export default function DepositList() {
                   ) : deposits && deposits.length > 0 ? (
                     deposits.map((deposit) => (
                       <TableRow key={deposit.id}>
-                        <TableCell>
-                          {deposit.depositdate 
-                            ? format(new Date(deposit.depositdate), "dd/MM/yyyy HH:mm")
-                            : format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm")}
+                        <TableCell className="text-xs text-muted-foreground">
+                          {deposit.created_at ? format(new Date(deposit.created_at), "dd/MM/yyyy HH:mm") : "-"}
                         </TableCell>
-                        <TableCell className="font-mono">{deposit.ref_id || deposit.transactionid}</TableCell>
-                        <TableCell>{deposit.custaccountname || deposit.fullname || '-'}</TableCell>
-                        <TableCell className="font-mono">{deposit.custaccountnumber || '-'}</TableCell>
-                        <TableCell>{deposit.adminbank_bankname || deposit.bankcode || '-'}</TableCell>
+                        <TableCell className="font-mono text-xs">{deposit.ref_id}</TableCell>
+                        <TableCell>{deposit.custaccountname || deposit.fullname || "-"}</TableCell>
+                        <TableCell className="font-mono text-xs">{deposit.custaccountnumber || "-"}</TableCell>
+                        <TableCell>{deposit.adminbank_bankname || "-"}</TableCell>
                         <TableCell className="text-right font-semibold">
-                          {deposit.amountpaid ? Number(deposit.amountpaid).toFixed(2) : '0.00'} THB
+                          {deposit.amountpaid ? `฿${Number(deposit.amountpaid).toLocaleString()}` : "-"}
                         </TableCell>
-                        <TableCell>{getStatusBadge(deposit.status || 'pending')}</TableCell>
+                        <TableCell>{getStatusBadge(deposit.status)}</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              View
-                            </Button>
-                          </div>
+                          <Button variant="outline" size="sm">
+                            View
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -406,7 +395,7 @@ export default function DepositList() {
                       <TableCell colSpan={8} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <div className="text-4xl">📋</div>
-                          <div>No data</div>
+                          <div>No deposits found</div>
                         </div>
                       </TableCell>
                     </TableRow>
