@@ -322,7 +322,11 @@ export default function ShareholderMDR() {
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ</TableHead>
-                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดการโอน</TableHead>
+                    <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">Deposit</TableHead>
+                    <TableHead className="text-right border-r bg-purple-100 dark:bg-purple-950/20 text-purple-900 dark:text-purple-400 font-semibold">Topup</TableHead>
+                    <TableHead className="text-right border-r bg-orange-100 dark:bg-orange-950/20 text-orange-900 dark:text-orange-400 font-semibold">Payout</TableHead>
+                    <TableHead className="text-right border-r bg-pink-100 dark:bg-pink-950/20 text-pink-900 dark:text-pink-400 font-semibold">Settlement</TableHead>
+                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดรวม</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                       ส่วนแบ่ง Shareholder
                     </TableHead>
@@ -331,7 +335,7 @@ export default function ShareholderMDR() {
                 <TableBody>
                   {!paginatedData || paginatedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
@@ -353,10 +357,22 @@ export default function ShareholderMDR() {
                         <TableCell className="border-r bg-white dark:bg-slate-950">
                           {row.owner_name}
                         </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-emerald-950/20 border-r text-emerald-700 dark:text-emerald-400 font-bold">
+                        <TableCell className="text-right border-r bg-blue-50/50 dark:bg-blue-950/10 text-blue-700 dark:text-blue-400 font-medium">
+                          {formatCurrency(row.total_deposit)}
+                        </TableCell>
+                        <TableCell className="text-right border-r bg-purple-50/50 dark:bg-purple-950/10 text-purple-700 dark:text-purple-400 font-medium">
+                          {formatCurrency(row.total_topup)}
+                        </TableCell>
+                        <TableCell className="text-right border-r bg-orange-50/50 dark:bg-orange-950/10 text-orange-700 dark:text-orange-400 font-medium">
+                          {formatCurrency(row.total_payout)}
+                        </TableCell>
+                        <TableCell className="text-right border-r bg-pink-50/50 dark:bg-pink-950/10 text-pink-700 dark:text-pink-400 font-medium">
+                          {formatCurrency(row.total_settlement)}
+                        </TableCell>
+                        <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/10 border-r text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.total_transfer_amount)}
                         </TableCell>
-                        <TableCell className="text-right bg-white dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 font-bold">
+                        <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/10 text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.shareholder_commission_amount)}
                         </TableCell>
                       </TableRow>
