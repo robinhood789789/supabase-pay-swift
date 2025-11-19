@@ -110,13 +110,14 @@ Deno.serve(async (req) => {
 
     const ownerUserId = createdUser.user.id;
 
-    // Set security flags and public_id
+    // Set security flags, public_id, and share_id
     const { error: profileError } = await supabaseClient
       .from('profiles')
       .update({
         requires_password_change: true,
         totp_enabled: false,
         public_id: public_id,
+        share_id: shareholder.referral_code
       })
       .eq('id', ownerUserId);
 

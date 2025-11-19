@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, TrendingUp, UserPlus, Settings, LogOut, Copy, Check } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, TrendingUp, UserPlus, Settings, LogOut, Copy, Check, Receipt } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShareholder } from "@/hooks/useShareholder";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,7 @@ import { Clock } from "lucide-react";
 const mainMenuItems = [
   { icon: LayoutDashboard, label: "แดชบอร์ด", path: "/shareholder/dashboard" },
   { icon: Users, label: "ลูกค้าของฉัน", path: "/shareholder/clients" },
+  { icon: Receipt, label: "ธุรกรรม", path: "/shareholder/transactions" },
   { icon: TrendingUp, label: "รายได้", path: "/shareholder/earnings" },
   { icon: TrendingUp, label: "MDR & คอมมิชชั่น", path: "/shareholder/mdr" },
   { icon: Wallet, label: "การถอนเงิน", path: "/shareholder/withdrawals" },
