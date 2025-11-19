@@ -12,7 +12,7 @@ interface CreateTenantInput {
   user_id: string;
   email: string;
   business_name: string;
-  referral_code?: string;
+  share_id?: string; // Changed from referral_code to share_id (shareholder user_id)
 }
 
 const validateInput = (data: any): { valid: boolean; errors: string[] } => {
@@ -61,7 +61,7 @@ serve(async (req) => {
       );
     }
 
-    const { user_id, email, business_name, referral_code } = input;
+    const { user_id, email, business_name, share_id } = input;
 
     // Check if user already has a tenant
     const { data: existingMembership, error: checkError } = await supabase
@@ -94,7 +94,7 @@ serve(async (req) => {
       .insert({
         name: business_name.trim(),
         status: 'active',
-        referred_by_code: referral_code || null
+        referred_by_code: share_id || null
       })
       .select()
       .single();

@@ -374,7 +374,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
-          referral_code: referralCode || null,
+          share_id: referralCode || null, // Now using share_id (shareholder user_id)
         },
       },
     });

@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     // Verify user is an active shareholder
     const { data: shareholder, error: shareholderError } = await supabaseClient
       .from('shareholders')
-      .select('id, referral_code')
+      .select('id, user_id')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .single();
@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
         requires_password_change: true,
         totp_enabled: false,
         public_id: public_id,
-        share_id: shareholder.referral_code
+        share_id: shareholder.user_id
       })
       .eq('id', ownerUserId);
 
@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
     const { error: tenantReferralError } = await supabaseClient
       .from('tenants')
       .update({
-        referred_by_code: shareholder.referral_code,
+        referred_by_code: shareholder.user_id,
         referred_by_shareholder_id: shareholder.id,
         referral_accepted_at: new Date().toISOString(),
       })

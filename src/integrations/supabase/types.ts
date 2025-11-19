@@ -2038,8 +2038,6 @@ export type Database = {
           id: string
           notes: string | null
           phone: string | null
-          referral_code: string | null
-          referral_count: number | null
           status: string
           total_commission_earned: number | null
           total_earnings: number
@@ -2061,8 +2059,6 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
-          referral_code?: string | null
-          referral_count?: number | null
           status?: string
           total_commission_earned?: number | null
           total_earnings?: number
@@ -2084,8 +2080,6 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
-          referral_code?: string | null
-          referral_count?: number | null
           status?: string
           total_commission_earned?: number | null
           total_earnings?: number
@@ -2870,7 +2864,6 @@ export type Database = {
       }
       encrypt_totp_secret: { Args: { secret_text: string }; Returns: string }
       generate_public_id: { Args: { prefix_code: string }; Returns: string }
-      generate_referral_code: { Args: never; Returns: string }
       get_email_by_public_id: {
         Args: { input_public_id: string }
         Returns: string
