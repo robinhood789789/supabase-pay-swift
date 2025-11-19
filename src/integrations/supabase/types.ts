@@ -2662,8 +2662,10 @@ export type Database = {
           id: number
           memberid: string | null
           note: string | null
+          owner_id: string | null
           ref_id: string
           remark: string | null
+          share_id: string | null
           staff_activeid: string | null
           staff_activename: string | null
           status: string | null
@@ -2690,8 +2692,10 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
+          owner_id?: string | null
           ref_id: string
           remark?: string | null
+          share_id?: string | null
           staff_activeid?: string | null
           staff_activename?: string | null
           status?: string | null
@@ -2718,8 +2722,10 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
+          owner_id?: string | null
           ref_id?: string
           remark?: string | null
+          share_id?: string | null
           staff_activeid?: string | null
           staff_activename?: string | null
           status?: string | null
