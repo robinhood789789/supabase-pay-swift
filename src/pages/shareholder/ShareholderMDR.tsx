@@ -283,8 +283,8 @@ export default function ShareholderMDR() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
-                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
+                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
+                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดการโอน</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                       ส่วนแบ่ง Shareholder
