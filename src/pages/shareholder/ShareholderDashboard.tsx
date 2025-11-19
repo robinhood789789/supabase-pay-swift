@@ -126,20 +126,20 @@ export default function ShareholderDashboard() {
   const [range, setRange] = useState<"3M" | "6M" | "12M">("6M");
   const [series, setSeries] = useState<CommissionPoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [shareholderDetails, setShareholderDetails] = useState<{ referral_code: string } | null>(null);
+  const [shareholderDetails, setShareholderDetails] = useState<{ user_id: string } | null>(null);
 
-  const refUrl = shareholderDetails?.referral_code 
-    ? `${window.location.origin}/auth/sign-up?ref=${shareholderDetails.referral_code}` 
+  const refUrl = shareholderDetails?.user_id 
+    ? `${window.location.origin}/auth/sign-up?ref=${shareholderDetails.user_id}` 
     : "";
 
-  // Fetch shareholder details including referral_code
+  // Fetch shareholder details including user_id (as share_id)
   useEffect(() => {
     if (!shareholder?.id) return;
     
     const fetchShareholderDetails = async () => {
       const { data, error } = await supabase
         .from('shareholders')
-        .select('referral_code')
+        .select('user_id')
         .eq('id', shareholder.id)
         .single();
       
@@ -295,10 +295,10 @@ export default function ShareholderDashboard() {
               </Badge>
             )}
           </div>
-          {shareholderDetails?.referral_code && (
+          {shareholderDetails?.user_id && (
             <div className="mt-2">
-              <Badge variant="outline" className="font-mono text-sm sm:text-base px-2 sm:px-3 py-1">
-                🏷️ {shareholderDetails.referral_code}
+              <Badge variant="outline" className="font-mono text-xs sm:text-sm px-2 sm:px-3 py-1">
+                🆔 Share ID: {shareholderDetails.user_id}
               </Badge>
             </div>
           )}
