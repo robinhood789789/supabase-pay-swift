@@ -90,28 +90,36 @@ serve(async (req) => {
       }, {});
     }
 
-    // Get share_ids for all tenants user_ids
+    // Get share_ids and full_names for all tenants user_ids
     let shareIdsMap: Record<string, string> = {};
+    let fullNamesMap: Record<string, string> = {};
     const userIds = Object.values(tenantsById).map((t: any) => t.user_id).filter(Boolean);
     
     if (userIds.length > 0) {
       const { data: profiles, error: profilesError } = await supabaseClient
         .from('profiles')
-        .select('id, share_id')
+        .select('id, share_id, full_name')
         .in('id', userIds);
       
       if (!profilesError && profiles) {
-        const profilesById = profiles.reduce((acc: Record<string, string>, p: any) => {
+        profiles.forEach((p: any) => {
           if (p.share_id) {
-            acc[p.id] = p.share_id;
+            shareIdsMap[p.id] = p.share_id;
           }
-          return acc;
-        }, {});
+          if (p.full_name) {
+            fullNamesMap[p.id] = p.full_name;
+          }
+        });
         
-        // Map tenant_id -> share_id via user_id
+        // Map tenant_id -> share_id and full_name via user_id
         Object.entries(tenantsById).forEach(([tenantId, tenant]: [string, any]) => {
-          if (tenant.user_id && profilesById[tenant.user_id]) {
-            shareIdsMap[tenantId] = profilesById[tenant.user_id];
+          if (tenant.user_id) {
+            if (shareIdsMap[tenant.user_id]) {
+              tenantsById[tenantId].shareId = shareIdsMap[tenant.user_id];
+            }
+            if (fullNamesMap[tenant.user_id]) {
+              tenantsById[tenantId].fullName = fullNamesMap[tenant.user_id];
+            }
           }
         });
       }
@@ -119,12 +127,13 @@ serve(async (req) => {
 
     const owners = (clientLinks || []).map((link: any) => {
       const tenant = tenantsById[link.tenant_id] || {};
-      // Get share_id from the map
-      const shareId = shareIdsMap[link.tenant_id] || '-';
+      // Get share_id and full_name from tenant object
+      const shareId = tenant.shareId || '-';
+      const fullName = tenant.fullName || tenant.name || 'Unknown';
       
       return {
         ownerId: tenant.id || link.tenant_id,
-        businessName: tenant.name || 'Unknown',
+        businessName: fullName,
         userId: tenant.user_id || '',
         shareId: shareId,
         createdAt: link.referred_at || tenant.created_at || null,
