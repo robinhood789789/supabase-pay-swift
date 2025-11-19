@@ -1301,6 +1301,7 @@ export type Database = {
           is_super_admin: boolean | null
           public_id: string | null
           requires_password_change: boolean | null
+          share_id: string | null
           tenant_id: string | null
           totp_backup_codes: string[] | null
           totp_enabled: boolean | null
@@ -1315,6 +1316,7 @@ export type Database = {
           is_super_admin?: boolean | null
           public_id?: string | null
           requires_password_change?: boolean | null
+          share_id?: string | null
           tenant_id?: string | null
           totp_backup_codes?: string[] | null
           totp_enabled?: boolean | null
@@ -1329,6 +1331,7 @@ export type Database = {
           is_super_admin?: boolean | null
           public_id?: string | null
           requires_password_change?: boolean | null
+          share_id?: string | null
           tenant_id?: string | null
           totp_backup_codes?: string[] | null
           totp_enabled?: boolean | null
