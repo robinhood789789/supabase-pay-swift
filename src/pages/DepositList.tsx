@@ -63,6 +63,14 @@ export default function DepositList() {
   const shareholderViewTenantName = location.state?.tenantName;
   const shareholderViewOwnerName = location.state?.ownerName;
   
+  // Redirect shareholder back to MDR if they access this page without tenant context
+  useEffect(() => {
+    if (isShareholder && !shareholderViewTenantId) {
+      toast.error("กรุณาเลือก tenant จากหน้า MDR");
+      navigate("/shareholder/mdr");
+    }
+  }, [isShareholder, shareholderViewTenantId, navigate]);
+  
   // Determine which tenant to use
   const effectiveTenantId = isShareholder && shareholderViewTenantId 
     ? shareholderViewTenantId 
