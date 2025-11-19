@@ -122,9 +122,8 @@ export default function DepositList() {
         query = query.eq("tenant_id", effectiveTenantId);
       }
 
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
+      // Always filter for completed status only
+      query = query.eq("status", "completed");
 
       const { data, error, count } = await query;
       console.log("📊 Query result:", { data, error, count });
