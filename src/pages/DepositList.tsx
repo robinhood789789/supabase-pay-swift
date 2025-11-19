@@ -406,7 +406,6 @@ export default function DepositList() {
               <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Ref ID</TableHead>
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Account Number</TableHead>
                     <TableHead>Bank</TableHead>
@@ -420,7 +419,7 @@ export default function DepositList() {
                     if (isLoading) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8">
+                          <TableCell colSpan={7} className="text-center py-8">
                             Loading...
                           </TableCell>
                         </TableRow>
@@ -430,7 +429,7 @@ export default function DepositList() {
                     if (!deposits || deposits.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8">
+                          <TableCell colSpan={7} className="text-center py-8">
                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
                               <div className="text-4xl">📋</div>
                               <div>No incoming transfers found</div>
@@ -447,7 +446,6 @@ export default function DepositList() {
                             {transfer.depositdate ? format(new Date(transfer.depositdate), "dd/MM/yyyy HH:mm") : 
                              transfer.createdate ? format(new Date(transfer.createdate), "dd/MM/yyyy HH:mm") : "-"}
                           </TableCell>
-                          <TableCell className="font-mono text-xs">{transfer.ref_id || "-"}</TableCell>
                           <TableCell>{transfer.custaccountname || transfer.fullname || "-"}</TableCell>
                           <TableCell className="font-mono text-xs">{transfer.custaccountnumber || "-"}</TableCell>
                           <TableCell>{transfer.bankcode || "-"}</TableCell>
