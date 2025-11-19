@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Copy, Download, Link as LinkIcon, QrCode, RefreshCw, Users, Wallet, Percent, CheckCircle2, Clock } from "lucide-react";
+import { Copy, Download, Link as LinkIcon, QrCode, RefreshCw, Users, Wallet, Percent, CheckCircle2, Clock, Trash2 } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { QRCodeCanvas } from "qrcode.react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -229,6 +229,40 @@ export default function ShareholderDashboard() {
     a.click();
   };
 
+  const deleteOwner = async (ownerId: string, businessName: string) => {
+    if (!confirm(`คุณแน่ใจว่าต้องการลบ "${businessName}"? การกระทำนี้ไม่สามารถย้อนกลับได้`)) {
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('shareholder-remove-client', {
+        body: { tenant_id: ownerId }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({ title: "ลบสำเร็จ", description: `ลบ ${businessName} เรียบร้อยแล้ว` });
+        // Refresh the data
+        const [s, o] = await Promise.all([
+          fetchSummary(),
+          fetchOwners(status)
+        ]);
+        setSummary(s);
+        setOwners(o);
+      } else {
+        throw new Error(data?.error || 'Failed to delete');
+      }
+    } catch (err: any) {
+      console.error('Error deleting owner:', err);
+      toast({ 
+        title: "เกิดข้อผิดพลาด", 
+        description: err.message || 'ไม่สามารถลบข้อมูลได้',
+        variant: "destructive"
+      });
+    }
+  };
+
   if (shareholderLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -391,13 +425,14 @@ export default function ShareholderDashboard() {
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap hidden lg:table-cell">Created</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Status</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium text-right whitespace-nowrap">Commission %</th>
-                  <th className="py-2 px-2 sm:pr-0 font-medium text-right whitespace-nowrap">MRR (THB)</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium text-right whitespace-nowrap">MRR (THB)</th>
+                  <th className="py-2 px-2 sm:pr-0 font-medium text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {owners.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
                       ยังไม่มี Owner ที่มาจาก referral link ของคุณ
                     </td>
                   </tr>
@@ -424,13 +459,23 @@ export default function ShareholderDashboard() {
                           {o.commission_rate ? `${o.commission_rate}%` : '5%'}
                         </Badge>
                       </td>
-                      <td className="py-2 px-2 sm:pr-0 text-right">
+                      <td className="py-2 px-2 sm:pr-4 text-right">
                         <div className="font-semibold text-xs sm:text-sm">
                           {o.mrr.toLocaleString()}
                         </div>
                         <div className="text-[10px] sm:text-xs text-muted-foreground">
                           (คุณได้ {((o.mrr * (o.commission_rate || 5)) / 100).toLocaleString()})
                         </div>
+                      </td>
+                      <td className="py-2 px-2 sm:pr-0 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteOwner(o.ownerId, o.businessName)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </td>
                     </tr>
                   ))
