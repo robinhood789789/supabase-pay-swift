@@ -6,6 +6,8 @@ import { useShareholder } from "@/hooks/useShareholder";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { formatCurrency } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,7 +40,9 @@ export default function ShareholderMDR() {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1)));
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [useMockData, setUseMockData] = useState(false); // ใช้ข้อมูลจริงจาก database
+  const [useMockData, setUseMockData] = useState(false);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<{
     tenantId: string;
@@ -179,6 +183,13 @@ export default function ShareholderMDR() {
         { totalTransferAmount: 0, shareholderCommission: 0, ownerCommission: 0 }
       );
 
+  // Pagination calculations
+  const totalCount = clientMDRData?.length || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = clientMDRData?.slice(startIndex, endIndex) || [];
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -318,14 +329,14 @@ export default function ShareholderMDR() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {!clientMDRData || clientMDRData.length === 0 ? (
+                  {!paginatedData || paginatedData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
                   ) : (
-                    clientMDRData.map((row, index) => (
+                    paginatedData.map((row, index) => (
                       <TableRow key={index} className="hover:bg-blue-50/30 dark:hover:bg-slate-900/50">
                         <TableCell 
                           className="border-r bg-white dark:bg-slate-950 font-medium text-primary cursor-pointer hover:underline"
@@ -357,6 +368,90 @@ export default function ShareholderMDR() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {totalCount > 0 && (
+        <Card className="border border-border shadow-soft bg-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">แสดง</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setPage(1);
+                }}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              {/* Page info */}
+              <div className="text-sm text-muted-foreground">
+                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+              </div>
+
+              {/* Pagination */}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (page <= 3) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = page - 2 + i;
+                    }
+
+                    return (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => setPage(pageNum)}
+                          isActive={page === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  {totalPages > 5 && page < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Edit Commission Dialog */}
       {selectedClient && shareholder && (
