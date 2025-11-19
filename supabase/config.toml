@@ -89,3 +89,6 @@ verify_jwt = true
 
 [functions.ip-blocks-manage]
 verify_jwt = true
+
+[functions.shareholder-remove-client]
+verify_jwt = true
