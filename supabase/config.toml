@@ -92,3 +92,6 @@ verify_jwt = true
 
 [functions.shareholder-remove-client]
 verify_jwt = true
+
+[functions.shareholder-create-owner]
+verify_jwt = true
