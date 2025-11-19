@@ -20,8 +20,7 @@ import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDia
 
 interface ClientMDRData {
   tenant_id: string;
-  tenant_name: string;
-  owner_name: string;
+  tenant_public_id: string;
   period_start: string;
   period_end: string;
   total_deposit: number;
@@ -85,27 +84,8 @@ export default function ShareholderMDR() {
 
       console.log("Fetched clients:", clients);
 
-      // For each client, fetch MDR data and owner info
+      // For each client, fetch MDR data
       const mdrPromises = clients?.map(async (client) => {
-        // Get owner name from memberships -> profiles
-        const { data: memberships } = await supabase
-          .from("memberships")
-          .select("user_id")
-          .eq("tenant_id", client.tenant_id)
-          .limit(1);
-
-        let ownerName = (client.tenants as any).public_id || "N/A";
-        
-        if (memberships && memberships.length > 0) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, public_id")
-            .eq("id", memberships[0].user_id)
-            .maybeSingle();
-          
-          ownerName = profile?.full_name || profile?.public_id || ownerName;
-        }
-
         // Fetch deposit_transfers for this tenant
         const { data: deposits } = await supabase
           .from("deposit_transfers")
@@ -150,8 +130,7 @@ export default function ShareholderMDR() {
 
         return {
           tenant_id: client.tenant_id,
-          tenant_name: (client.tenants as any).name,
-          owner_name: ownerName,
+          tenant_public_id: (client.tenants as any).public_id,
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
@@ -321,7 +300,6 @@ export default function ShareholderMDR() {
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
-                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ</TableHead>
                     <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">Deposit</TableHead>
                     <TableHead className="text-right border-r bg-purple-100 dark:bg-purple-950/20 text-purple-900 dark:text-purple-400 font-semibold">Topup</TableHead>
                     <TableHead className="text-right border-r bg-orange-100 dark:bg-orange-950/20 text-orange-900 dark:text-orange-400 font-semibold">Payout</TableHead>
@@ -335,7 +313,7 @@ export default function ShareholderMDR() {
                 <TableBody>
                   {!paginatedData || paginatedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
@@ -347,15 +325,11 @@ export default function ShareholderMDR() {
                           onClick={() => navigate("/deposit-list", { 
                             state: { 
                               tenantId: row.tenant_id,
-                              tenantName: row.tenant_name,
-                              ownerName: row.owner_name 
+                              tenantPublicId: row.tenant_public_id
                             } 
                           })}
                         >
-                          {row.tenant_name}
-                        </TableCell>
-                        <TableCell className="border-r bg-white dark:bg-slate-950">
-                          {row.owner_name}
+                          {row.tenant_public_id}
                         </TableCell>
                         <TableCell className="text-right border-r bg-blue-50/50 dark:bg-blue-950/10 text-blue-700 dark:text-blue-400 font-medium">
                           {formatCurrency(row.total_deposit)}

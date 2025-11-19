@@ -3,8 +3,7 @@
 
 export interface MockClientMDRData {
   tenant_id: string;
-  tenant_name: string;
-  owner_name: string;
+  tenant_public_id: string;
   period_start: string;
   period_end: string;
   total_deposit: number;
