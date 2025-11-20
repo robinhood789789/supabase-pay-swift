@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 type OwnerRow = {
   ownerId: string;
   shareId?: string;
+  publicId?: string;
   businessName: string;
   email: string;
   createdAt: string;
@@ -432,7 +433,7 @@ export default function ShareholderDashboard() {
                 ) : (
                   owners.map((o) => (
                     <tr key={o.ownerId} className="border-t hover:bg-accent/50 transition-colors">
-                      <td className="py-2 px-2 sm:pr-4 font-mono text-[10px] sm:text-xs">{o.shareId || '-'}</td>
+                      <td className="py-2 px-2 sm:pr-4 font-mono text-[10px] sm:text-xs">{o.publicId || '-'}</td>
                       <td className="py-2 px-2 sm:pr-4 font-medium text-xs sm:text-sm">{o.businessName}</td>
                       <td className="py-2 px-2 sm:pr-4 text-xs sm:text-sm hidden lg:table-cell">{new Date(o.createdAt).toLocaleDateString('th-TH')}</td>
                       <td className="py-2 px-2 sm:pr-4">
