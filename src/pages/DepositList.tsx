@@ -115,16 +115,16 @@ export default function DepositList() {
       // Get owner counts filtered by tenant_id
       const { data: countData, error: countError } = await supabase
         .from("deposit_transfers")
-        .select("owner_id")
+        .select("created_by")
         .eq("tenant_id", effectiveTenantId)
         .eq("status", "3");
 
       if (countError) throw countError;
 
-      // Count by owner_id
+      // Count by created_by
       const ownerCounts = countData?.reduce((acc: Record<string, number>, item) => {
-        if (item.owner_id) {
-          acc[item.owner_id] = (acc[item.owner_id] || 0) + 1;
+        if (item.created_by) {
+          acc[item.created_by] = (acc[item.created_by] || 0) + 1;
         }
         return acc;
       }, {});
@@ -145,7 +145,7 @@ export default function DepositList() {
         count: ownerCounts?.[profile.id] || 0
       }));
     },
-    enabled: !!effectiveTenantId && isShareholder,
+    enabled: !!effectiveTenantId,
   });
 
   const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
@@ -170,9 +170,9 @@ export default function DepositList() {
       // Only filter by status 3
       query = query.eq("status", "3");
 
-      // Filter by owner_id if selected
+      // Filter by created_by if selected
       if (selectedOwnerId && selectedOwnerId !== "all") {
-        query = query.eq("owner_id", selectedOwnerId);
+        query = query.eq("created_by", selectedOwnerId);
       }
 
       const { data, error, count } = await query;
@@ -182,7 +182,7 @@ export default function DepositList() {
       }
       return { data: (data || []) as DepositTransfer[], count: count || 0 };
     },
-    enabled: isShareholder && !!effectiveTenantId,
+    enabled: !!effectiveTenantId,
   });
 
   const deposits = queryResult?.data || [];
