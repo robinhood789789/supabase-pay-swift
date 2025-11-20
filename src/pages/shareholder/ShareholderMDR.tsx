@@ -52,77 +52,54 @@ export default function ShareholderMDR() {
 
   // Fetch client MDR data with commission calculation
   const { data: clientMDRData, isLoading } = useQuery<ClientMDRData[]>({
-    queryKey: ["shareholder-mdr", shareholder?.id, shareholder?.share_id, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), useMockData],
+    queryKey: ["shareholder-mdr", shareholder?.id, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), useMockData],
     queryFn: async () => {
       // Use mock data if enabled
       if (useMockData) {
         return mockShareholderMDRData as ClientMDRData[];
       }
       
-      if (!shareholder?.id || !shareholder?.share_id) return [];
+      if (!shareholder?.id) return [];
 
       const startDateStr = format(startDate, "yyyy-MM-dd");
       const endDateStr = format(endDate, "yyyy-MM-dd");
 
-      // Fetch deposit_transfers filtered by shareholder's share_id
-      const { data: deposits, error: depositsError } = await supabase
-        .from("deposit_transfers")
-        .select("tenant_id, amountpaid")
-        .eq("share_id", shareholder.share_id)
-        .gte("depositdate", startDateStr)
-        .lte("depositdate", endDateStr);
-
-      if (depositsError) {
-        console.error("Error fetching deposits:", depositsError);
-        throw depositsError;
-      }
-
-      // Group by tenant_id
-      const tenantDeposits = deposits?.reduce((acc, deposit) => {
-        if (!deposit.tenant_id) return acc;
-        if (!acc[deposit.tenant_id]) {
-          acc[deposit.tenant_id] = 0;
-        }
-        acc[deposit.tenant_id] += Number(deposit.amountpaid) || 0;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const tenantIds = Object.keys(tenantDeposits);
-      
-      if (tenantIds.length === 0) return [];
-
-      // Fetch tenant details and commission rates
-      const { data: tenantsData, error: tenantsError } = await supabase
-        .from("tenants")
-        .select("id, name, public_id")
-        .in("id", tenantIds);
-
-      if (tenantsError) {
-        console.error("Error fetching tenants:", tenantsError);
-        throw tenantsError;
-      }
-
-      // Fetch commission rates from shareholder_clients
-      const { data: commissionData } = await supabase
+      // Get shareholder's clients
+      const { data: clients, error: clientsError } = await supabase
         .from("shareholder_clients")
-        .select("tenant_id, commission_rate")
+        .select(`
+          tenant_id,
+          commission_rate,
+          tenants!inner (
+            name,
+            public_id
+          )
+        `)
         .eq("shareholder_id", shareholder.id)
-        .in("tenant_id", tenantIds);
+        .eq("status", "active");
 
-      const commissionMap = commissionData?.reduce((acc, item) => {
-        acc[item.tenant_id] = item.commission_rate;
-        return acc;
-      }, {} as Record<string, number>) || {};
+      if (clientsError) {
+        console.error("Error fetching clients:", clientsError);
+        throw clientsError;
+      }
 
-      // For each tenant, fetch additional transfer data and calculate commissions
-      const mdrPromises = tenantsData?.map(async (tenant) => {
-        const totalDeposit = tenantDeposits[tenant.id] || 0;
+      console.log("Fetched clients:", clients);
 
-        // Fetch topup_transfers for this tenant
+      // For each client, fetch MDR data
+      const mdrPromises = clients?.map(async (client) => {
+        // Fetch deposit_transfers for this tenant
+        const { data: deposits } = await supabase
+          .from("deposit_transfers")
+          .select("amountpaid")
+          .eq("tenant_id", client.tenant_id)
+          .gte("depositdate", startDateStr)
+          .lte("depositdate", endDateStr);
+
+        // Fetch topup_transfers for this tenant (match by merchant_code = tenant public_id)
         const { data: topups } = await supabase
           .from("topup_transfers")
           .select("amount")
-          .eq("merchant_code", tenant.public_id)
+          .eq("merchant_code", (client.tenants as any).public_id)
           .gte("transfer_date", startDateStr)
           .lte("transfer_date", endDateStr);
 
@@ -130,29 +107,32 @@ export default function ShareholderMDR() {
         const { data: settlements } = await supabase
           .from("settlement_transfers")
           .select("amount")
-          .eq("merchant_code", tenant.public_id)
+          .eq("merchant_code", (client.tenants as any).public_id)
           .gte("created_at", startDateStr)
           .lte("created_at", endDateStr);
 
+        const totalDeposit = deposits?.reduce((sum, d) => sum + (Number(d.amountpaid) || 0), 0) || 0;
         const totalTopup = topups?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
         const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
-        const totalPayout = 0;
+        const totalPayout = 0; // You can add payout logic if needed
 
-        // Get commission rate (from shareholder_clients or default)
-        const shareholderRate = (commissionMap[tenant.id] || shareholder.default_commission_value || 0) / 100;
-        const ownerRate = 0.005; // 0.5% for owner
+        // Calculate commissions directly from transfer amount
+        const shareholderRate = client.commission_rate / 100; // Convert percentage to decimal
+        const ownerRate = 0.005; // 0.5% for owner (example - should come from database)
         
-        // Total transfer amount
+        // Total transfer amount (ยอดการโอนรวม)
         const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
         
-        // Calculate commissions
+        // Shareholder gets their % of total transfer amount
         const shareholderCommission = totalTransferAmount * shareholderRate;
+        
+        // Owner gets their % of total transfer amount
         const ownerCommission = totalTransferAmount * ownerRate;
 
         return {
-          tenant_id: tenant.id,
-          tenant_public_id: tenant.public_id,
-          tenant_name: tenant.name,
+          tenant_id: client.tenant_id,
+          tenant_public_id: (client.tenants as any).public_id,
+          tenant_name: (client.tenants as any).name,
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
@@ -169,7 +149,7 @@ export default function ShareholderMDR() {
 
       return Promise.all(mdrPromises);
     },
-    enabled: useMockData || (!!shareholder?.id && !!shareholder?.share_id),
+    enabled: useMockData || !!shareholder?.id, // Enable if using mock data or if shareholder exists
   });
 
   // Calculate summary totals
