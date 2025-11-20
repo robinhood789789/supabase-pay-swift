@@ -112,10 +112,11 @@ export default function DepositList() {
     queryFn: async () => {
       if (!effectiveTenantId) return [];
       
-      // Get owner counts
+      // Get owner counts filtered by tenant_id
       const { data: countData, error: countError } = await supabase
         .from("deposit_transfers")
         .select("owner_id")
+        .eq("tenant_id", effectiveTenantId)
         .eq("status", "3");
 
       if (countError) throw countError;
@@ -148,8 +149,12 @@ export default function DepositList() {
   });
 
   const { data: queryResult, isLoading, error: queryError, refetch } = useQuery<{ data: DepositTransfer[], count: number }>({
-    queryKey: ["deposit-transfers", statusFilter, selectedOwnerId, page, itemsPerPage],
+    queryKey: ["deposit-transfers", statusFilter, selectedOwnerId, page, itemsPerPage, effectiveTenantId],
     queryFn: async () => {
+      if (!effectiveTenantId) {
+        return { data: [], count: 0 };
+      }
+
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -158,6 +163,9 @@ export default function DepositList() {
         .select("*", { count: 'exact' })
         .order("createdate", { ascending: false })
         .range(from, to);
+
+      // Filter by tenant_id (critical for shareholder view)
+      query = query.eq("tenant_id", effectiveTenantId);
 
       // Only filter by status 3
       query = query.eq("status", "3");
@@ -174,7 +182,7 @@ export default function DepositList() {
       }
       return { data: (data || []) as DepositTransfer[], count: count || 0 };
     },
-    enabled: isShareholder,
+    enabled: isShareholder && !!effectiveTenantId,
   });
 
   const deposits = queryResult?.data || [];
