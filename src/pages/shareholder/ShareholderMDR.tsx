@@ -21,6 +21,7 @@ import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDia
 interface ClientMDRData {
   tenant_id: string;
   tenant_public_id: string;
+  tenant_name: string;
   period_start: string;
   period_end: string;
   total_deposit: number;
@@ -131,6 +132,7 @@ export default function ShareholderMDR() {
         return {
           tenant_id: client.tenant_id,
           tenant_public_id: (client.tenants as any).public_id,
+          tenant_name: (client.tenants as any).name,
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
@@ -300,6 +302,7 @@ export default function ShareholderMDR() {
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
+                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อองค์กร</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดรวม</TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                       ส่วนแบ่ง Shareholder
@@ -309,7 +312,7 @@ export default function ShareholderMDR() {
                 <TableBody>
                   {!paginatedData || paginatedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
@@ -326,6 +329,9 @@ export default function ShareholderMDR() {
                           })}
                         >
                           {row.tenant_public_id}
+                        </TableCell>
+                        <TableCell className="border-r bg-white dark:bg-slate-950">
+                          {row.tenant_name}
                         </TableCell>
                         <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/10 border-r text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.total_transfer_amount)}
