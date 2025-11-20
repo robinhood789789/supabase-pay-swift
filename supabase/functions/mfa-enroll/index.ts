@@ -51,6 +51,11 @@ serve(async (req) => {
 
     // Generate TOTP secret
     const secret = generateTOTPSecret();
+    const maskedSecret = secret.length > 8 
+      ? `${secret.substring(0, 4)}...${secret.substring(secret.length - 4)}` 
+      : '***';
+    console.log(`[MFA Enroll] Generated secret: ${maskedSecret}, length: ${secret.length}`);
+    
     const otpauthUrl = getTOTPQRCodeUrl(secret, user.email!, 'Payment Platform');
 
     // Store temporary secret (encrypted) using RPC to bypass cache issues
@@ -68,6 +73,7 @@ serve(async (req) => {
       throw new Error('Failed to encrypt TOTP secret');
     }
 
+    console.log(`[MFA Enroll] Storing secret for user ${user.id}`);
     const { error: updateError } = await supabaseAdmin.rpc('update_totp_secret', {
       user_id: user.id,
       new_secret: encryptedSecret
@@ -77,6 +83,8 @@ serve(async (req) => {
       console.error('[MFA Enroll] Error storing secret:', updateError);
       throw updateError;
     }
+
+    console.log(`[MFA Enroll] Secret stored successfully`);
 
     // Create audit log
     await supabase
