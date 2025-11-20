@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
-import { Users, TrendingUp, Wallet, Clock, Search, Filter, Plus, Download } from "lucide-react";
+import { Users, TrendingUp, Wallet, Clock, Search, Filter, Plus, Download, Key, Edit } from "lucide-react";
 import { CreatePartnerDialog } from "@/components/admin/CreatePartnerDialog";
+import { EditPartnerCommissionDialog } from "@/components/admin/EditPartnerCommissionDialog";
+import { ResetPartnerPasswordDialog } from "@/components/admin/ResetPartnerPasswordDialog";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 export default function PlatformPartners() {
@@ -22,6 +24,19 @@ export default function PlatformPartners() {
   const [commissionTypeFilter, setCommissionTypeFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editCommissionDialog, setEditCommissionDialog] = useState<{
+    open: boolean;
+    partnerId: string;
+    partnerName: string;
+    currentRate: number;
+    currentType: string;
+  }>({ open: false, partnerId: "", partnerName: "", currentRate: 0, currentType: "revenue_share" });
+  const [resetPasswordDialog, setResetPasswordDialog] = useState<{
+    open: boolean;
+    userId: string;
+    partnerName: string;
+    email: string;
+  }>({ open: false, userId: "", partnerName: "", email: "" });
 
   const { data, isLoading } = useQuery({
     queryKey: ["platform-partners", page, pageSize, statusFilter, commissionTypeFilter],
@@ -196,7 +211,7 @@ export default function PlatformPartners() {
                     <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">คอมมิชชันเดือนนี้</TableHead>
                     <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ค้างจ่าย</TableHead>
                     <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">ลูกค้า</TableHead>
-                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider">การดำเนินการ</TableHead>
+                    <TableHead className="text-black font-semibold text-xs uppercase tracking-wider text-right">การจัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -231,14 +246,49 @@ export default function PlatformPartners() {
                         <Badge variant="outline" className="bg-white text-black border-gray-300">{partner.active_clients_count || 0}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-black hover:bg-gray-100"
-                          onClick={() => navigate(`/platform/partners/${partner.id}`)}
-                        >
-                          เปิดดู
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-black hover:bg-gray-100 h-8 w-8 p-0"
+                            onClick={() => {
+                              setEditCommissionDialog({
+                                open: true,
+                                partnerId: partner.id,
+                                partnerName: partner.full_name,
+                                currentRate: partner.default_commission_value || 0,
+                                currentType: partner.default_commission_type || "revenue_share",
+                              });
+                            }}
+                            title="แก้ไขเปอร์เซ็นต์"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-black hover:bg-gray-100 h-8 w-8 p-0"
+                            onClick={() => {
+                              setResetPasswordDialog({
+                                open: true,
+                                userId: partner.user_id,
+                                partnerName: partner.full_name,
+                                email: partner.email,
+                              });
+                            }}
+                            title="รีเซ็ตรหัสผ่าน"
+                          >
+                            <Key className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-black hover:bg-gray-100"
+                            onClick={() => navigate(`/platform/partners/${partner.id}`)}
+                          >
+                            เปิดดู
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -359,6 +409,23 @@ export default function PlatformPartners() {
       </Card>
 
       <CreatePartnerDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+
+      <EditPartnerCommissionDialog
+        open={editCommissionDialog.open}
+        onOpenChange={(open) => setEditCommissionDialog({ ...editCommissionDialog, open })}
+        partnerId={editCommissionDialog.partnerId}
+        partnerName={editCommissionDialog.partnerName}
+        currentRate={editCommissionDialog.currentRate}
+        currentType={editCommissionDialog.currentType}
+      />
+
+      <ResetPartnerPasswordDialog
+        open={resetPasswordDialog.open}
+        onOpenChange={(open) => setResetPasswordDialog({ ...resetPasswordDialog, open })}
+        userId={resetPasswordDialog.userId}
+        partnerName={resetPasswordDialog.partnerName}
+        email={resetPasswordDialog.email}
+      />
     </div>
   );
 }
