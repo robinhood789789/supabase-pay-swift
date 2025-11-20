@@ -64,34 +64,59 @@ export default function ShareholderMDR() {
       const startDateStr = format(startDate, "yyyy-MM-dd");
       const endDateStr = format(endDate, "yyyy-MM-dd");
 
-      // Get shareholder's clients
-      const { data: clients, error: clientsError } = await supabase
-        .from("shareholder_clients")
-        .select(`
-          tenant_id,
-          commission_rate,
-          tenants!inner (
-            name,
-            public_id
-          )
-        `)
-        .eq("shareholder_id", shareholder.id)
-        .eq("status", "active");
+      // Get shareholder's user_id from profiles
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", shareholder.user_id)
+        .single();
 
-      if (clientsError) {
-        console.error("Error fetching clients:", clientsError);
-        throw clientsError;
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        throw profileError;
       }
 
-      console.log("Fetched clients:", clients);
+      // Get tenants referred by this shareholder using referred_by_code
+      const { data: tenants, error: tenantsError } = await supabase
+        .from("tenants")
+        .select("id, name, public_id")
+        .eq("referred_by_code", profile.id)
+        .eq("status", "active");
 
-      // For each client, fetch MDR data
-      const mdrPromises = clients?.map(async (client) => {
+      if (tenantsError) {
+        console.error("Error fetching tenants:", tenantsError);
+        throw tenantsError;
+      }
+
+      console.log("Fetched tenants:", tenants);
+
+      // Get commission rates from shareholder and shareholder_clients
+      const { data: shareholderData } = await supabase
+        .from("shareholders")
+        .select("default_commission_value")
+        .eq("id", shareholder.id)
+        .single();
+
+      const defaultCommissionRate = shareholderData?.default_commission_value || 5;
+
+      // Get custom commission rates if available
+      const { data: clientCommissions } = await supabase
+        .from("shareholder_clients")
+        .select("tenant_id, commission_rate")
+        .eq("shareholder_id", shareholder.id)
+        .in("tenant_id", tenants?.map(t => t.id) || []);
+
+      const commissionMap = new Map(
+        clientCommissions?.map(c => [c.tenant_id, c.commission_rate]) || []
+      );
+
+      // For each tenant, fetch MDR data
+      const mdrPromises = tenants?.map(async (tenant) => {
         // Fetch deposit_transfers for this tenant
         const { data: deposits } = await supabase
           .from("deposit_transfers")
           .select("amountpaid")
-          .eq("tenant_id", client.tenant_id)
+          .eq("tenant_id", tenant.id)
           .gte("depositdate", startDateStr)
           .lte("depositdate", endDateStr);
 
@@ -99,7 +124,7 @@ export default function ShareholderMDR() {
         const { data: topups } = await supabase
           .from("topup_transfers")
           .select("amount")
-          .eq("merchant_code", (client.tenants as any).public_id)
+          .eq("merchant_code", tenant.public_id)
           .gte("transfer_date", startDateStr)
           .lte("transfer_date", endDateStr);
 
@@ -107,7 +132,7 @@ export default function ShareholderMDR() {
         const { data: settlements } = await supabase
           .from("settlement_transfers")
           .select("amount")
-          .eq("merchant_code", (client.tenants as any).public_id)
+          .eq("merchant_code", tenant.public_id)
           .gte("created_at", startDateStr)
           .lte("created_at", endDateStr);
 
@@ -116,8 +141,9 @@ export default function ShareholderMDR() {
         const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
         const totalPayout = 0; // You can add payout logic if needed
 
-        // Calculate commissions directly from transfer amount
-        const shareholderRate = client.commission_rate / 100; // Convert percentage to decimal
+        // Get commission rate for this tenant (use custom rate if available, otherwise use default)
+        const commissionRate = commissionMap.get(tenant.id) || defaultCommissionRate;
+        const shareholderRate = commissionRate / 100; // Convert percentage to decimal
         const ownerRate = 0.005; // 0.5% for owner (example - should come from database)
         
         // Total transfer amount (ยอดการโอนรวม)
@@ -130,9 +156,9 @@ export default function ShareholderMDR() {
         const ownerCommission = totalTransferAmount * ownerRate;
 
         return {
-          tenant_id: client.tenant_id,
-          tenant_public_id: (client.tenants as any).public_id,
-          tenant_name: (client.tenants as any).name,
+          tenant_id: tenant.id,
+          tenant_public_id: tenant.public_id,
+          tenant_name: tenant.name,
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
