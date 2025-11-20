@@ -413,8 +413,8 @@ export default function ShareholderDashboard() {
             <table className="min-w-full text-xs sm:text-sm">
               <thead>
                 <tr className="text-left text-muted-foreground">
-                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Owner ID</th>
-                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Business</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Public ID</th>
+                  <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">ชื่อองค์กร</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap hidden lg:table-cell">Created</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium whitespace-nowrap">Status</th>
                   <th className="py-2 px-2 sm:pr-4 font-medium text-right whitespace-nowrap">Commission %</th>
