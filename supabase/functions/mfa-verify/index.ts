@@ -75,12 +75,18 @@ serve(async (req) => {
     // Get user's TOTP secret (encrypted)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('totp_secret')
+      .select('totp_secret, totp_enabled')
       .eq('id', user.id)
       .single();
 
     if (!profile?.totp_secret) {
+      console.error(`[MFA Verify] No secret found for user ${user.id}`);
       throw new Error('TOTP secret not found. Please enroll first.');
+    }
+
+    // Check if user has already enabled MFA
+    if (profile.totp_enabled) {
+      console.log(`[MFA Verify] User ${user.email} already has MFA enabled`);
     }
 
     // Decrypt the secret before verification
@@ -92,7 +98,11 @@ serve(async (req) => {
       throw new Error('Failed to decrypt TOTP secret');
     }
 
-    console.log(`[MFA Verify] Secret decrypted successfully`);
+    // Mask the secret for logging (show first 4 and last 4 chars)
+    const maskedSecret = decryptedSecret.length > 8 
+      ? `${decryptedSecret.substring(0, 4)}...${decryptedSecret.substring(decryptedSecret.length - 4)}` 
+      : '***';
+    console.log(`[MFA Verify] Secret loaded: ${maskedSecret}, length: ${decryptedSecret.length}`);
 
     // Verify the TOTP code using decrypted secret
     const isValid = await verifyTOTP(decryptedSecret, code);

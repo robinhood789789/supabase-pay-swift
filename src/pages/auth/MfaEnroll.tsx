@@ -92,6 +92,11 @@ export default function MfaEnroll() {
       setSecret(data.secret);
       setRetryCount(0);
       setLoading(false);
+      
+      console.log(`[MFA Enroll] Secret received: ${data.secret?.substring(0, 4)}...${data.secret?.substring(data.secret.length - 4)}`);
+      toast.success("QR Code พร้อมใช้งาน", {
+        description: "กรุณา scan ด้วย authenticator app"
+      });
     } catch (err: any) {
       console.error("Enrollment init error:", err);
       
@@ -127,6 +132,8 @@ export default function MfaEnroll() {
       setSecret(clientSecret);
       setUseFallback(true);
       setLoading(false);
+      
+      console.log(`[MFA Enroll Fallback] Secret generated: ${clientSecret.substring(0, 4)}...${clientSecret.substring(clientSecret.length - 4)}`);
       
       toast.info("โปรดทราบ", {
         description: "คุณกำลังใช้โหมดสำรอง กรุณายืนยัน MFA ให้เรียบร้อย"
@@ -171,15 +178,21 @@ export default function MfaEnroll() {
 
       // If using fallback (client-generated secret), persist it before verify
       if (useFallback && secret) {
+        console.log(`[MFA Enroll] Storing fallback secret: ${secret.substring(0, 4)}...${secret.substring(secret.length - 4)}`);
         const { error: setSecretError } = await supabase.rpc('update_totp_secret', {
           user_id: user.id,
           new_secret: secret,
         });
-        if (setSecretError) throw setSecretError;
+        if (setSecretError) {
+          console.error('[MFA Enroll] Failed to store fallback secret:', setSecretError);
+          throw setSecretError;
+        }
+        console.log('[MFA Enroll] Fallback secret stored successfully');
       }
 
       // Sanitize code to digits-only
       const cleaned = code.replace(/\D/g, '').slice(0, 6);
+      console.log(`[MFA Enroll] Verifying code: ${cleaned} for user ${user.email}`);
 
       const { data, error } = await supabase.functions.invoke("mfa-verify", {
         body: { code: cleaned },
@@ -366,9 +379,21 @@ export default function MfaEnroll() {
               <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 border rounded-lg" />
               <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground mb-2">หรือกรอกรหัสด้วยตนเอง:</p>
-                <code className="bg-muted px-3 py-1 rounded text-sm break-all">
-                  {secret}
-                </code>
+                <div className="flex items-center gap-2">
+                  <code className="bg-muted px-3 py-2 rounded text-sm break-all flex-1 font-mono">
+                    {secret}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(secret);
+                      toast.success("คัดลอกรหัสแล้ว");
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
                 <div className="pt-2">
                   <Button
                     variant="ghost"
@@ -410,10 +435,16 @@ export default function MfaEnroll() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {error}
-                <p className="text-xs mt-2 opacity-80">
-                  หากยืนยันไม่สำเร็จหลายครั้ง กรุณาเริ่มต้นใหม่ด้วยปุ่มด้านล่าง
-                </p>
+                <p className="font-medium">{error}</p>
+                <div className="text-xs mt-3 space-y-1 opacity-90">
+                  <p><strong>วิธีแก้ไข:</strong></p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>ตรวจสอบว่าเวลาในอุปกรณ์ของคุณถูกต้อง</li>
+                    <li>ลอง scan QR code ใหม่ (คลิก "เริ่มต้นใหม่")</li>
+                    <li>ตรวจสอบว่าได้กรอกรหัสจากแอป authenticator ที่ถูกต้อง</li>
+                    <li>รอให้รหัสในแอปเปลี่ยนเป็นรหัสใหม่แล้วลองอีกครั้ง</li>
+                  </ul>
+                </div>
               </AlertDescription>
             </Alert>
           )}
