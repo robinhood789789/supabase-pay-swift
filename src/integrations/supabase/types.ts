@@ -1299,6 +1299,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_super_admin: boolean | null
+          mfa_last_verified_at: string | null
           public_id: string | null
           requires_password_change: boolean | null
           share_id: string | null
@@ -1314,6 +1315,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_super_admin?: boolean | null
+          mfa_last_verified_at?: string | null
           public_id?: string | null
           requires_password_change?: boolean | null
           share_id?: string | null
@@ -1329,6 +1331,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_super_admin?: boolean | null
+          mfa_last_verified_at?: string | null
           public_id?: string | null
           requires_password_change?: boolean | null
           share_id?: string | null
