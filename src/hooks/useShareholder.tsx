@@ -21,10 +21,10 @@ export const useShareholder = () => {
       if (shareholderError) throw shareholderError;
       if (!shareholderData) return null;
 
-      // Fetch profile to get public_id
+      // Fetch profile to get public_id and share_id
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("public_id")
+        .select("public_id, share_id")
         .eq("id", user.id)
         .single();
 
@@ -33,6 +33,7 @@ export const useShareholder = () => {
       return {
         ...shareholderData,
         public_id: profileData?.public_id,
+        share_id: profileData?.share_id,
       };
     },
     enabled: !!user?.id,
