@@ -104,7 +104,7 @@ export default function DepositList() {
 
   // Check user role
   const userRole = activeTenant?.roles?.name;
-  const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
+  const canCreateRequest = ['finance', 'manager', 'owner'].includes(userRole);
 
   // Fetch available owners for the tenant
   const { data: owners } = useQuery({

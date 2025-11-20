@@ -30,7 +30,7 @@ export default function WithdrawalList() {
 
   // Check user role
   const userRole = activeTenant?.roles?.name;
-  const canCreateRequest = userRole === 'finance' || userRole === 'manager' || userRole === 'owner';
+  const canCreateRequest = ['finance', 'manager', 'owner'].includes(userRole);
 
   const { data: queryResult, isLoading, refetch } = useQuery<{ data: any[], count: number, statusCounts: any }>({
     queryKey: ["withdrawals", statusFilter, activeTenantId, page, itemsPerPage, searchQuery],
