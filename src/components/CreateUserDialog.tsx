@@ -381,7 +381,10 @@ export const CreateUserDialog = () => {
                           placeholder="ACA" 
                           maxLength={3}
                           {...field}
-                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                          onChange={(e) => {
+                            const value = e.target.value.toUpperCase().slice(0, 3);
+                            field.onChange(value);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
