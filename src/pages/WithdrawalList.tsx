@@ -42,6 +42,7 @@ export default function WithdrawalList() {
       let query = (supabase as any)
         .from("withdraw_transfers")
         .select("*", { count: 'exact' })
+        .like("tenant_id", "%707")
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -70,7 +71,8 @@ export default function WithdrawalList() {
       // Get all records to count by status
       const { data: allData } = await (supabase as any)
         .from("withdraw_transfers")
-        .select("status");
+        .select("status")
+        .like("tenant_id", "%707");
 
       const statusCounts = {
         pending: allData?.filter((w: any) => w.status === "0").length || 0,
