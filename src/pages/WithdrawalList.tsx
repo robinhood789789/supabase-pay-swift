@@ -38,11 +38,11 @@ export default function WithdrawalList() {
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
 
-      // Query withdraw_transfers data - cast UUID to text for LIKE
+      // Query withdraw_transfers data with specific tenant_id
       let query = supabase
         .from("withdraw_transfers")
         .select("*", { count: 'exact' })
-        .filter("tenant_id::text", "like", "%707")
+        .eq("tenant_id", activeTenantId)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -68,11 +68,11 @@ export default function WithdrawalList() {
         throw error;
       }
 
-      // Get all records to count by status - cast UUID to text for LIKE
+      // Get all records to count by status
       const { data: allData } = await supabase
         .from("withdraw_transfers")
         .select("status")
-        .filter("tenant_id::text", "like", "%707");
+        .eq("tenant_id", activeTenantId);
 
       const statusCounts = {
         pending: allData?.filter((w: any) => w.status === "0").length || 0,
