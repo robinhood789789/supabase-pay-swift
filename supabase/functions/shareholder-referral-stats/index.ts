@@ -49,16 +49,16 @@ serve(async (req) => {
       throw new Error('Not a shareholder');
     }
 
-    // Get total and active clients count
-    const { data: clients, error: clientsError } = await supabaseClient
-      .from('shareholder_clients')
-      .select('tenant_id, status')
-      .eq('shareholder_id', shareholder.id);
+    // Get total and active tenants count by querying tenants directly
+    const { data: allTenants, error: allTenantsError } = await supabaseClient
+      .from('tenants')
+      .select('id, status')
+      .eq('referred_by_code', user.id);
 
-    if (clientsError) throw clientsError;
+    if (allTenantsError) throw allTenantsError;
 
-    const totalOwners = clients?.length || 0;
-    const activeOwners = clients?.filter(c => c.status === 'active').length || 0;
+    const totalOwners = allTenants?.length || 0;
+    const activeOwners = allTenants?.filter(t => t.status === 'active').length || 0;
 
     // Get monthly commission revenue (current month)
     const now = new Date();

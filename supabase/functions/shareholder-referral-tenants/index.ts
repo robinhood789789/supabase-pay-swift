@@ -40,7 +40,7 @@ serve(async (req) => {
     // Get shareholder info
     const { data: shareholder, error: shareholderError } = await supabaseClient
       .from('shareholders')
-      .select('id')
+      .select('id, default_commission_value')
       .eq('user_id', user.id)
       .eq('status', 'active')
       .single();
@@ -61,44 +61,27 @@ serve(async (req) => {
       }
     } catch (_) {/* ignore body parse errors */}
 
-
-    // Get tenants linked to this shareholder (2-step to avoid PostgREST relation issues)
-    let baseQuery = supabaseClient
-      .from('shareholder_clients')
-      .select('tenant_id, status, referred_at, commission_rate')
-      .eq('shareholder_id', shareholder.id);
+    // Query tenants directly by referred_by_code = shareholder user_id
+    let tenantsQuery = supabaseClient
+      .from('tenants')
+      .select('id, name, public_id, user_id, created_at, status, referral_accepted_at')
+      .eq('referred_by_code', user.id);
 
     if (statusFilter !== 'All') {
-      baseQuery = baseQuery.eq('status', statusFilter.toLowerCase());
+      tenantsQuery = tenantsQuery.eq('status', statusFilter.toLowerCase());
     }
 
-    const { data: clientLinks, error: clientLinksError } = await baseQuery;
-    if (clientLinksError) throw clientLinksError;
+    const { data: tenants, error: tenantsError } = await tenantsQuery;
+    if (tenantsError) throw tenantsError;
 
-    const tenantIds = (clientLinks || []).map((l: any) => l.tenant_id).filter(Boolean);
-
-    let tenantsById: Record<string, any> = {};
-    if (tenantIds.length > 0) {
-      const { data: tenants, error: tenantsError } = await supabaseClient
-        .from('tenants')
-        .select('id, name, public_id, user_id, created_at, status')
-        .in('id', tenantIds);
-      if (tenantsError) throw tenantsError;
-      tenantsById = (tenants || []).reduce((acc: Record<string, any>, t: any) => {
-        acc[t.id] = t;
-        return acc;
-      }, {});
-    }
-
-    // Get share_ids and public_ids for all tenants user_ids
+    // Get share_ids for all tenant user_ids
     let shareIdsMap: Record<string, string> = {};
-    let publicIdsMap: Record<string, string> = {};
-    const userIds = Object.values(tenantsById).map((t: any) => t.user_id).filter(Boolean);
+    const userIds = (tenants || []).map((t: any) => t.user_id).filter(Boolean);
     
     if (userIds.length > 0) {
       const { data: profiles, error: profilesError } = await supabaseClient
         .from('profiles')
-        .select('id, share_id, public_id')
+        .select('id, share_id')
         .in('id', userIds);
       
       if (!profilesError && profiles) {
@@ -106,41 +89,52 @@ serve(async (req) => {
           if (p.share_id) {
             shareIdsMap[p.id] = p.share_id;
           }
-          if (p.public_id) {
-            publicIdsMap[p.id] = p.public_id;
-          }
-        });
-        
-        // Map tenant_id -> share_id and public_id via user_id
-        Object.entries(tenantsById).forEach(([tenantId, tenant]: [string, any]) => {
-          if (tenant.user_id) {
-            if (shareIdsMap[tenant.user_id]) {
-              tenantsById[tenantId].shareId = shareIdsMap[tenant.user_id];
-            }
-            if (publicIdsMap[tenant.user_id]) {
-              tenantsById[tenantId].publicId = publicIdsMap[tenant.user_id];
-            }
-          }
         });
       }
     }
 
-    const owners = (clientLinks || []).map((link: any) => {
-      const tenant = tenantsById[link.tenant_id] || {};
-      // Get public_id directly from tenant table
+    // Get commission rates from shareholder_clients if they exist
+    const tenantIds = (tenants || []).map((t: any) => t.id);
+    let commissionRatesMap: Record<string, number> = {};
+    
+    if (tenantIds.length > 0) {
+      const { data: clientLinks } = await supabaseClient
+        .from('shareholder_clients')
+        .select('tenant_id, commission_rate')
+        .eq('shareholder_id', shareholder.id)
+        .in('tenant_id', tenantIds);
+      
+      if (clientLinks) {
+        clientLinks.forEach((link: any) => {
+          commissionRatesMap[link.tenant_id] = link.commission_rate;
+        });
+      }
+    }
+
+    const owners = (tenants || []).map((tenant: any) => {
       const tenantPublicId = tenant.public_id || '-';
       const tenantName = tenant.name || 'Unknown';
+      const shareId = tenant.user_id ? shareIdsMap[tenant.user_id] : null;
+      const commissionRate = commissionRatesMap[tenant.id] || shareholder.default_commission_value || 0;
+      
+      // Determine status
+      let displayStatus = 'Active';
+      if (tenant.status === 'trial') {
+        displayStatus = 'Trial';
+      } else if (tenant.status !== 'active') {
+        displayStatus = 'Churned';
+      }
       
       return {
-        ownerId: tenant.id || link.tenant_id,
+        ownerId: tenant.id,
         businessName: tenantName,
         publicId: tenantPublicId,
         userId: tenant.user_id || '',
-        shareId: tenant.shareId || '-',
-        createdAt: link.referred_at || tenant.created_at || null,
-        status: link.status === 'active' ? 'Active' : link.status === 'trial' ? 'Trial' : (link.status || 'Churned'),
-        mrr: link.status === 'active' ? Math.round(Math.random() * 5000 + 1000) : 0, // TODO: Replace with real MRR when available
-        commission_rate: link.commission_rate
+        shareId: shareId || '-',
+        createdAt: tenant.referral_accepted_at || tenant.created_at || null,
+        status: displayStatus,
+        mrr: tenant.status === 'active' ? Math.round(Math.random() * 5000 + 1000) : 0, // TODO: Replace with real MRR when available
+        commission_rate: commissionRate
       };
     });
     return new Response(
