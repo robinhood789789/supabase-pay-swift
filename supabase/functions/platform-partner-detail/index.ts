@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 
     if (tenantsError) throw tenantsError;
 
-    // Get pending adjust requests
+    // Get pending adjust requests (skip if table doesn't exist)
     const { data: adjustRequests, error: requestsError } = await supabase
       .from('shareholder_adjust_requests')
       .select(`
@@ -109,9 +109,13 @@ Deno.serve(async (req) => {
       .eq('status', 'pending')
       .order('requested_at', { ascending: false });
 
-    if (requestsError) throw requestsError;
+    // Don't throw error if table doesn't exist yet
+    if (requestsError && requestsError.code !== 'PGRST205') {
+      console.error('[Platform Partner Detail] Error:', requestsError);
+      throw requestsError;
+    }
 
-    // Get commission events (last 100)
+    // Get commission events (last 100) (skip if table doesn't exist)
     const { data: commissionEvents, error: eventsError } = await supabase
       .from('shareholder_commission_events')
       .select(`
@@ -122,7 +126,11 @@ Deno.serve(async (req) => {
       .order('occurred_at', { ascending: false })
       .limit(100);
 
-    if (eventsError) throw eventsError;
+    // Don't throw error if table doesn't exist yet
+    if (eventsError && eventsError.code !== 'PGRST205') {
+      console.error('[Platform Partner Detail] Commission events error:', eventsError);
+      throw eventsError;
+    }
 
     // Get payout history
     const { data: payouts, error: payoutsError } = await supabase
