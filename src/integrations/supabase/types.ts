@@ -476,11 +476,9 @@ export type Database = {
           id: number
           memberid: string | null
           note: string | null
-          owner_id: string | null
           providerid: string | null
           ref_id: string
           remark: string | null
-          share_id: string | null
           status: string | null
           statusprocess: boolean | null
           tenant_id: string | null
@@ -511,11 +509,9 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
-          owner_id?: string | null
           providerid?: string | null
           ref_id: string
           remark?: string | null
-          share_id?: string | null
           status?: string | null
           statusprocess?: boolean | null
           tenant_id?: string | null
@@ -546,11 +542,9 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
-          owner_id?: string | null
           providerid?: string | null
           ref_id?: string
           remark?: string | null
-          share_id?: string | null
           status?: string | null
           statusprocess?: boolean | null
           tenant_id?: string | null
@@ -2673,14 +2667,13 @@ export type Database = {
           id: number
           memberid: string | null
           note: string | null
-          owner_id: string | null
           ref_id: string
           remark: string | null
-          share_id: string | null
           staff_activeid: string | null
           staff_activename: string | null
           status: string | null
           statusbanktranfer: boolean | null
+          tenant_id: string | null
           updated_at: string | null
           updatedate: string | null
           user_type: string | null
@@ -2703,14 +2696,13 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
-          owner_id?: string | null
           ref_id: string
           remark?: string | null
-          share_id?: string | null
           staff_activeid?: string | null
           staff_activename?: string | null
           status?: string | null
           statusbanktranfer?: boolean | null
+          tenant_id?: string | null
           updated_at?: string | null
           updatedate?: string | null
           user_type?: string | null
@@ -2733,14 +2725,13 @@ export type Database = {
           id?: number
           memberid?: string | null
           note?: string | null
-          owner_id?: string | null
           ref_id?: string
           remark?: string | null
-          share_id?: string | null
           staff_activeid?: string | null
           staff_activename?: string | null
           status?: string | null
           statusbanktranfer?: boolean | null
+          tenant_id?: string | null
           updated_at?: string | null
           updatedate?: string | null
           user_type?: string | null
