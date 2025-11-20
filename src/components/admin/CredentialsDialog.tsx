@@ -15,7 +15,8 @@ interface CredentialsDialogProps {
   credentials: {
     temp_password?: string;
     invite_link?: string;
-    email: string;
+    email?: string;
+    public_id?: string;
     display_name: string;
     invitation_code?: string;
     code_id?: string;
@@ -28,6 +29,9 @@ export function CredentialsDialog({ open, onOpenChange, credentials }: Credentia
   const [showPassword, setShowPassword] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const userId = credentials.public_id || credentials.email || '';
+  const userIdLabel = credentials.public_id ? 'Public ID' : 'อีเมล (User ID)';
 
   const handleCopyPassword = () => {
     navigator.clipboard.writeText(credentials.temp_password);
@@ -49,7 +53,7 @@ export function CredentialsDialog({ open, onOpenChange, credentials }: Credentia
 =====================================
 
 ชื่อแสดงผล: ${credentials.display_name}
-User ID: ${credentials.email}
+${userIdLabel}: ${userId}
 
 ${credentials.invitation_code ? `รหัสเชิญ (Invitation Code): ${credentials.invitation_code}` : ''}
 ${credentials.temp_password ? `รหัสผ่านชั่วคราว: ${credentials.temp_password}` : ''}
@@ -69,7 +73,7 @@ ${credentials.invite_link ? `ลิงก์เชิญเข้าสู่ร
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `user-credentials-${credentials.email}-${Date.now()}.txt`;
+    a.download = `user-credentials-${userId}-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("ดาวน์โหลดข้อมูลแล้ว");
@@ -113,8 +117,8 @@ ${credentials.invite_link ? `ลิงก์เชิญเข้าสู่ร
             </div>
 
             <div className="space-y-2">
-              <Label>อีเมล (User ID)</Label>
-              <Input value={credentials.email} readOnly />
+              <Label>{userIdLabel}</Label>
+              <Input value={userId} readOnly className="font-mono" />
             </div>
 
             <Separator />
@@ -192,7 +196,7 @@ ${credentials.invite_link ? `ลิงก์เชิญเข้าสู่ร
                 <p className="text-xs text-muted-foreground">
                   {credentials.invitation_code 
                     ? `ผู้ใช้สามารถใช้รหัสเชิญที่หน้า /auth/claim-code`
-                    : `ลิงก์มีอายุ 72 ชั่วโมง - อีเมลเชิญถูกส่งไปยัง ${credentials.email} แล้ว`
+                    : `ลิงก์มีอายุ 72 ชั่วโมง - ${credentials.email ? `อีเมลเชิญถูกส่งไปยัง ${credentials.email} แล้ว` : 'ส่งลิงก์ให้ผู้ใช้อย่างปลอดภัย'}`
                   }
                 </p>
               </div>
