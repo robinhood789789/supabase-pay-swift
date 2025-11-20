@@ -89,7 +89,8 @@ export const CreateUserDialog = () => {
   const [temporaryPassword, setTemporaryPassword] = useState("");
   const [copiedPassword, setCopiedPassword] = useState(false);
   const [credentials, setCredentials] = useState<{
-    email: string;
+    email?: string;
+    public_id?: string;
     user_id: string;
     display_name: string;
     invitation_code?: string;
@@ -291,6 +292,7 @@ export const CreateUserDialog = () => {
       // Show credentials dialog with temporary password
       setCredentials({
         email: public_id,  // Use public_id as email for display
+        public_id: public_id,
         user_id: public_id,
         display_name: form.getValues('full_name'),
         invitation_code: result?.invitation_code,

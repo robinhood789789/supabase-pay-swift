@@ -23,7 +23,7 @@ interface CreatePartnerDialogProps {
 
 interface PartnerFormData {
   display_name: string;
-  email: string;
+  public_id: string;
   commission_type: "bounty" | "revenue_share" | "hybrid";
   commission_percent: number;
   bounty_amount: number;
@@ -42,7 +42,7 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<PartnerFormData>({
     display_name: "",
-    email: "",
+    public_id: "",
     commission_type: "revenue_share",
     commission_percent: 10,
     bounty_amount: 0,
@@ -56,7 +56,7 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
   const [credentials, setCredentials] = useState<{
     temp_password?: string;
     invite_link?: string;
-    email: string;
+    public_id: string;
     display_name: string;
     invitation_code?: string;
     code_id?: string;
@@ -66,27 +66,34 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
 
   const { isOpen: mfaOpen, setIsOpen: setMfaOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
 
-  // Check if email already exists
-  const { data: emailCheck, isLoading: checkingEmail } = useQuery({
-    queryKey: ["check-partner-email", formData.email],
+  // Check if public_id already exists
+  const { data: publicIdCheck, isLoading: checkingPublicId } = useQuery({
+    queryKey: ["check-partner-public-id", formData.public_id],
     queryFn: async () => {
-      if (!formData.email.trim() || !formData.email.includes('@')) return { exists: false };
+      if (!formData.public_id.trim()) return { exists: false };
+      
+      // Validate format: PREFIX-NNNNNN
+      const publicIdRegex = /^[A-Z0-9]{2,6}-[0-9]{6}$/;
+      if (!publicIdRegex.test(formData.public_id)) {
+        return { exists: false, invalidFormat: true };
+      }
       
       const { data, error } = await invokeFunctionWithTenant("platform-partners-list", {
-        body: { search: formData.email, pageSize: 1 },
+        body: { search: formData.public_id, pageSize: 1 },
       });
       
       if (error) return { exists: false };
       const partners = data?.partners || [];
       const exists = partners.some((p: any) => 
-        p.email?.toLowerCase() === formData.email.toLowerCase()
+        p.public_id?.toUpperCase() === formData.public_id.toUpperCase()
       );
       return { 
         exists,
+        invalidFormat: false,
         existingPartner: exists ? partners[0] : null
       };
     },
-    enabled: formData.email.trim().length > 0 && formData.email.includes('@'),
+    enabled: formData.public_id.trim().length > 0,
     staleTime: 10000,
   });
 
@@ -143,7 +150,7 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
       setCredentials({
         temp_password: result.temp_password,
         invite_link: result.invite_link,
-        email: formData.email,
+        public_id: formData.public_id,
         display_name: formData.display_name,
         invitation_code: result.invitation_code,
         code_id: result.code_id,
@@ -177,8 +184,9 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
     }
   };
 
-  const emailExists = emailCheck?.exists || false;
-  const isStep1Valid = formData.display_name.trim() && formData.email.trim() && !emailExists;
+  const publicIdExists = publicIdCheck?.exists || false;
+  const publicIdInvalid = publicIdCheck?.invalidFormat || false;
+  const isStep1Valid = formData.display_name.trim() && formData.public_id.trim() && !publicIdExists && !publicIdInvalid;
   const isStep2Valid = true; // Commission fields always valid
   const canProceed = {
     1: isStep1Valid,
@@ -236,32 +244,48 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">
-                      อีเมล (User ID) <span className="text-destructive">*</span>
+                    <Label htmlFor="public_id">
+                      Public ID <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="partner@example.com"
-                        className={emailExists ? "border-destructive" : ""}
+                        id="public_id"
+                        value={formData.public_id}
+                        onChange={(e) => setFormData({ ...formData, public_id: e.target.value.toUpperCase() })}
+                        placeholder="PEA-123456"
+                        className={publicIdExists || publicIdInvalid ? "border-destructive" : ""}
+                        maxLength={13}
                       />
-                      {checkingEmail && (
+                      {checkingPublicId && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                         </div>
                       )}
                     </div>
-                    {emailExists && emailCheck?.existingPartner && (
+                    <p className="text-xs text-muted-foreground">
+                      รูปแบบ: PREFIX-NNNNNN (เช่น PEA-123456)
+                    </p>
+                    {publicIdInvalid && (
+                      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="font-medium text-destructive">รูปแบบไม่ถูกต้อง</p>
+                            <p className="text-muted-foreground">
+                              กรุณากรอก Public ID ในรูปแบบ PREFIX-NNNNNN (PREFIX 2-6 ตัวอักษร ตามด้วยขีด และเลข 6 หลัก)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {publicIdExists && publicIdCheck?.existingPartner && (
                       <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
                         <div className="flex items-start gap-2">
                           <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
                           <div className="text-sm space-y-1">
-                            <p className="font-medium text-destructive">อีเมลนี้ถูกใช้แล้ว</p>
+                            <p className="font-medium text-destructive">Public ID นี้ถูกใช้แล้ว</p>
                             <p className="text-muted-foreground">
-                              พาร์ทเนอร์ <span className="font-medium">{emailCheck.existingPartner.full_name}</span> ใช้อีเมลนี้อยู่แล้ว
+                              พาร์ทเนอร์ <span className="font-medium">{publicIdCheck.existingPartner.full_name}</span> ใช้ Public ID นี้อยู่แล้ว
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               กรุณาใช้อีเมลอื่น หรือแก้ไขข้อมูลพาร์ทเนอร์ที่มีอยู่แทน
@@ -270,17 +294,17 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
                         </div>
                       </div>
                     )}
-                    {!emailExists && formData.email.trim() && formData.email.includes('@') && !checkingEmail && (
+                    {!publicIdExists && !publicIdInvalid && formData.public_id.trim() && !checkingPublicId && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <Check className="h-3 w-3 text-success" />
-                        จะใช้เป็น User ID สำหรับเข้าสู่ระบบ
+                        Public ID สามารถใช้ได้
                       </p>
                     )}
-                    {!formData.email.trim() || !formData.email.includes('@') ? (
+                    {!formData.public_id.trim() && (
                       <p className="text-sm text-muted-foreground">
-                        จะใช้เป็น User ID สำหรับเข้าสู่ระบบ
+                        จะใช้เป็น Public ID ของพาร์ทเนอร์
                       </p>
-                    ) : null}
+                    )}
                   </div>
 
                   <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
@@ -436,8 +460,8 @@ export function CreatePartnerDialog({ open, onOpenChange }: CreatePartnerDialogP
                       <span className="text-sm">{formData.display_name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm font-medium">อีเมล:</span>
-                      <span className="text-sm">{formData.email}</span>
+                      <span className="text-sm font-medium">Public ID:</span>
+                      <span className="text-sm font-mono">{formData.public_id}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm font-medium">ประเภทคอมมิชัน:</span>

@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
     const {
       display_name,
-      email,
+      public_id,
       commission_type = 'revenue_share',
       commission_percent = 10,
       bounty_amount = 0,
@@ -132,17 +132,17 @@ Deno.serve(async (req) => {
     } = await req.json();
 
     // Validate inputs
-    if (!display_name || !email) {
-      return new Response(JSON.stringify({ error: 'Display name and email are required', code: 'VALIDATION_ERROR' }), {
+    if (!display_name || !public_id) {
+      return new Response(JSON.stringify({ error: 'Display name and public_id are required', code: 'VALIDATION_ERROR' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Validate email format
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.valid) {
-      return new Response(JSON.stringify({ error: emailValidation.error, code: 'VALIDATION_ERROR' }), {
+    // Validate public_id format (PREFIX-NNNNNN)
+    const publicIdRegex = /^[A-Z0-9]{2,6}-[0-9]{6}$/;
+    if (!publicIdRegex.test(public_id)) {
+      return new Response(JSON.stringify({ error: 'Invalid public_id format. Expected: PREFIX-NNNNNN', code: 'VALIDATION_ERROR' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -165,14 +165,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    logSecureAction('platform-partners-create', 'Creating partner', { display_name, email, commission_type });
+    logSecureAction('platform-partners-create', 'Creating partner', { display_name, public_id, commission_type });
 
-    // Check if email already exists
-    console.log('[platform-partners-create] Checking if email exists...');
-    const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
-    if (existingUser?.users.some(u => u.email === email)) {
-      console.error('[platform-partners-create] Email already exists:', email);
-      return new Response(JSON.stringify({ error: 'Email already exists' }), {
+    // Check if public_id already exists in profiles
+    console.log('[platform-partners-create] Checking if public_id exists...');
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('public_id')
+      .eq('public_id', public_id)
+      .maybeSingle();
+      
+    if (existingProfile) {
+      console.error('[platform-partners-create] Public ID already exists:', public_id);
+      return new Response(JSON.stringify({ error: 'Public ID already exists' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -181,6 +186,9 @@ Deno.serve(async (req) => {
     // Generate temp password
     const tempPassword = generateTempPassword();
 
+    // Generate email from public_id
+    const email = `${public_id.toLowerCase()}@partner.internal`;
+
     // Create auth user
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -188,6 +196,7 @@ Deno.serve(async (req) => {
       email_confirm: true,
       user_metadata: {
         full_name: display_name,
+        public_id: public_id,
       },
     });
 
@@ -199,17 +208,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update profile to set requires_password_change
+    // Update profile to set requires_password_change and public_id
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .update({
         requires_password_change: true,
+        public_id: public_id,
       })
       .eq("id", newUser.user.id);
 
     if (profileError) {
       console.error('Failed to update profile:', profileError);
-      // Continue anyway - password change will be enforced at login
+      // Rollback user creation if profile update fails
+      await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
+      return new Response(JSON.stringify({ error: 'Failed to update profile' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Create shareholder record
@@ -344,8 +359,11 @@ Deno.serve(async (req) => {
         success: true,
         shareholder_id: shareholder.id,
         invitation_code: invitationCode,
+        code_id: tempCodeData?.code_id,
         invite_link: inviteLink,
         expires_at: expiresAt.toISOString(),
+        temp_password: tempPassword,
+        public_id: public_id,
         instructions: invitationCode 
           ? 'Invitation email sent. User must sign in and use the invitation code to set their password.'
           : 'Invitation email sent. User must sign in with temporary password and will be prompted to change it.',
