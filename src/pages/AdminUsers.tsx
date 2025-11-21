@@ -42,6 +42,7 @@ import { PermissionGate } from "@/components/PermissionGate";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
 import { EditMemberDialog } from "@/components/EditMemberDialog";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { PasswordResetReport } from "@/components/admin/PasswordResetReport";
 
 const AdminUsers = () => {
@@ -49,6 +50,8 @@ const AdminUsers = () => {
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -637,7 +640,7 @@ const AdminUsers = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers?.map((user) => (
+                    {filteredUsers?.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((user) => (
                       <TableRow key={user.id}>
                         <PermissionGate allowOwner={true}>
                           <TableCell>
@@ -775,6 +778,88 @@ const AdminUsers = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {filteredUsers && filteredUsers.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mt-4 pt-4 border-t">
+                {/* Items per page selector - Left */}
+                <div className="flex items-center gap-2 justify-start">
+                  <span className="text-sm text-muted-foreground">แสดง</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">รายการ</span>
+                </div>
+
+                {/* Pagination - Center */}
+                <div className="flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, Math.ceil((filteredUsers?.length || 0) / itemsPerPage)) }, (_, i) => {
+                        const totalPages = Math.ceil((filteredUsers?.length || 0) / itemsPerPage);
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setPage(pageNum)}
+                              isActive={page === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {Math.ceil((filteredUsers?.length || 0) / itemsPerPage) > 5 && page < Math.ceil((filteredUsers?.length || 0) / itemsPerPage) - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setPage(p => Math.min(Math.ceil((filteredUsers?.length || 0) / itemsPerPage), p + 1))}
+                          className={page === Math.ceil((filteredUsers?.length || 0) / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+
+                {/* Page info - Right */}
+                <div className="text-sm text-muted-foreground text-right">
+                  หน้า {page} จาก {Math.ceil((filteredUsers?.length || 0) / itemsPerPage)} ({filteredUsers?.length || 0} รายการทั้งหมด)
+                </div>
               </div>
             )}
           </CardContent>

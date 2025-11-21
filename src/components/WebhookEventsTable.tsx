@@ -18,6 +18,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Card, CardContent } from "@/components/ui/card";
 import { CalendarIcon, Eye, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,8 @@ export const WebhookEventsTable = () => {
   const { t } = useI18n();
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   const [filters, setFilters] = useState({
     status: "all",
@@ -38,17 +42,20 @@ export const WebhookEventsTable = () => {
     dateTo: undefined as Date | undefined,
   });
 
-  const { data: events, isLoading } = useQuery({
-    queryKey: ["webhook-events", activeTenantId, filters],
+  const { data: queryResult, isLoading } = useQuery<{ data: any[], count: number }>({
+    queryKey: ["webhook-events", activeTenantId, filters, page, itemsPerPage],
     queryFn: async () => {
-      if (!activeTenantId) return [];
+      if (!activeTenantId) return { data: [], count: 0 };
+
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
 
       let query = supabase
         .from("webhook_events")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("tenant_id", activeTenantId)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(from, to);
 
       if (filters.status !== "all") {
         query = query.eq("status", filters.status);
@@ -68,12 +75,16 @@ export const WebhookEventsTable = () => {
         query = query.lte("created_at", endOfDay.toISOString());
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data;
+      return { data: data || [], count: count || 0 };
     },
     enabled: !!activeTenantId,
   });
+
+  const events = queryResult?.data || [];
+  const totalCount = queryResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -229,6 +240,91 @@ export const WebhookEventsTable = () => {
               </TableBody>
             </Table>
           </div>
+        )}
+
+        {/* Pagination Controls */}
+        {filteredEvents && filteredEvents.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                {/* Items per page selector - Left */}
+                <div className="flex items-center gap-2 justify-start">
+                  <span className="text-sm text-muted-foreground">Show</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">items per page</span>
+                </div>
+
+                {/* Pagination - Center */}
+                <div className="flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setPage(pageNum)}
+                              isActive={page === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && page < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                          className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+
+                {/* Page info - Right */}
+                <div className="text-sm text-muted-foreground text-right">
+                  Page {page} of {totalPages} ({totalCount} total items)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
 

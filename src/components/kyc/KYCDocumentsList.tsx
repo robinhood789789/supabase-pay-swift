@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, XCircle, Clock, FileText } from "lucide-react";
 import { useTenantSwitcher } from "@/hooks/useTenantSwitcher";
 import { use2FAChallenge } from "@/hooks/use2FAChallenge";
@@ -49,6 +51,8 @@ export const KYCDocumentsList = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge();
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [actionDialog, setActionDialog] = useState<{ open: boolean; docId: string; action: 'approve' | 'reject' }>({
     open: false,
     docId: '',
@@ -56,21 +60,30 @@ export const KYCDocumentsList = () => {
   });
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const { data: documents, isLoading } = useQuery({
-    queryKey: ["kyc-documents", activeTenantId],
+  const { data: queryResult, isLoading } = useQuery<{ data: any[], count: number }>({
+    queryKey: ["kyc-documents", activeTenantId, page, itemsPerPage],
     queryFn: async () => {
-      if (!activeTenantId) return [];
-      const { data, error } = await supabase
+      if (!activeTenantId) return { data: [], count: 0 };
+
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+
+      const { data, error, count } = await supabase
         .from("kyc_documents")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("tenant_id", activeTenantId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      return data || [];
+      return { data: data || [], count: count || 0 };
     },
     enabled: !!activeTenantId,
   });
+
+  const documents = queryResult?.data || [];
+  const totalCount = queryResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ docId, status, reason }: { docId: string; status: string; reason?: string }) => {
@@ -217,6 +230,91 @@ export const KYCDocumentsList = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {documents && documents.length > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+              {/* Items per page selector - Left */}
+              <div className="flex items-center gap-2 justify-start">
+                <span className="text-sm text-muted-foreground">แสดง</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setPage(1);
+                }}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              {/* Pagination - Center */}
+              <div className="flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (page <= 3) {
+                        pageNum = i + 1;
+                      } else if (page >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setPage(pageNum)}
+                            isActive={page === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    {totalPages > 5 && page < totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+
+              {/* Page info - Right */}
+              <div className="text-sm text-muted-foreground text-right">
+                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={actionDialog.open} onOpenChange={(open) => setActionDialog({ ...actionDialog, open })}>
         <DialogContent>

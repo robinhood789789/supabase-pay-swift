@@ -18,6 +18,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { AlertTriangle, ShieldAlert, CheckCircle, XCircle, Eye, Filter, TrendingUp, AlertCircle } from 'lucide-react';
 import { useTenantSwitcher } from '@/hooks/useTenantSwitcher';
 import { toast } from 'sonner';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { formatDistanceToNow } from 'date-fns';
 
 interface SecurityAlert {
@@ -44,6 +45,8 @@ const SecurityAlerts = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedAlert, setSelectedAlert] = useState<SecurityAlert | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
@@ -51,14 +54,17 @@ const SecurityAlerts = () => {
   const [actionNotes, setActionNotes] = useState('');
 
   // Fetch alerts
-  const { data: alerts, isLoading } = useQuery<SecurityAlert[]>({
-    queryKey: ['security-alerts', activeTenantId, severityFilter, statusFilter, typeFilter],
+  const { data: queryResult, isLoading } = useQuery<{ data: SecurityAlert[], count: number }>({
+    queryKey: ['security-alerts', activeTenantId, severityFilter, statusFilter, typeFilter, page, itemsPerPage],
     queryFn: async () => {
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+
       let query = supabase
         .from('security_alerts')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(200);
+        .range(from, to);
 
       if (activeTenantId) {
         query = query.eq('tenant_id', activeTenantId);
@@ -76,12 +82,16 @@ const SecurityAlerts = () => {
         query = query.eq('alert_type', typeFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data || [];
+      return { data: data || [], count: count || 0 };
     },
     enabled: !!activeTenantId,
   });
+
+  const alerts = queryResult?.data || [];
+  const totalCount = queryResult?.count || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   // Filter alerts by search
   const filteredAlerts = alerts?.filter(alert => 
@@ -530,6 +540,87 @@ const SecurityAlerts = () => {
                   </div>
                 )}
               </ScrollArea>
+
+              {/* Pagination Controls */}
+              {alerts && alerts.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mt-4 pt-4 border-t">
+                  {/* Items per page selector - Left */}
+                  <div className="flex items-center gap-2 justify-start">
+                    <span className="text-sm text-muted-foreground">แสดง</span>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setPage(1);
+                    }}>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">รายการ</span>
+                  </div>
+
+                  {/* Pagination - Center */}
+                  <div className="flex justify-center">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (page <= 3) {
+                            pageNum = i + 1;
+                          } else if (page >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = page - 2 + i;
+                          }
+                          
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink
+                                onClick={() => setPage(pageNum)}
+                                isActive={page === pageNum}
+                                className="cursor-pointer"
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        
+                        {totalPages > 5 && page < totalPages - 2 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+
+                  {/* Page info - Right */}
+                  <div className="text-sm text-muted-foreground text-right">
+                    หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
