@@ -866,10 +866,15 @@ export default function PlatformShareholderEarnings() {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious 
+                      <PaginationLink
                         onClick={() => setShareholderPage(Math.max(1, shareholderPage - 1))}
-                        className={shareholderPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
+                        className={cn(
+                          "cursor-pointer",
+                          shareholderPage === 1 && "pointer-events-none opacity-50"
+                        )}
+                      >
+                        Previous
+                      </PaginationLink>
                     </PaginationItem>
                     {Array.from({ length: shareholderTotalPages }, (_, i) => i + 1).map((page) => {
                       // Show first page, last page, current page, and pages around current
@@ -895,10 +900,15 @@ export default function PlatformShareholderEarnings() {
                       return null;
                     })}
                     <PaginationItem>
-                      <PaginationNext 
+                      <PaginationLink
                         onClick={() => setShareholderPage(Math.min(shareholderTotalPages, shareholderPage + 1))}
-                        className={shareholderPage === shareholderTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
+                        className={cn(
+                          "cursor-pointer",
+                          shareholderPage === shareholderTotalPages && "pointer-events-none opacity-50"
+                        )}
+                      >
+                        Next
+                      </PaginationLink>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
@@ -1065,10 +1075,15 @@ export default function PlatformShareholderEarnings() {
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
+                          <PaginationLink
                             onClick={() => setMdrPage(Math.max(1, mdrPage - 1))}
-                            className={mdrPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
+                            className={cn(
+                              "cursor-pointer",
+                              mdrPage === 1 && "pointer-events-none opacity-50"
+                            )}
+                          >
+                            Previous
+                          </PaginationLink>
                         </PaginationItem>
                         {Array.from({ length: mdrTotalPages }, (_, i) => i + 1).map((page) => {
                           if (
@@ -1093,10 +1108,15 @@ export default function PlatformShareholderEarnings() {
                           return null;
                         })}
                         <PaginationItem>
-                          <PaginationNext 
+                          <PaginationLink
                             onClick={() => setMdrPage(Math.min(mdrTotalPages, mdrPage + 1))}
-                            className={mdrPage === mdrTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
+                            className={cn(
+                              "cursor-pointer",
+                              mdrPage === mdrTotalPages && "pointer-events-none opacity-50"
+                            )}
+                          >
+                            Next
+                          </PaginationLink>
                         </PaginationItem>
                       </PaginationContent>
                     </Pagination>
