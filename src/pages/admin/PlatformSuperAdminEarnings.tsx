@@ -411,10 +411,10 @@ export default function PlatformSuperAdminEarnings() {
                 </TableRow>
               ) : paginatedTransfers && paginatedTransfers.length > 0 ? (
                 paginatedTransfers.map((group, index) => {
-                  // Calculate from total_transfer_amount
-                  const totalTransferAmount = group.totalAmount; // This is total_transfer_amount (deposits + topups + settlements)
-                  const mdrRate = 1.5; // 1.5% MDR
-                  const totalMDR = totalTransferAmount * (mdrRate / 100);
+                  // Use pre-calculated values from query
+                  const totalTransferAmount = group.totalAmount; // total_transfer_amount (deposits + topups + settlements)
+                  const totalMDR = group.totalCommission; // Already calculated as 1.5% in query
+                  const mdrRate = group.commissionRate; // 1.5%
                   const shareholderShare = totalTransferAmount * (shareholderPercentage / 100); // 0.5%
                   const superAdminShare = totalTransferAmount * (superAdminPercentage / 100); // 1%
 
@@ -429,7 +429,7 @@ export default function PlatformSuperAdminEarnings() {
                       <TableCell className="font-bold text-green-600">
                         {formatCurrency(totalMDR)}
                         <span className="text-xs text-muted-foreground ml-2">
-                          (จาก {formatCurrency(totalTransferAmount)})
+                          (1.5% จาก {formatCurrency(totalTransferAmount)})
                         </span>
                       </TableCell>
                       <TableCell className="font-semibold text-blue-600">
