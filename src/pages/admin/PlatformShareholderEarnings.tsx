@@ -451,18 +451,11 @@ export default function PlatformShareholderEarnings() {
             .eq("id", tenantData?.user_id)
             .single();
 
-          // Fetch shareholder data
+          // Fetch shareholder data with full details
           const { data: shareholderData } = await supabase
             .from("shareholders")
-            .select("user_id")
+            .select("full_name, email, id")
             .eq("id", relation.shareholder_id)
-            .single();
-
-          // Fetch shareholder profile
-          const { data: shareholderProfile } = await supabase
-            .from("profiles")
-            .select("full_name, public_id")
-            .eq("id", shareholderData?.user_id)
             .single();
 
           return {
@@ -472,10 +465,7 @@ export default function PlatformShareholderEarnings() {
               user_id: tenantData?.user_id,
               profiles: ownerProfile
             },
-            shareholders: {
-              user_id: shareholderData?.user_id,
-              profiles: shareholderProfile
-            }
+            shareholders: shareholderData
           };
         })
       );
@@ -517,8 +507,8 @@ export default function PlatformShareholderEarnings() {
           tenant_name: (relation.tenants as any).name,
           owner_name: (relation.tenants as any).profiles?.full_name || "N/A",
           shareholder_id: relation.shareholder_id,
-          shareholder_name: (relation.shareholders as any).profiles?.full_name || "N/A",
-          shareholder_public_id: (relation.shareholders as any).profiles?.public_id || "N/A",
+          shareholder_name: (relation.shareholders as any)?.full_name || "N/A",
+          shareholder_public_id: relation.shareholder_id,
           total_transfer_amount: totalTransferAmount,
           shareholder_commission_rate: relation.commission_rate,
           shareholder_commission_amount: shareholderCommission,
@@ -1003,7 +993,6 @@ export default function PlatformShareholderEarnings() {
                     <TableHeader>
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
                         <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Shareholder</TableHead>
-                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
                         <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                           ยอด MDR
                         </TableHead>
@@ -1023,9 +1012,6 @@ export default function PlatformShareholderEarnings() {
                         <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
                           <TableCell className="border-r font-semibold">
                             {row.shareholder_name}
-                          </TableCell>
-                          <TableCell className="border-r font-medium">
-                            {row.tenant_name}
                           </TableCell>
                           <TableCell className="text-right border-r font-semibold bg-emerald-50 dark:bg-emerald-950/10">
                             {formatCurrency(row.total_transfer_amount)}
