@@ -339,9 +339,9 @@ export default function ShareholderMDR() {
       {totalCount > 0 && (
         <Card className="border border-border shadow-soft bg-card">
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              {/* Items per page selector */}
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+              {/* Items per page selector - Left */}
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
                 <span className="text-sm text-muted-foreground">แสดง</span>
                 <Select value={itemsPerPage.toString()} onValueChange={(value) => {
                   setItemsPerPage(Number(value));
@@ -359,13 +359,8 @@ export default function ShareholderMDR() {
                 <span className="text-sm text-muted-foreground">รายการ</span>
               </div>
 
-              {/* Page info */}
-              <div className="text-sm text-muted-foreground">
-                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
-              </div>
-
-              {/* Pagination */}
-              <Pagination>
+              {/* Pagination - Center */}
+              <Pagination className="justify-center">
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious 
@@ -413,6 +408,11 @@ export default function ShareholderMDR() {
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
+
+              {/* Page info - Right */}
+              <div className="text-sm text-muted-foreground text-center sm:text-right">
+                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+              </div>
             </div>
           </CardContent>
         </Card>
