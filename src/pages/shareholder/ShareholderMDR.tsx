@@ -87,47 +87,28 @@ export default function ShareholderMDR() {
 
       // For each client, fetch MDR data
       const mdrPromises = clients?.map(async (client) => {
-        // Fetch deposit_transfers for this tenant
+        // Fetch deposit_transfers for this tenant (matching Super Admin Earnings calculation)
         const { data: deposits } = await supabase
           .from("deposit_transfers")
           .select("amountpaid")
           .eq("tenant_id", client.tenant_id)
-          .gte("depositdate", startDateStr)
-          .lte("depositdate", endDateStr);
-
-        // Fetch topup_transfers for this tenant (match by merchant_code = tenant public_id)
-        const { data: topups } = await supabase
-          .from("topup_transfers")
-          .select("amount")
-          .eq("merchant_code", (client.tenants as any).public_id)
-          .gte("transfer_date", startDateStr)
-          .lte("transfer_date", endDateStr);
-
-        // Fetch settlement_transfers for this tenant
-        const { data: settlements } = await supabase
-          .from("settlement_transfers")
-          .select("amount")
-          .eq("merchant_code", (client.tenants as any).public_id)
           .gte("created_at", startDateStr)
-          .lte("created_at", endDateStr);
+          .lte("created_at", endDateStr)
+          .not("status", "is", null);
 
+        // Calculate base amount from deposits (same as Super Admin page)
         const totalDeposit = deposits?.reduce((sum, d) => sum + (Number(d.amountpaid) || 0), 0) || 0;
-        const totalTopup = topups?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-        const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
-        const totalPayout = 0; // You can add payout logic if needed
-
-        // Calculate commissions directly from transfer amount
-        const shareholderRate = client.commission_rate / 100; // Convert percentage to decimal
-        const ownerRate = 0.005; // 0.5% for owner (example - should come from database)
         
-        // Total transfer amount (ยอดการโอนรวม)
-        const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
+        // Use fixed rates to match Super Admin calculation
+        const mdrRate = 1.5; // 1.5% total MDR
+        const shareholderRate = 0.5; // 0.5% for shareholder
+        const superAdminRate = 1.0; // 1% for super admin
         
-        // Shareholder gets their % of total transfer amount
-        const shareholderCommission = totalTransferAmount * shareholderRate;
-        
-        // Owner gets their % of total transfer amount
-        const ownerCommission = totalTransferAmount * ownerRate;
+        // Calculate MDR and commissions from deposit amount
+        const totalMDR = totalDeposit * (mdrRate / 100);
+        const shareholderCommission = totalDeposit * (shareholderRate / 100);
+        const superAdminCommission = totalDeposit * (superAdminRate / 100);
+        const ownerCommission = 0; // Owner commission separate if needed
 
         return {
           tenant_id: client.tenant_id,
@@ -136,12 +117,12 @@ export default function ShareholderMDR() {
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
-          total_topup: totalTopup,
-          total_payout: totalPayout,
-          total_settlement: totalSettlement,
-          total_transfer_amount: totalTransferAmount,
-          shareholder_commission_rate: shareholderRate * 100,
-          owner_commission_rate: ownerRate * 100,
+          total_topup: 0,
+          total_payout: 0,
+          total_settlement: 0,
+          total_transfer_amount: totalDeposit, // Changed to match deposit amount
+          shareholder_commission_rate: shareholderRate,
+          owner_commission_rate: 0,
           shareholder_commission_amount: shareholderCommission,
           owner_commission_amount: ownerCommission,
         };
@@ -267,11 +248,12 @@ export default function ShareholderMDR() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              ยอดการโอนรวมทั้งหมด
+              ยอด MDR รวมทั้งหมด
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold text-foreground">{formatCurrency(summary?.totalTransferAmount || 0)}</div>
+            <p className="text-xs text-muted-foreground mt-1">จากยอด Deposits</p>
           </CardContent>
         </Card>
 
@@ -279,13 +261,14 @@ export default function ShareholderMDR() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              ส่วนแบ่ง Shareholder
+              ค่าคอมมิชชั่นรวมทั้งหมด
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
               {formatCurrency(summary?.shareholderCommission || 0)}
             </div>
+            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">0.5% ของยอด Deposits</p>
           </CardContent>
         </Card>
       </div>
@@ -302,8 +285,12 @@ export default function ShareholderMDR() {
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
-                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อองค์กร</TableHead>
-                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดรวม</TableHead>
+                    <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ Shareholder</TableHead>
+                    <TableHead className="text-center border-r bg-blue-50 dark:bg-blue-950/20 font-semibold">จำนวน Clients</TableHead>
+                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอด MDR</TableHead>
+                    <TableHead className="text-center border-r bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
+                      % อัตราคอมมิชชั่น
+                    </TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                       ส่วนแบ่ง Shareholder
                     </TableHead>
@@ -312,7 +299,7 @@ export default function ShareholderMDR() {
                 <TableBody>
                   {!paginatedData || paginatedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         ไม่พบข้อมูลในช่วงเวลานี้
                       </TableCell>
                     </TableRow>
@@ -333,8 +320,14 @@ export default function ShareholderMDR() {
                         <TableCell className="border-r bg-white dark:bg-slate-950">
                           {row.tenant_name}
                         </TableCell>
+                        <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/10 border-r">
+                          <Badge variant="outline">1</Badge>
+                        </TableCell>
                         <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/10 border-r text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.total_transfer_amount)}
+                        </TableCell>
+                        <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/10 border-r text-blue-700 dark:text-blue-400 font-semibold">
+                          {row.shareholder_commission_rate.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-right bg-emerald-50/50 dark:bg-emerald-950/10 text-emerald-700 dark:text-emerald-400 font-bold">
                           {formatCurrency(row.shareholder_commission_amount)}
