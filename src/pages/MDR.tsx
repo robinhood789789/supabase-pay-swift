@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -63,10 +64,12 @@ const MDR = () => {
   }>({
     queryKey: ["mdr-report", format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), page, itemsPerPage],
     queryFn: async () => {
-      const startDateStr = format(startDate, "yyyy-MM-dd");
-      const endDateStr = format(endDate, "yyyy-MM-dd");
+      // Use Bangkok timezone (UTC+7) for date queries
+      const timezone = "Asia/Bangkok";
+      const startDateStr = formatInTimeZone(startDate, timezone, "yyyy-MM-dd");
+      const endDateStr = formatInTimeZone(endDate, timezone, "yyyy-MM-dd");
       
-      console.log("Fetching MDR data with filters:", { startDateStr, endDateStr });
+      console.log("Fetching MDR data with filters:", { startDateStr, endDateStr, timezone });
       
       // 1. Query deposit_transfers data (เติมเงิน)
       const depositQuery = (supabase as any)
