@@ -1749,6 +1749,7 @@ export type Database = {
           status: string
           sys_account_name: string | null
           sys_bank: string | null
+          tenant_id: string | null
           tx_id: string
           updated_at: string
         }
@@ -1774,6 +1775,7 @@ export type Database = {
           status: string
           sys_account_name?: string | null
           sys_bank?: string | null
+          tenant_id?: string | null
           tx_id: string
           updated_at?: string
         }
@@ -1799,6 +1801,7 @@ export type Database = {
           status?: string
           sys_account_name?: string | null
           sys_bank?: string | null
+          tenant_id?: string | null
           tx_id?: string
           updated_at?: string
         }
@@ -2322,6 +2325,7 @@ export type Database = {
           sys_account_name: string | null
           sys_account_number: string | null
           sys_bank: string | null
+          tenant_id: string | null
           topup_ref: string
           transfer_date: string | null
           updated_at: string
@@ -2345,6 +2349,7 @@ export type Database = {
           sys_account_name?: string | null
           sys_account_number?: string | null
           sys_bank?: string | null
+          tenant_id?: string | null
           topup_ref: string
           transfer_date?: string | null
           updated_at?: string
@@ -2368,6 +2373,7 @@ export type Database = {
           sys_account_name?: string | null
           sys_account_number?: string | null
           sys_bank?: string | null
+          tenant_id?: string | null
           topup_ref?: string
           transfer_date?: string | null
           updated_at?: string
