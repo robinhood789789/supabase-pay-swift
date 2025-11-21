@@ -105,11 +105,11 @@ const PlatformSidebar = () => {
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-muted text-foreground font-semibold border-l-2 border-foreground text-sm"
+                          ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary text-sm"
                           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground text-sm font-medium transition-smooth"
                       }
                     >
-                      <item.icon className="mr-3 h-4 w-4" />
+                      <item.icon className={`mr-3 h-4 w-4 ${!isCollapsed ? '' : ''}`} />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
