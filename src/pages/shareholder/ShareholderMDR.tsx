@@ -88,9 +88,9 @@ export default function ShareholderMDR() {
           .from("deposit_transfers")
           .select("amountpaid")
           .eq("tenant_id", client.tenant_id)
+          .eq("status", "3")
           .gte("depositdate", startDateStr)
-          .lte("depositdate", endDateStr)
-          .not("status", "is", null);
+          .lte("depositdate", endDateStr);
 
         // Fetch settlement_transfers
         const { data: settlements } = await supabase
