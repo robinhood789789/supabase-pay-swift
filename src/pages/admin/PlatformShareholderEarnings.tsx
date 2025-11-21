@@ -681,31 +681,36 @@ export default function PlatformShareholderEarnings() {
 
             {/* Date Range Filter */}
             <Select value={dateRange} onValueChange={(value: any) => setDateRange(value)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[200px]">
+                <CalendarIcon className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="เลือกช่วงเวลา" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">วันนี้</SelectItem>
-                <SelectItem value="week">สัปดาห์นี้</SelectItem>
-                <SelectItem value="month">เดือนนี้</SelectItem>
-                <SelectItem value="custom">กำหนดเอง</SelectItem>
+                <SelectItem value="today">📅 วันนี้</SelectItem>
+                <SelectItem value="week">📅 สัปดาห์นี้</SelectItem>
+                <SelectItem value="month">📅 เดือนนี้</SelectItem>
+                <SelectItem value="custom">🗓️ กำหนดเอง (เลือกวันที่)</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Custom Date Range Pickers */}
             {dateRange === "custom" && (
               <>
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-md">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">เลือกช่วงเวลา:</span>
+                </div>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-[200px] justify-start text-left font-normal",
-                        !customStartDate && "text-muted-foreground"
+                        "w-[200px] justify-start text-left font-normal border-2",
+                        !customStartDate && "text-muted-foreground border-dashed"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customStartDate ? format(customStartDate, "d MMM yyyy", { locale: th }) : "วันที่เริ่มต้น"}
+                      {customStartDate ? format(customStartDate, "d MMM yyyy", { locale: th }) : "📅 เริ่มต้น"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -719,17 +724,19 @@ export default function PlatformShareholderEarnings() {
                   </PopoverContent>
                 </Popover>
 
+                <span className="text-muted-foreground">ถึง</span>
+
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-[200px] justify-start text-left font-normal",
-                        !customEndDate && "text-muted-foreground"
+                        "w-[200px] justify-start text-left font-normal border-2",
+                        !customEndDate && "text-muted-foreground border-dashed"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customEndDate ? format(customEndDate, "d MMM yyyy", { locale: th }) : "วันที่สิ้นสุด"}
+                      {customEndDate ? format(customEndDate, "d MMM yyyy", { locale: th }) : "📅 สิ้นสุด"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
