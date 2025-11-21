@@ -9,5 +9,5 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("th-TH", {
     style: "currency",
     currency: "THB",
-  }).format(amount / 100); // Convert from cents to baht
+  }).format(amount);
 }
