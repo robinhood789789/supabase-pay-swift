@@ -768,35 +768,6 @@ export default function PlatformShareholderEarnings() {
             </TabsList>
           </Tabs>
 
-          {/* Items per page selector */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">แสดง</span>
-              <Select
-                value={shareholderItemsPerPage.toString()}
-                onValueChange={(value) => {
-                  setShareholderItemsPerPage(Number(value));
-                  setShareholderPage(1);
-                }}
-              >
-                <SelectTrigger className="w-[80px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
-            </div>
-            {filteredShareholders && filteredShareholders.length > 0 && (
-              <span className="text-sm text-muted-foreground">
-                แสดง {shareholderStartIndex + 1}-{Math.min(shareholderEndIndex, filteredShareholders.length)} จาก {filteredShareholders.length} รายการ
-              </span>
-            )}
-          </div>
-
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -861,6 +832,35 @@ export default function PlatformShareholderEarnings() {
                 </TableBody>
               </Table>
               
+              {/* Items per page selector and page info */}
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">แสดง</span>
+                  <Select
+                    value={shareholderItemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setShareholderItemsPerPage(Number(value));
+                      setShareholderPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
+                </div>
+                {filteredShareholders && filteredShareholders.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    แสดง {shareholderStartIndex + 1}-{Math.min(shareholderEndIndex, filteredShareholders.length)} จาก {filteredShareholders.length} รายการ
+                  </span>
+                )}
+              </div>
+
               {/* Pagination */}
               <div className="mt-4 flex justify-center">
                 <Pagination>
@@ -978,35 +978,6 @@ export default function PlatformShareholderEarnings() {
             </Card>
           </div>
 
-          {/* Items per page selector for MDR */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">แสดง</span>
-              <Select
-                value={mdrItemsPerPage.toString()}
-                onValueChange={(value) => {
-                  setMdrItemsPerPage(Number(value));
-                  setMdrPage(1);
-                }}
-              >
-                <SelectTrigger className="w-[80px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
-            </div>
-            {mdrData && mdrData.length > 0 && (
-              <span className="text-sm text-muted-foreground">
-                แสดง {mdrStartIndex + 1}-{Math.min(mdrEndIndex, mdrData.length)} จาก {mdrData.length} รายการ
-              </span>
-            )}
-          </div>
-
           {/* MDR Detail Table */}
           <div className="rounded-lg border border-border overflow-hidden">
             <div className="overflow-x-auto">
@@ -1060,6 +1031,35 @@ export default function PlatformShareholderEarnings() {
                     </TableBody>
                   </Table>
                   
+                  {/* Items per page selector and page info for MDR */}
+                  <div className="p-4 flex items-center justify-between border-t border-border">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">แสดง</span>
+                      <Select
+                        value={mdrItemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setMdrItemsPerPage(Number(value));
+                          setMdrPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[80px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
+                    </div>
+                    {mdrData && mdrData.length > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        แสดง {mdrStartIndex + 1}-{Math.min(mdrEndIndex, mdrData.length)} จาก {mdrData.length} รายการ
+                      </span>
+                    )}
+                  </div>
+
                   {/* MDR Pagination */}
                   <div className="p-4 flex justify-center border-t border-border">
                     <Pagination>
