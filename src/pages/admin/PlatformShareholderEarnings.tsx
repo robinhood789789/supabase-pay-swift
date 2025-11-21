@@ -39,6 +39,8 @@ export default function PlatformShareholderEarnings() {
   const [selectedTab, setSelectedTab] = useState("all");
   const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
   const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()));
+  const [tempStartDate, setTempStartDate] = useState<Date>(startOfMonth(new Date()));
+  const [tempEndDate, setTempEndDate] = useState<Date>(endOfMonth(new Date()));
   const [useMockMDR, setUseMockMDR] = useState(false);
   const [useMockShareholders, setUseMockShareholders] = useState(false);
   
@@ -48,12 +50,24 @@ export default function PlatformShareholderEarnings() {
   const [mdrPage, setMdrPage] = useState(1);
   const [mdrItemsPerPage, setMdrItemsPerPage] = useState(20);
 
+  // Apply date filter
+  const handleApplyDateFilter = () => {
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+    setShareholderPage(1);
+    setMdrPage(1);
+  };
+
   // Reset all filters
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedTab("all");
-    setStartDate(startOfMonth(new Date()));
-    setEndDate(endOfMonth(new Date()));
+    const defaultStart = startOfMonth(new Date());
+    const defaultEnd = endOfMonth(new Date());
+    setStartDate(defaultStart);
+    setEndDate(defaultEnd);
+    setTempStartDate(defaultStart);
+    setTempEndDate(defaultEnd);
     setShareholderPage(1);
     setMdrPage(1);
   };
@@ -648,7 +662,7 @@ export default function PlatformShareholderEarnings() {
       {/* Date Range Filter */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">ช่วงเวลา:</span>
               <Popover>
@@ -660,14 +674,14 @@ export default function PlatformShareholderEarnings() {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "d MMM yy", { locale: th }) : "เริ่มต้น"}
+                    {tempStartDate ? format(tempStartDate, "d MMM yy", { locale: th }) : "เริ่มต้น"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
                   <Calendar
                     mode="single"
-                    selected={startDate}
-                    onSelect={(date) => date && setStartDate(date)}
+                    selected={tempStartDate}
+                    onSelect={(date) => date && setTempStartDate(date)}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
@@ -685,20 +699,28 @@ export default function PlatformShareholderEarnings() {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "d MMM yy", { locale: th }) : "สิ้นสุด"}
+                    {tempEndDate ? format(tempEndDate, "d MMM yy", { locale: th }) : "สิ้นสุด"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
                   <Calendar
                     mode="single"
-                    selected={endDate}
-                    onSelect={(date) => date && setEndDate(date)}
-                    disabled={(date) => startDate ? date < startDate : false}
+                    selected={tempEndDate}
+                    onSelect={(date) => date && setTempEndDate(date)}
+                    disabled={(date) => tempStartDate ? date < tempStartDate : false}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
+
+              <Button
+                onClick={handleApplyDateFilter}
+                className="gap-2"
+              >
+                <Search className="h-4 w-4" />
+                ค้นหา
+              </Button>
             </div>
 
             {hasActiveFilters && (
