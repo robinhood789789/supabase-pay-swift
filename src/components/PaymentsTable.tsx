@@ -459,10 +459,10 @@ export const PaymentsTable = () => {
       {/* Pagination Controls */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Items per page selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">แสดง</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+            {/* Items per page selector - Left */}
+            <div className="flex items-center gap-2 justify-start">
+              <span className="text-sm text-muted-foreground">Show</span>
               <Select value={itemsPerPage.toString()} onValueChange={(value) => {
                 setItemsPerPage(Number(value));
                 setPage(1);
@@ -476,16 +476,12 @@ export const PaymentsTable = () => {
                   <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-muted-foreground">รายการ</span>
+              <span className="text-sm text-muted-foreground">items per page</span>
             </div>
 
-            {/* Page info */}
-            <div className="text-sm text-muted-foreground">
-              หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
-            </div>
-
-            {/* Pagination */}
-            <Pagination>
+            {/* Pagination - Center */}
+            <div className="flex justify-center">
+              <Pagination>
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious 
@@ -533,6 +529,12 @@ export const PaymentsTable = () => {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
+            </div>
+
+            {/* Page info - Right */}
+            <div className="text-sm text-muted-foreground text-right">
+              Page {page} of {totalPages} ({totalCount} total items)
+            </div>
           </div>
         </CardContent>
       </Card>
