@@ -481,9 +481,9 @@ export default function DepositList() {
         {/* Pagination Controls */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              {/* Items per page selector */}
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+              {/* Items per page selector - Left */}
+              <div className="flex items-center gap-2 justify-start">
                 <span className="text-sm text-muted-foreground">แสดง</span>
                 <Select value={itemsPerPage.toString()} onValueChange={(value) => {
                   setItemsPerPage(Number(value));
@@ -501,13 +501,9 @@ export default function DepositList() {
                 <span className="text-sm text-muted-foreground">รายการ</span>
               </div>
 
-              {/* Page info */}
-              <div className="text-sm text-muted-foreground">
-                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
-              </div>
-
-              {/* Pagination */}
-              <Pagination>
+              {/* Pagination - Center */}
+              <div className="flex justify-center">
+                <Pagination>
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious 
@@ -555,6 +551,12 @@ export default function DepositList() {
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
+              </div>
+
+              {/* Page info - Right */}
+              <div className="text-sm text-muted-foreground text-right">
+                หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+              </div>
             </div>
           </CardContent>
         </Card>
