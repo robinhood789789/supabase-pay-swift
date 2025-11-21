@@ -281,7 +281,7 @@ export default function ShareholderMDR() {
             <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
               {formatCurrency(summary?.shareholderCommission || 0)}
             </div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">0.5% ของยอด Deposits</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">1.5% ของยอด Deposits</p>
           </CardContent>
         </Card>
       </div>
