@@ -56,42 +56,101 @@ export default function PlatformSuperAdminEarnings() {
   const start = startDate.toISOString();
   const end = endDate.toISOString();
 
-  // Fetch incoming transfers data
-  const { data: transfersData, isLoading: transfersLoading } = useQuery({
-    queryKey: ["super-admin-transfers", start, end, useMockData, startDate, endDate],
+  // Fetch shareholder earnings data (connected to MDR table)
+  const { data: shareholderEarningsData, isLoading: earningsLoading } = useQuery({
+    queryKey: ["super-admin-shareholder-earnings", start, end, useMockData, startDate, endDate],
     queryFn: async () => {
       if (useMockData) {
-        return Promise.resolve(mockIncomingTransfers);
+        // Group mock data by shareholder
+        const grouped = new Map();
+        mockIncomingTransfers.forEach(t => {
+          const shareholderId = t.shareholder_public_id || "N/A";
+          const baseAmount = Number(t.amount || 0);
+          const commission = baseAmount * 0.015;
+          
+          if (grouped.has(shareholderId)) {
+            const existing = grouped.get(shareholderId);
+            existing.total_base_amount += baseAmount;
+            existing.total_commission += commission;
+            existing.transfer_count += 1;
+          } else {
+            grouped.set(shareholderId, {
+              shareholder_id: shareholderId,
+              shareholder_public_id: shareholderId,
+              total_base_amount: baseAmount,
+              total_commission: commission,
+              commission_rate: 1.5,
+              transfer_count: 1,
+            });
+          }
+        });
+        
+        return Array.from(grouped.values());
       }
 
-      const { data, error } = await supabase
-        .from("incoming_transfers")
-        .select("*")
+      // Fetch shareholder earnings and related data
+      const { data: earningsData, error: earningsError } = await supabase
+        .from("shareholder_earnings")
+        .select(`
+          shareholder_id,
+          base_amount,
+          amount,
+          commission_rate,
+          created_at,
+          shareholders!inner (
+            id,
+            user_id
+          )
+        `)
         .gte("created_at", start)
-        .lte("created_at", end)
-        .order("created_at", { ascending: false });
+        .lte("created_at", end);
 
-      if (error) throw error;
-      return data || [];
+      if (earningsError) throw earningsError;
+
+      // Fetch shareholder profiles for public_id
+      const shareholderIds = [...new Set(earningsData?.map(e => e.shareholders.user_id) || [])];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, public_id")
+        .in("id", shareholderIds);
+
+      const profileMap = new Map(profilesData?.map(p => [p.id, p.public_id]) || []);
+
+      // Group by shareholder
+      const grouped = new Map();
+      earningsData?.forEach(earning => {
+        const shareholderId = earning.shareholder_id;
+        const shareholderPublicId = profileMap.get(earning.shareholders.user_id) || "N/A";
+        
+        if (grouped.has(shareholderId)) {
+          const existing = grouped.get(shareholderId);
+          existing.total_base_amount += earning.base_amount;
+          existing.total_commission += earning.amount;
+          existing.transfer_count += 1;
+        } else {
+          grouped.set(shareholderId, {
+            shareholder_id: shareholderId,
+            shareholder_public_id: shareholderPublicId,
+            total_base_amount: earning.base_amount,
+            total_commission: earning.amount,
+            commission_rate: earning.commission_rate,
+            transfer_count: 1,
+          });
+        }
+      });
+
+      return Array.from(grouped.values());
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
 
-  // Calculate commissions (1.5% MDR rate)
-  const AVERAGE_COMMISSION_RATE = 0.015;
-  const shareholderPercentage = 0.5; // Fixed percentage for Shareholder share (0.5% of total)
+  const shareholderPercentage = 0.5; // Shareholder's share (0.5% of total MDR)
   
-  const commissionsData = transfersData?.map(transfer => ({
-    transfer_id: transfer.id,
-    commission_amount: Number(transfer.amount || 0) * AVERAGE_COMMISSION_RATE,
-    occurred_at: transfer.created_at,
-  })) || [];
-
-  // Calculate summary metrics
+  // Calculate summary metrics from shareholder earnings
   const calculateMetrics = () => {
-    const totalRevenue = transfersData?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-    const totalCommissions = commissionsData.reduce((sum, c) => sum + c.commission_amount, 0);
+    const totalRevenue = shareholderEarningsData?.reduce((sum, e) => sum + e.total_base_amount, 0) || 0;
+    const totalCommissions = shareholderEarningsData?.reduce((sum, e) => sum + e.total_commission, 0) || 0;
     const netEarnings = totalRevenue - totalCommissions;
     const commissionRate = totalRevenue > 0 ? (totalCommissions / totalRevenue) * 100 : 0;
     const superAdminShare = totalRevenue * (superAdminPercentage / 100);
@@ -102,47 +161,26 @@ export default function PlatformSuperAdminEarnings() {
       netEarnings,
       commissionRate,
       superAdminShare,
-      transferCount: transfersData?.length || 0,
+      transferCount: shareholderEarningsData?.reduce((sum, e) => sum + e.transfer_count, 0) || 0,
     };
   };
 
   const metrics = calculateMetrics();
 
-  // Group transfers by shareholder only
+  // Use shareholder earnings data directly (already grouped)
   const groupedTransfers = useMemo(() => {
-    if (!transfersData) return [];
+    if (!shareholderEarningsData) return [];
 
-    const groups = new Map<string, {
-      shareholderId: string;
-      totalAmount: number;
-      totalCommission: number;
-      count: number;
-    }>();
-
-    transfersData.forEach((transfer) => {
-      const shareholderId = transfer.shareholder_public_id || "N/A";
-      const commission = commissionsData.find(c => c.transfer_id === transfer.id);
-      const commissionAmount = commission?.commission_amount || 0;
-
-      if (groups.has(shareholderId)) {
-        const existing = groups.get(shareholderId)!;
-        existing.totalAmount += Number(transfer.amount || 0);
-        existing.totalCommission += commissionAmount;
-        existing.count += 1;
-      } else {
-        groups.set(shareholderId, {
-          shareholderId,
-          totalAmount: Number(transfer.amount || 0),
-          totalCommission: commissionAmount,
-          count: 1,
-        });
-      }
-    });
-
-    return Array.from(groups.values()).sort((a, b) => 
-      a.shareholderId.localeCompare(b.shareholderId)
-    );
-  }, [transfersData, commissionsData, startDate, endDate]);
+    return shareholderEarningsData
+      .map(earning => ({
+        shareholderId: earning.shareholder_public_id,
+        totalAmount: earning.total_base_amount,
+        totalCommission: earning.total_commission,
+        commissionRate: earning.commission_rate,
+        count: earning.transfer_count,
+      }))
+      .sort((a, b) => a.shareholderId.localeCompare(b.shareholderId));
+  }, [shareholderEarningsData, startDate, endDate]);
 
   // Calculate pagination
   const totalPages = Math.ceil(groupedTransfers.length / itemsPerPage);
@@ -155,7 +193,7 @@ export default function PlatformSuperAdminEarnings() {
   // Reset to page 1 when data changes
   useMemo(() => {
     setCurrentPage(1);
-  }, [transfersData]);
+  }, [shareholderEarningsData]);
 
   const handleExportCSV = () => {
     const dateRange = `${format(startDate, "dd MMM yyyy")} to ${format(endDate, "dd MMM yyyy")}`;
@@ -185,7 +223,7 @@ export default function PlatformSuperAdminEarnings() {
     URL.revokeObjectURL(url);
   };
 
-  const isLoading = transfersLoading;
+  const isLoading = earningsLoading;
 
   return (
     <div className="space-y-6">
@@ -337,10 +375,10 @@ export default function PlatformSuperAdminEarnings() {
               ) : paginatedTransfers && paginatedTransfers.length > 0 ? (
                 paginatedTransfers.map((group, index) => {
                   const superAdminShare = group.totalAmount * (superAdminPercentage / 100); // 1%
-                  const shareholderManShare = group.totalAmount * (shareholderPercentage / 100); // 0.5%
-                  const mdrAmount = superAdminShare + shareholderManShare; // 1.5%
-                  const mdrRate = 1.5;
-                  const shareholderShare = 0.5;
+                  const shareholderManShare = group.totalCommission; // Already calculated commission from MDR
+                  const mdrAmount = group.totalCommission; // Total commission from earnings
+                  const mdrRate = group.commissionRate || 1.5; // Use actual commission rate
+                  const shareholderShare = shareholderPercentage;
 
                   return (
                     <TableRow key={`${group.shareholderId}-${index}`}>
