@@ -31,6 +31,7 @@ interface ClientMDRData {
   total_transfer_amount: number;
   shareholder_commission_rate: number;
   shareholder_commission_amount: number;
+  tenant_count?: number;
 }
 
 export default function PlatformShareholderEarnings() {
@@ -530,7 +531,32 @@ export default function PlatformShareholderEarnings() {
       });
 
       const results = await Promise.all(mdrPromises);
-      return results.filter(r => r.total_transfer_amount > 0); // Only show clients with transactions
+      const filteredResults = results.filter(r => r.total_transfer_amount > 0);
+      
+      // Group by shareholder and aggregate
+      const shareholderMap = new Map<string, ClientMDRData>();
+      
+      filteredResults.forEach((item) => {
+        const existing = shareholderMap.get(item.shareholder_id);
+        
+        if (existing) {
+          // Aggregate amounts
+          existing.total_transfer_amount += item.total_transfer_amount;
+          existing.shareholder_commission_amount += item.shareholder_commission_amount;
+          existing.tenant_count = (existing.tenant_count || 1) + 1;
+          
+          // Calculate weighted average commission rate
+          existing.shareholder_commission_rate = 
+            (existing.shareholder_commission_amount / existing.total_transfer_amount) * 100;
+        } else {
+          shareholderMap.set(item.shareholder_id, { 
+            ...item,
+            tenant_count: 1 
+          });
+        }
+      });
+
+      return Array.from(shareholderMap.values());
     },
     enabled: !useMockMDR, // Only fetch real data when not using mock
   });
@@ -1008,6 +1034,12 @@ export default function PlatformShareholderEarnings() {
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
                         <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
                         <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ Shareholder</TableHead>
+                        <TableHead className="text-center border-r bg-white dark:bg-slate-950 font-semibold">
+                          <div className="flex items-center justify-center gap-1">
+                            <Users className="h-3 w-3" />
+                            จำนวน Clients
+                          </div>
+                        </TableHead>
                         <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                           ยอด MDR
                         </TableHead>
@@ -1024,7 +1056,7 @@ export default function PlatformShareholderEarnings() {
                     </TableHeader>
                     <TableBody>
                       {paginatedMdrData.map((row, idx) => (
-                        <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
+                        <TableRow key={`${row.shareholder_id}-${idx}`}>
                           <TableCell className="border-r">
                             <Badge variant="outline" className="font-mono">
                               {row.shareholder_public_id}
@@ -1032,6 +1064,11 @@ export default function PlatformShareholderEarnings() {
                           </TableCell>
                           <TableCell className="border-r font-semibold">
                             {row.shareholder_name}
+                          </TableCell>
+                          <TableCell className="text-center border-r">
+                            <Badge variant="secondary" className="font-medium">
+                              {row.tenant_count || 1}
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-right border-r font-semibold bg-emerald-50 dark:bg-emerald-950/10">
                             {formatCurrency(row.total_transfer_amount)}
