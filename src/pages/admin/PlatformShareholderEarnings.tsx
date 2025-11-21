@@ -645,42 +645,12 @@ export default function PlatformShareholderEarnings() {
         </Card>
       </div>
 
-      {/* Shareholders List */}
+      {/* Date Range Filter */}
       <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>รายชื่อ Shareholder และรายได้</CardTitle>
-              <CardDescription>รายละเอียดรายได้ของแต่ละ Shareholder</CardDescription>
-            </div>
-            <Button
-              variant={useMockShareholders ? "default" : "outline"}
-              size="sm"
-              onClick={() => setUseMockShareholders(!useMockShareholders)}
-              className="gap-2"
-            >
-              <TestTube className="h-4 w-4" />
-              {useMockShareholders ? "ข้อมูลจำลอง" : "ข้อมูลจริง"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters Row */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex-1 min-w-[250px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="ค้นหาชื่อ, อีเมล หรือ Public ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            {/* Date Range Picker */}
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">ช่วงเวลา:</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -731,7 +701,6 @@ export default function PlatformShareholderEarnings() {
               </Popover>
             </div>
 
-            {/* Reset Filters Button */}
             {hasActiveFilters && (
               <Button
                 variant="outline"
@@ -742,6 +711,43 @@ export default function PlatformShareholderEarnings() {
                 รีเซ็ต
               </Button>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Shareholders List */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>รายชื่อ Shareholder และรายได้</CardTitle>
+              <CardDescription>รายละเอียดรายได้ของแต่ละ Shareholder</CardDescription>
+            </div>
+            <Button
+              variant={useMockShareholders ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUseMockShareholders(!useMockShareholders)}
+              className="gap-2"
+            >
+              <TestTube className="h-4 w-4" />
+              {useMockShareholders ? "ข้อมูลจำลอง" : "ข้อมูลจริง"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Search Filter */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex-1 min-w-[250px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="ค้นหาชื่อ, อีเมล หรือ Public ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-4">
