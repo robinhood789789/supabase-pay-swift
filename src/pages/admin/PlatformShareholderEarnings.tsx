@@ -487,27 +487,23 @@ export default function PlatformShareholderEarnings() {
         const { data: deposits } = await supabase
           .from("deposit_transfers")
           .select("amountpaid")
-          .gte("depositdate", startDateStr)
-          .lte("depositdate", endDateStr);
+          .eq("tenant_id", relation.tenant_id)
+          .gte("created_at", startDateStr)
+          .lte("created_at", endDateStr)
+          .not("status", "is", null);
 
-        // Fetch topup_transfers  
-        const { data: topups } = await supabase
-          .from("topup_transfers")
-          .select("amount")
-          .gte("transfer_date", startDateStr)
-          .lte("transfer_date", endDateStr);
-
-        // Fetch settlement_transfers
+        // Fetch settlement_transfers (using merchant_code which is UUID type)
         const { data: settlements } = await supabase
           .from("settlement_transfers")
           .select("amount")
+          .eq("merchant_code", relation.tenant_id)
           .gte("created_at", startDateStr)
           .lte("created_at", endDateStr);
 
         const totalDeposit = deposits?.reduce((sum, d) => sum + (Number(d.amountpaid) || 0), 0) || 0;
-        const totalTopup = topups?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
         const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
-        const totalPayout = 0;
+        const totalTopup = 0; // Topup data not available in current schema
+        const totalPayout = 0; // Payout data not available in current schema
 
         const shareholderRate = relation.commission_rate / 100;
         const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
