@@ -61,9 +61,21 @@ export default function PlatformSuperAdminEarnings() {
     queryKey: ["super-admin-shareholder-earnings", start, end, useMockData, startDate, endDate],
     queryFn: async () => {
       if (useMockData) {
+        // Filter mock data by date range
+        const filteredTransfers = mockIncomingTransfers.filter(t => {
+          const txnDate = new Date(t.created_at);
+          return txnDate >= startDate && txnDate <= endDate;
+        });
+
+        console.log('Mock data filtered:', {
+          totalTransfers: mockIncomingTransfers.length,
+          filteredCount: filteredTransfers.length,
+          dateRange: { start: startDate, end: endDate }
+        });
+        
         // Group mock data by shareholder
         const grouped = new Map();
-        mockIncomingTransfers.forEach(t => {
+        filteredTransfers.forEach(t => {
           const shareholderId = t.shareholder_public_id || "N/A";
           const baseAmount = Number(t.amount || 0);
           const commission = baseAmount * 0.015;
@@ -85,7 +97,9 @@ export default function PlatformSuperAdminEarnings() {
           }
         });
         
-        return Array.from(grouped.values());
+        const result = Array.from(grouped.values());
+        console.log('Grouped shareholder earnings:', result);
+        return result;
       }
 
       // Fetch shareholder earnings and related data
