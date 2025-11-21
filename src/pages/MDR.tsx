@@ -520,62 +520,56 @@ const MDR = () => {
               </div>
 
               {/* Pagination - Center */}
-              <div className="flex justify-center items-center">
-                {mdrData && mdrData.totalPages > 0 && (
-                  mdrData.totalPages > 1 ? (
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
+              <div className="flex justify-center">
+                {mdrData && mdrData.totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, mdrData.totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (mdrData.totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (page <= 3) {
+                        pageNum = i + 1;
+                      } else if (page >= mdrData.totalPages - 2) {
+                        pageNum = mdrData.totalPages - 4 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setPage(pageNum)}
+                            isActive={page === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
                         </PaginationItem>
-                        
-                        {Array.from({ length: Math.min(5, mdrData.totalPages) }, (_, i) => {
-                          let pageNum;
-                          if (mdrData.totalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (page <= 3) {
-                            pageNum = i + 1;
-                          } else if (page >= mdrData.totalPages - 2) {
-                            pageNum = mdrData.totalPages - 4 + i;
-                          } else {
-                            pageNum = page - 2 + i;
-                          }
-                          
-                          return (
-                            <PaginationItem key={pageNum}>
-                              <PaginationLink
-                                onClick={() => setPage(pageNum)}
-                                isActive={page === pageNum}
-                                className="cursor-pointer"
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        })}
-                        
-                        {mdrData.totalPages > 5 && page < mdrData.totalPages - 2 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setPage(p => Math.min(mdrData.totalPages, p + 1))}
-                            className={page === mdrData.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      หน้า 1 จาก 1
-                    </div>
-                  )
+                      );
+                    })}
+                    
+                    {mdrData.totalPages > 5 && page < mdrData.totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setPage(p => Math.min(mdrData.totalPages, p + 1))}
+                        className={page === mdrData.totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                  </Pagination>
                 )}
               </div>
 
