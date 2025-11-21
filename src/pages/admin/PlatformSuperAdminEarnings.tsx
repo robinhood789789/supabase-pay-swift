@@ -16,7 +16,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { mockIncomingTransfers } from "@/data/mockSuperAdminEarnings";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -40,7 +39,6 @@ import {
 } from "@/components/ui/select";
 
 export default function PlatformSuperAdminEarnings() {
-  const [useMockData, setUseMockData] = useState(true);
   const superAdminPercentage = 1; // Fixed percentage for Super Admin share (1% of each shareholder's total)
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -58,50 +56,8 @@ export default function PlatformSuperAdminEarnings() {
 
   // Fetch shareholder earnings data (connected to MDR table)
   const { data: shareholderEarningsData, isLoading: earningsLoading } = useQuery({
-    queryKey: ["super-admin-shareholder-earnings", start, end, useMockData, startDate, endDate],
+    queryKey: ["super-admin-shareholder-earnings", start, end, startDate, endDate],
     queryFn: async () => {
-      if (useMockData) {
-        // Filter mock data by date range
-        const filteredTransfers = mockIncomingTransfers.filter(t => {
-          const txnDate = new Date(t.created_at);
-          return txnDate >= startDate && txnDate <= endDate;
-        });
-
-        console.log('Mock data filtered:', {
-          totalTransfers: mockIncomingTransfers.length,
-          filteredCount: filteredTransfers.length,
-          dateRange: { start: startDate, end: endDate }
-        });
-        
-        // Group mock data by shareholder
-        const grouped = new Map();
-        filteredTransfers.forEach(t => {
-          const shareholderId = t.shareholder_public_id || "N/A";
-          const baseAmount = Number(t.amount || 0);
-          const commission = baseAmount * 0.015;
-          
-          if (grouped.has(shareholderId)) {
-            const existing = grouped.get(shareholderId);
-            existing.total_base_amount += baseAmount;
-            existing.total_commission += commission;
-            existing.transfer_count += 1;
-          } else {
-            grouped.set(shareholderId, {
-              shareholder_id: shareholderId,
-              shareholder_public_id: shareholderId,
-              total_base_amount: baseAmount,
-              total_commission: commission,
-              commission_rate: 1.5,
-              transfer_count: 1,
-            });
-          }
-        });
-        
-        const result = Array.from(grouped.values());
-        console.log('Grouped shareholder earnings:', result);
-        return result;
-      }
-
       // Fetch shareholder earnings and related data
       const { data: earningsData, error: earningsError } = await supabase
         .from("shareholder_earnings")
@@ -248,18 +204,10 @@ export default function PlatformSuperAdminEarnings() {
             Platform revenue after shareholder commissions
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setUseMockData(!useMockData)}
-          >
-            {useMockData ? "Show Real Data" : "Show Mock Data"}
-          </Button>
-          <Button onClick={handleExportCSV} disabled={isLoading}>
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
+        <Button onClick={handleExportCSV} disabled={isLoading}>
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
