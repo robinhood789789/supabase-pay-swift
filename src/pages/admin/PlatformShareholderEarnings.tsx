@@ -36,9 +36,8 @@ interface ClientMDRData {
 export default function PlatformShareholderEarnings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTab, setSelectedTab] = useState("all");
-  const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "custom">("month");
-  const [customStartDate, setCustomStartDate] = useState<Date>();
-  const [customEndDate, setCustomEndDate] = useState<Date>();
+  const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
+  const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()));
   const [useMockMDR, setUseMockMDR] = useState(false);
   const [useMockShareholders, setUseMockShareholders] = useState(false);
   
@@ -48,50 +47,39 @@ export default function PlatformShareholderEarnings() {
   const [mdrPage, setMdrPage] = useState(1);
   const [mdrItemsPerPage, setMdrItemsPerPage] = useState(20);
 
-  // Calculate date range based on selection
-  const getDateRange = () => {
+  // Quick filter functions
+  const setToday = () => {
     const now = new Date();
-    switch (dateRange) {
-      case "today":
-        return {
-          start: startOfDay(now),
-          end: endOfDay(now),
-        };
-      case "week":
-        return {
-          start: startOfWeek(now, { weekStartsOn: 0 }),
-          end: endOfWeek(now, { weekStartsOn: 0 }),
-        };
-      case "month":
-        return {
-          start: startOfMonth(now),
-          end: endOfMonth(now),
-        };
-      case "custom":
-        return {
-          start: customStartDate ? startOfDay(customStartDate) : undefined,
-          end: customEndDate ? endOfDay(customEndDate) : undefined,
-        };
-      default:
-        return { start: undefined, end: undefined };
-    }
+    setStartDate(startOfDay(now));
+    setEndDate(endOfDay(now));
   };
 
-  const { start: startDate, end: endDate } = getDateRange();
+  const setThisWeek = () => {
+    const now = new Date();
+    setStartDate(startOfWeek(now, { weekStartsOn: 0 }));
+    setEndDate(endOfWeek(now, { weekStartsOn: 0 }));
+  };
+
+  const setThisMonth = () => {
+    const now = new Date();
+    setStartDate(startOfMonth(now));
+    setEndDate(endOfMonth(now));
+  };
 
   // Reset all filters
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedTab("all");
-    setDateRange("month");
-    setCustomStartDate(undefined);
-    setCustomEndDate(undefined);
+    setThisMonth();
     setShareholderPage(1);
     setMdrPage(1);
   };
 
   // Check if any filter is active
-  const hasActiveFilters = searchTerm !== "" || selectedTab !== "all" || dateRange !== "month";
+  const isDefaultDateRange = 
+    startDate?.getTime() === startOfMonth(new Date()).getTime() &&
+    endDate?.getTime() === endOfMonth(new Date()).getTime();
+  const hasActiveFilters = searchTerm !== "" || selectedTab !== "all" || !isDefaultDateRange;
 
   // Export to CSV function
   const handleExportCSV = () => {
@@ -679,79 +667,85 @@ export default function PlatformShareholderEarnings() {
               </div>
             </div>
 
-            {/* Date Range Filter */}
-            <Select value={dateRange} onValueChange={(value: any) => setDateRange(value)}>
-              <SelectTrigger className="w-[200px]">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="เลือกช่วงเวลา" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">📅 วันนี้</SelectItem>
-                <SelectItem value="week">📅 สัปดาห์นี้</SelectItem>
-                <SelectItem value="month">📅 เดือนนี้</SelectItem>
-                <SelectItem value="custom">🗓️ กำหนดเอง (เลือกวันที่)</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Quick Date Filters */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={setToday}
+                className="gap-2"
+              >
+                วันนี้
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={setThisWeek}
+                className="gap-2"
+              >
+                สัปดาห์นี้
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={setThisMonth}
+                className="gap-2"
+              >
+                เดือนนี้
+              </Button>
+            </div>
 
-            {/* Custom Date Range Pickers */}
-            {dateRange === "custom" && (
-              <>
-                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-md">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">เลือกช่วงเวลา:</span>
-                </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-[200px] justify-start text-left font-normal border-2",
-                        !customStartDate && "text-muted-foreground border-dashed"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customStartDate ? format(customStartDate, "d MMM yyyy", { locale: th }) : "📅 เริ่มต้น"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customStartDate}
-                      onSelect={setCustomStartDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+            {/* Date Range Picker */}
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[140px] justify-start text-left font-normal"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "d MMM yy", { locale: th }) : "เริ่มต้น"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => date && setStartDate(date)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
 
-                <span className="text-muted-foreground">ถึง</span>
+              <span className="text-muted-foreground">-</span>
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-[200px] justify-start text-left font-normal border-2",
-                        !customEndDate && "text-muted-foreground border-dashed"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customEndDate ? format(customEndDate, "d MMM yyyy", { locale: th }) : "📅 สิ้นสุด"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customEndDate}
-                      onSelect={setCustomEndDate}
-                      disabled={(date) => customStartDate ? date < customStartDate : false}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </>
-            )}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[140px] justify-start text-left font-normal"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "d MMM yy", { locale: th }) : "สิ้นสุด"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(date) => date && setEndDate(date)}
+                    disabled={(date) => startDate ? date < startDate : false}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
             {/* Reset Filters Button */}
             {hasActiveFilters && (
@@ -761,7 +755,7 @@ export default function PlatformShareholderEarnings() {
                 className="gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                รีเซ็ตตัวกรอง
+                รีเซ็ต
               </Button>
             )}
           </div>
