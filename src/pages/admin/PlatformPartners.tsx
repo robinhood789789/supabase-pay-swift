@@ -296,9 +296,9 @@ export default function PlatformPartners() {
               </Table>
 
               {/* Pagination Controls */}
-              <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200 pt-6">
-                {/* Items per page selector */}
-                <div className="flex items-center gap-2">
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 items-center gap-4 border-t border-gray-200 pt-6">
+                {/* Items per page selector - Left */}
+                <div className="flex items-center gap-2 justify-start">
                   <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">แสดง</span>
                   <Select 
                     value={pageSize.toString()} 
@@ -319,9 +319,10 @@ export default function PlatformPartners() {
                   <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">รายการต่อหน้า</span>
                 </div>
 
-                {/* Page navigation - only show if more than one page */}
-                {pagination.totalPages > 1 && (
-                  <Pagination>
+                {/* Pagination - Center */}
+                <div className="flex justify-center">
+                  {pagination.totalPages > 1 && (
+                    <Pagination>
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious 
@@ -387,13 +388,14 @@ export default function PlatformPartners() {
                         />
                       </PaginationItem>
                     </PaginationContent>
-                  </Pagination>
-                )}
+                    </Pagination>
+                  )}
+                </div>
 
-                {/* Item count summary */}
-                <div className="text-xs text-gray-600">
+                {/* Page info - Right */}
+                <div className="text-xs text-gray-600 text-right">
                   {pagination.total > 0 ? (
-                    <>แสดง {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, pagination.total)} จาก {pagination.total} รายการ</>
+                    <>หน้า {page} จาก {pagination.totalPages} ({pagination.total} รายการทั้งหมด)</>
                   ) : (
                     <>0 รายการ</>
                   )}

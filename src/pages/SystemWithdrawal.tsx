@@ -319,12 +319,30 @@ export default function SystemWithdrawal() {
               const totalPages = Math.ceil(filteredWithdrawals.length / itemsPerPage);
 
               return (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <div className="text-sm text-muted-foreground">
-                    แสดง {Math.min(filteredWithdrawals.length, ((currentPage - 1) * itemsPerPage) + 1)} - {Math.min(currentPage * itemsPerPage, filteredWithdrawals.length)} จาก {filteredWithdrawals.length} รายการทั้งหมด
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mt-4 pt-4 border-t">
+                  {/* Items per page selector - Left */}
+                  <div className="flex items-center gap-2 justify-start">
+                    <span className="text-sm text-muted-foreground">แสดง</span>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">รายการ</span>
                   </div>
-                  {totalPages > 1 && (
-                    <Pagination>
+
+                  {/* Pagination - Center */}
+                  <div className="flex justify-center">
+                    {totalPages > 1 && (
+                      <Pagination>
                       <PaginationContent>
                         <PaginationItem>
                           <PaginationPrevious 
@@ -365,8 +383,14 @@ export default function SystemWithdrawal() {
                           />
                         </PaginationItem>
                       </PaginationContent>
-                    </Pagination>
-                  )}
+                      </Pagination>
+                    )}
+                  </div>
+
+                  {/* Page info - Right */}
+                  <div className="text-sm text-muted-foreground text-right">
+                    หน้า {currentPage} จาก {totalPages} ({filteredWithdrawals.length} รายการทั้งหมด)
+                  </div>
                 </div>
               );
             })()}
