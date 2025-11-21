@@ -824,84 +824,84 @@ export default function PlatformShareholderEarnings() {
               
               {/* Pagination Controls */}
               <div className="flex items-center justify-between mt-4 p-4 border-t border-border">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">แสดง</span>
-                  <Select
-                    value={shareholderItemsPerPage.toString()}
-                    onValueChange={(value) => {
-                      setShareholderItemsPerPage(Number(value));
-                      setShareholderPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-[80px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground">รายการ</span>
-                </div>
-                
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">แสดง</span>
+                    <Select
+                      value={shareholderItemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setShareholderItemsPerPage(Number(value));
+                        setShareholderPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-[80px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">รายการ</span>
+                  </div>
+                  
                   <div className="text-sm text-muted-foreground">
                     หน้า {shareholderPage} จาก {shareholderTotalPages} ({filteredShareholders.length} รายการทั้งหมด)
                   </div>
-                  
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => setShareholderPage(Math.max(1, shareholderPage - 1))}
-                          className={cn(
-                            "cursor-pointer gap-1",
-                            shareholderPage === 1 && "pointer-events-none opacity-50"
-                          )}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
-                        </PaginationLink>
-                      </PaginationItem>
-                      {Array.from({ length: shareholderTotalPages }, (_, i) => i + 1).map((page) => {
-                        // Show first page, last page, current page, and pages around current
-                        if (
-                          page === 1 ||
-                          page === shareholderTotalPages ||
-                          (page >= shareholderPage - 1 && page <= shareholderPage + 1)
-                        ) {
-                          return (
-                            <PaginationItem key={page}>
-                              <PaginationLink
-                                onClick={() => setShareholderPage(page)}
-                                isActive={page === shareholderPage}
-                                className="cursor-pointer"
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        } else if (page === shareholderPage - 2 || page === shareholderPage + 2) {
-                          return <PaginationEllipsis key={page} />;
-                        }
-                        return null;
-                      })}
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => setShareholderPage(Math.min(shareholderTotalPages, shareholderPage + 1))}
-                          className={cn(
-                            "cursor-pointer gap-1",
-                            shareholderPage === shareholderTotalPages && "pointer-events-none opacity-50"
-                          )}
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
-                        </PaginationLink>
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
                 </div>
+                
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setShareholderPage(Math.max(1, shareholderPage - 1))}
+                        className={cn(
+                          "cursor-pointer gap-1",
+                          shareholderPage === 1 && "pointer-events-none opacity-50"
+                        )}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </PaginationLink>
+                    </PaginationItem>
+                    {Array.from({ length: shareholderTotalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      if (
+                        page === 1 ||
+                        page === shareholderTotalPages ||
+                        (page >= shareholderPage - 1 && page <= shareholderPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setShareholderPage(page)}
+                              isActive={page === shareholderPage}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (page === shareholderPage - 2 || page === shareholderPage + 2) {
+                        return <PaginationEllipsis key={page} />;
+                      }
+                      return null;
+                    })}
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setShareholderPage(Math.min(shareholderTotalPages, shareholderPage + 1))}
+                        className={cn(
+                          "cursor-pointer gap-1",
+                          shareholderPage === shareholderTotalPages && "pointer-events-none opacity-50"
+                        )}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </PaginationLink>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             </>
           ) : (
@@ -1029,83 +1029,83 @@ export default function PlatformShareholderEarnings() {
                   
                   {/* Pagination Controls */}
                   <div className="p-4 flex items-center justify-between border-t border-border">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">แสดง</span>
-                      <Select
-                        value={mdrItemsPerPage.toString()}
-                        onValueChange={(value) => {
-                          setMdrItemsPerPage(Number(value));
-                          setMdrPage(1);
-                        }}
-                      >
-                        <SelectTrigger className="w-[80px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="20">20</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                          <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <span className="text-sm text-muted-foreground">รายการ</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">แสดง</span>
+                        <Select
+                          value={mdrItemsPerPage.toString()}
+                          onValueChange={(value) => {
+                            setMdrItemsPerPage(Number(value));
+                            setMdrPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="w-[80px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <span className="text-sm text-muted-foreground">รายการ</span>
+                      </div>
+                      
                       <div className="text-sm text-muted-foreground">
                         หน้า {mdrPage} จาก {mdrTotalPages} ({mdrData.length} รายการทั้งหมด)
                       </div>
-                      
-                      <Pagination>
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationLink
-                              onClick={() => setMdrPage(Math.max(1, mdrPage - 1))}
-                              className={cn(
-                                "cursor-pointer gap-1",
-                                mdrPage === 1 && "pointer-events-none opacity-50"
-                              )}
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                              Previous
-                            </PaginationLink>
-                          </PaginationItem>
-                          {Array.from({ length: mdrTotalPages }, (_, i) => i + 1).map((page) => {
-                            if (
-                              page === 1 ||
-                              page === mdrTotalPages ||
-                              (page >= mdrPage - 1 && page <= mdrPage + 1)
-                            ) {
-                              return (
-                                <PaginationItem key={page}>
-                                  <PaginationLink
-                                    onClick={() => setMdrPage(page)}
-                                    isActive={page === mdrPage}
-                                    className="cursor-pointer"
-                                  >
-                                    {page}
-                                  </PaginationLink>
-                                </PaginationItem>
-                              );
-                            } else if (page === mdrPage - 2 || page === mdrPage + 2) {
-                              return <PaginationEllipsis key={page} />;
-                            }
-                            return null;
-                          })}
-                          <PaginationItem>
-                            <PaginationLink
-                              onClick={() => setMdrPage(Math.min(mdrTotalPages, mdrPage + 1))}
-                              className={cn(
-                                "cursor-pointer gap-1",
-                                mdrPage === mdrTotalPages && "pointer-events-none opacity-50"
-                              )}
-                            >
-                              Next
-                              <ChevronRight className="h-4 w-4" />
-                            </PaginationLink>
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
                     </div>
+                    
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => setMdrPage(Math.max(1, mdrPage - 1))}
+                            className={cn(
+                              "cursor-pointer gap-1",
+                              mdrPage === 1 && "pointer-events-none opacity-50"
+                            )}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </PaginationLink>
+                        </PaginationItem>
+                        {Array.from({ length: mdrTotalPages }, (_, i) => i + 1).map((page) => {
+                          if (
+                            page === 1 ||
+                            page === mdrTotalPages ||
+                            (page >= mdrPage - 1 && page <= mdrPage + 1)
+                          ) {
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setMdrPage(page)}
+                                  isActive={page === mdrPage}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          } else if (page === mdrPage - 2 || page === mdrPage + 2) {
+                            return <PaginationEllipsis key={page} />;
+                          }
+                          return null;
+                        })}
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => setMdrPage(Math.min(mdrTotalPages, mdrPage + 1))}
+                            className={cn(
+                              "cursor-pointer gap-1",
+                              mdrPage === mdrTotalPages && "pointer-events-none opacity-50"
+                            )}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </PaginationLink>
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
                 </>
               ) : (
