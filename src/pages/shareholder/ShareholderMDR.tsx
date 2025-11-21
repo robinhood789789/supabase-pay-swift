@@ -109,14 +109,11 @@ export default function ShareholderMDR() {
         // Calculate total transfer amount (รวมทุกประเภท)
         const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
         
-        // Use fixed rates
-        const mdrRate = 1.5; // 1.5% total MDR
-        const shareholderRate = 1.5; // 1.5% for shareholder
-        const superAdminRate = 1.0; // 1% for super admin
+        // Use commission rate from database (1.5% default)
+        const shareholderRate = client.commission_rate || 1.5;
         
         // Calculate commissions from total transfer amount
         const shareholderCommission = totalTransferAmount * (shareholderRate / 100);
-        const superAdminCommission = totalTransferAmount * (superAdminRate / 100);
         const ownerCommission = 0; // Owner commission separate if needed
 
         return {
