@@ -54,56 +54,70 @@ export default function PlatformSuperAdminEarnings() {
   const start = startDate.toISOString();
   const end = endDate.toISOString();
 
-  // Fetch shareholder earnings data (connected to MDR table)
+  // Fetch shareholder earnings data from incoming_transfers
   const { data: shareholderEarningsData, isLoading: earningsLoading } = useQuery({
     queryKey: ["super-admin-shareholder-earnings", start, end, startDate, endDate],
     queryFn: async () => {
-      // Fetch shareholder earnings and related data
-      const { data: earningsData, error: earningsError } = await supabase
-        .from("shareholder_earnings")
+      // Fetch incoming transfers with shareholder info
+      const { data: transfersData, error: transfersError } = await supabase
+        .from("incoming_transfers")
         .select(`
-          shareholder_id,
-          base_amount,
+          id,
           amount,
-          commission_rate,
+          share_id,
           created_at,
-          shareholders!inner (
-            id,
-            user_id
-          )
+          status
         `)
         .gte("created_at", start)
-        .lte("created_at", end);
+        .lte("created_at", end)
+        .eq("status", "completed");
 
-      if (earningsError) throw earningsError;
+      if (transfersError) throw transfersError;
 
-      // Fetch shareholder profiles for public_id
-      const shareholderIds = [...new Set(earningsData?.map(e => e.shareholders.user_id) || [])];
+      // Get unique share_ids
+      const shareIds = [...new Set(transfersData?.map(t => t.share_id).filter(Boolean) || [])];
+      
+      // Fetch shareholders data
+      const { data: shareholdersData } = await supabase
+        .from("shareholders")
+        .select("id, user_id")
+        .in("id", shareIds);
+
+      // Fetch profiles for public_id
+      const userIds = shareholdersData?.map(s => s.user_id).filter(Boolean) || [];
       const { data: profilesData } = await supabase
         .from("profiles")
         .select("id, public_id")
-        .in("id", shareholderIds);
+        .in("id", userIds);
 
+      // Create maps for easy lookup
+      const shareholderMap = new Map(shareholdersData?.map(s => [s.id, s.user_id]) || []);
       const profileMap = new Map(profilesData?.map(p => [p.id, p.public_id]) || []);
 
-      // Group by shareholder
+      // Group by shareholder and calculate commissions
       const grouped = new Map();
-      earningsData?.forEach(earning => {
-        const shareholderId = earning.shareholder_id;
-        const shareholderPublicId = profileMap.get(earning.shareholders.user_id) || "N/A";
+      transfersData?.forEach(transfer => {
+        if (!transfer.share_id) return;
+        
+        const shareholderId = transfer.share_id;
+        const userId = shareholderMap.get(shareholderId);
+        const shareholderPublicId = userId ? (profileMap.get(userId) || "N/A") : "N/A";
+        const baseAmount = Number(transfer.amount || 0);
+        const mdrRate = 1.5; // 1.5% MDR
+        const commission = baseAmount * (mdrRate / 100); // 1.5% of base
         
         if (grouped.has(shareholderId)) {
           const existing = grouped.get(shareholderId);
-          existing.total_base_amount += earning.base_amount;
-          existing.total_commission += earning.amount;
+          existing.total_base_amount += baseAmount;
+          existing.total_commission += commission;
           existing.transfer_count += 1;
         } else {
           grouped.set(shareholderId, {
             shareholder_id: shareholderId,
             shareholder_public_id: shareholderPublicId,
-            total_base_amount: earning.base_amount,
-            total_commission: earning.amount,
-            commission_rate: earning.commission_rate,
+            total_base_amount: baseAmount,
+            total_commission: commission,
+            commission_rate: mdrRate,
             transfer_count: 1,
           });
         }
