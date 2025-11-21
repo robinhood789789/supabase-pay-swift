@@ -12,10 +12,9 @@ import { formatCurrency } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, TrendingUp, DollarSign, Percent, TestTube, Edit } from "lucide-react";
+import { CalendarIcon, TrendingUp, DollarSign, Percent, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { mockShareholderMDRData, mockSummary } from "@/data/mockShareholderMDR";
 import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDialog";
 
 interface ClientMDRData {
@@ -40,7 +39,6 @@ export default function ShareholderMDR() {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setDate(1)));
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [useMockData, setUseMockData] = useState(false);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -52,13 +50,8 @@ export default function ShareholderMDR() {
 
   // Fetch client MDR data with commission calculation
   const { data: clientMDRData, isLoading } = useQuery<ClientMDRData[]>({
-    queryKey: ["shareholder-mdr", shareholder?.id, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), useMockData],
+    queryKey: ["shareholder-mdr", shareholder?.id, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd")],
     queryFn: async () => {
-      // Use mock data if enabled
-      if (useMockData) {
-        return mockShareholderMDRData as ClientMDRData[];
-      }
-      
       if (!shareholder?.id) return [];
 
       const startDateStr = format(startDate, "yyyy-MM-dd");
@@ -143,20 +136,18 @@ export default function ShareholderMDR() {
 
       return Promise.all(mdrPromises);
     },
-    enabled: useMockData || !!shareholder?.id, // Enable if using mock data or if shareholder exists
+    enabled: !!shareholder?.id,
   });
 
   // Calculate summary totals
-  const summary = useMockData 
-    ? mockSummary 
-    : clientMDRData?.reduce(
-        (acc, curr) => ({
-          totalTransferAmount: acc.totalTransferAmount + curr.total_transfer_amount,
-          shareholderCommission: acc.shareholderCommission + curr.shareholder_commission_amount,
-          ownerCommission: acc.ownerCommission + curr.owner_commission_amount,
-        }),
-        { totalTransferAmount: 0, shareholderCommission: 0, ownerCommission: 0 }
-      );
+  const summary = clientMDRData?.reduce(
+    (acc, curr) => ({
+      totalTransferAmount: acc.totalTransferAmount + curr.total_transfer_amount,
+      shareholderCommission: acc.shareholderCommission + curr.shareholder_commission_amount,
+      ownerCommission: acc.ownerCommission + curr.owner_commission_amount,
+    }),
+    { totalTransferAmount: 0, shareholderCommission: 0, ownerCommission: 0 }
+  ) || { totalTransferAmount: 0, shareholderCommission: 0, ownerCommission: 0 };
 
   // Pagination calculations
   const totalCount = clientMDRData?.length || 0;
@@ -175,22 +166,11 @@ export default function ShareholderMDR() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">MDR และค่าคอมมิชชั่น</h1>
-          <p className="text-muted-foreground mt-2">
-            ดูรายละเอียดการคำนวณ MDR และสัดส่วนค่าคอมมิชชั่นแบบลดหลั่น
-          </p>
-        </div>
-        <Button
-          variant={useMockData ? "default" : "outline"}
-          size="sm"
-          onClick={() => setUseMockData(!useMockData)}
-          className="gap-2"
-        >
-          <TestTube className="h-4 w-4" />
-          {useMockData ? "ข้อมูลจำลอง" : "ข้อมูลจริง"}
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">MDR และค่าคอมมิชชั่น</h1>
+        <p className="text-muted-foreground mt-2">
+          ดูรายละเอียดการคำนวณ MDR และสัดส่วนค่าคอมมิชชั่นแบบลดหลั่น
+        </p>
       </div>
 
       {/* Date Range Filters */}
