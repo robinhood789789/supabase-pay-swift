@@ -85,9 +85,9 @@ export default function ShareholderMDR() {
 
       console.log("Fetched clients:", clients);
 
-      // For each client, fetch MDR data
+      // For each client, fetch transfer data from multiple sources
       const mdrPromises = clients?.map(async (client) => {
-        // Fetch deposit_transfers for this tenant (matching Super Admin Earnings calculation)
+        // Fetch deposit_transfers
         const { data: deposits } = await supabase
           .from("deposit_transfers")
           .select("amountpaid")
@@ -96,18 +96,31 @@ export default function ShareholderMDR() {
           .lte("created_at", endDateStr)
           .not("status", "is", null);
 
-        // Calculate base amount from deposits (same as Super Admin page)
+        // Fetch settlement_transfers
+        const { data: settlements } = await supabase
+          .from("settlement_transfers")
+          .select("amount")
+          .eq("merchant_code", client.tenant_id)
+          .gte("created_at", startDateStr)
+          .lte("created_at", endDateStr);
+
+        // Calculate totals from all sources
         const totalDeposit = deposits?.reduce((sum, d) => sum + (Number(d.amountpaid) || 0), 0) || 0;
+        const totalSettlement = settlements?.reduce((sum, s) => sum + (Number(s.amount) || 0), 0) || 0;
+        const totalTopup = 0; // Add topup source if available
+        const totalPayout = 0; // Add payout source if available
         
-        // Use fixed rates to match Super Admin calculation
+        // Calculate total transfer amount (รวมทุกประเภท)
+        const totalTransferAmount = totalDeposit + totalTopup + totalPayout + totalSettlement;
+        
+        // Use fixed rates
         const mdrRate = 1.5; // 1.5% total MDR
         const shareholderRate = 0.5; // 0.5% for shareholder
         const superAdminRate = 1.0; // 1% for super admin
         
-        // Calculate MDR and commissions from deposit amount
-        const totalMDR = totalDeposit * (mdrRate / 100);
-        const shareholderCommission = totalDeposit * (shareholderRate / 100);
-        const superAdminCommission = totalDeposit * (superAdminRate / 100);
+        // Calculate commissions from total transfer amount
+        const shareholderCommission = totalTransferAmount * (shareholderRate / 100);
+        const superAdminCommission = totalTransferAmount * (superAdminRate / 100);
         const ownerCommission = 0; // Owner commission separate if needed
 
         return {
@@ -117,10 +130,10 @@ export default function ShareholderMDR() {
           period_start: startDateStr,
           period_end: endDateStr,
           total_deposit: totalDeposit,
-          total_topup: 0,
-          total_payout: 0,
-          total_settlement: 0,
-          total_transfer_amount: totalDeposit, // Changed to match deposit amount
+          total_topup: totalTopup,
+          total_payout: totalPayout,
+          total_settlement: totalSettlement,
+          total_transfer_amount: totalTransferAmount,
           shareholder_commission_rate: shareholderRate,
           owner_commission_rate: 0,
           shareholder_commission_amount: shareholderCommission,
@@ -248,12 +261,12 @@ export default function ShareholderMDR() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              ยอด MDR รวมทั้งหมด
+              ยอดการโอนรวมทั้งหมด
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold text-foreground">{formatCurrency(summary?.totalTransferAmount || 0)}</div>
-            <p className="text-xs text-muted-foreground mt-1">จากยอด Deposits</p>
+            <p className="text-xs text-muted-foreground mt-1">รวม Deposits + Topups + Settlements</p>
           </CardContent>
         </Card>
 
