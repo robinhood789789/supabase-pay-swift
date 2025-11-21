@@ -12,12 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import { Edit, Eye } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ShareholderClients() {
   const { shareholder } = useShareholder();
   const queryClient = useQueryClient();
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [newCommissionRate, setNewCommissionRate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ["shareholder-clients", shareholder?.id],
@@ -86,6 +89,12 @@ export default function ShareholderClients() {
     );
   }
 
+  // Pagination
+  const totalPages = Math.ceil((clients?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedClients = clients?.slice(startIndex, endIndex);
+
   return (
     <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -120,8 +129,8 @@ export default function ShareholderClients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients && clients.length > 0 ? (
-                clients.map((client: any) => (
+              {paginatedClients && paginatedClients.length > 0 ? (
+                paginatedClients.map((client: any) => (
                   <TableRow key={client.id} className="text-xs sm:text-sm">
                     <TableCell className="font-medium px-2 sm:px-4">
                       <div className="max-w-[150px] sm:max-w-none truncate">
@@ -225,6 +234,61 @@ export default function ShareholderClients() {
             </TableBody>
           </Table>
           </div>
+
+          {clients && clients.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mt-4 px-4 sm:px-0">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">แสดง</Label>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              <div className="flex justify-center">
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ก่อนหน้า
+                    </Button>
+                    <div className="flex items-center gap-1 px-2">
+                      <span className="text-sm">
+                        {currentPage} / {totalPages}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      ถัดไป
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-sm text-muted-foreground text-right">
+                แสดง {startIndex + 1}-{Math.min(endIndex, clients.length)} จาก {clients.length}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

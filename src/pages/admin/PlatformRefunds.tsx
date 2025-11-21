@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Search, AlertCircle, ExternalLink } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -36,6 +37,8 @@ const PlatformRefunds = () => {
   const [loading, setLoading] = useState(true);
   const [refunds, setRefunds] = useState<Refund[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     if (!user || !isSuperAdmin) return;
@@ -111,6 +114,12 @@ const PlatformRefunds = () => {
     } as const;
     return <Badge variant={variants[status]}>{status}</Badge>;
   };
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRefunds.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRefunds = filteredRefunds.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -228,14 +237,14 @@ const PlatformRefunds = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRefunds.length === 0 ? (
+              {paginatedRefunds.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center text-muted-foreground">
                     ไม่พบ refunds
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredRefunds.map((refund) => (
+                paginatedRefunds.map((refund) => (
                   <TableRow key={refund.id}>
                     <TableCell className="font-mono text-sm">{refund.id}</TableCell>
                     <TableCell className="font-mono text-sm">{refund.payment_id}</TableCell>
@@ -261,6 +270,61 @@ const PlatformRefunds = () => {
               )}
             </TableBody>
           </Table>
+
+          {filteredRefunds.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mt-4">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">แสดง</Label>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              <div className="flex justify-center">
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ก่อนหน้า
+                    </Button>
+                    <div className="flex items-center gap-1 px-2">
+                      <span className="text-sm">
+                        {currentPage} / {totalPages}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      ถัดไป
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-sm text-muted-foreground text-right">
+                แสดง {startIndex + 1}-{Math.min(endIndex, filteredRefunds.length)} จาก {filteredRefunds.length}
+              </div>
+            </div>
+          )}
       </CardContent>
     </Card>
     </div>

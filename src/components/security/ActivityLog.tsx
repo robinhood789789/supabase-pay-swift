@@ -37,6 +37,8 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
   const [targetFilter, setTargetFilter] = useState<string>('');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const { data: logs, isLoading, refetch } = useQuery<AuditLog[]>({
     queryKey: ['audit-logs', tenantId, actionFilter, dateFromFilter, dateToFilter, actorFilter, ipFilter, targetFilter],
@@ -152,7 +154,14 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
     setActorFilter('');
     setIpFilter('');
     setTargetFilter('');
+    setCurrentPage(1);
   };
+
+  // Pagination
+  const totalPages = Math.ceil((logs?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedLogs = logs?.slice(startIndex, endIndex);
 
   return (
     <>
@@ -273,7 +282,7 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
             </div>
           )}
 
-          <ScrollArea className="h-[600px] border rounded-lg">
+          <div className="border rounded-lg">
             {isLoading ? (
               <div className="space-y-2 p-4">
                 {[...Array(8)].map((_, i) => (
@@ -282,7 +291,7 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
               </div>
             ) : logs && logs.length > 0 ? (
               <Table>
-                <TableHeader className="sticky top-0 bg-background z-10">
+                <TableHeader>
                   <TableRow>
                     <TableHead>{t('activityLog.action')}</TableHead>
                     <TableHead>{t('activityLog.target')}</TableHead>
@@ -293,7 +302,7 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {logs.map((log) => (
+                  {paginatedLogs?.map((log) => (
                     <TableRow key={log.id} className="hover:bg-muted/50">
                       <TableCell>
                         <Badge variant={getActionBadgeVariant(log.action)}>
@@ -332,11 +341,60 @@ export function ActivityLog({ tenantId }: { tenantId: string }) {
                 <p className="text-sm mt-1">{t('activityLog.tryAdjustingFilters')}</p>
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           {logs && logs.length > 0 && (
-            <div className="text-sm text-muted-foreground text-center pt-2">
-              {t('activityLog.showingResults', { count: logs.length })}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mt-4">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">แสดง</Label>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">รายการ</span>
+              </div>
+
+              <div className="flex justify-center">
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ก่อนหน้า
+                    </Button>
+                    <div className="flex items-center gap-1 px-2">
+                      <span className="text-sm">
+                        {currentPage} / {totalPages}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      ถัดไป
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-sm text-muted-foreground text-right">
+                {t('activityLog.showingResults', { count: logs.length })}
+              </div>
             </div>
           )}
         </CardContent>
