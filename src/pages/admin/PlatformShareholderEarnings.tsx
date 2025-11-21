@@ -451,12 +451,23 @@ export default function PlatformShareholderEarnings() {
             .eq("id", tenantData?.user_id)
             .single();
 
-          // Fetch shareholder data with full details
+          // Fetch shareholder data with full details including public_id
           const { data: shareholderData } = await supabase
             .from("shareholders")
-            .select("full_name, email, id")
+            .select("full_name, email, id, user_id")
             .eq("id", relation.shareholder_id)
             .single();
+
+          // Fetch shareholder public_id from profiles
+          let shareholderPublicId = null;
+          if (shareholderData?.user_id) {
+            const { data: shareholderProfile } = await supabase
+              .from("profiles")
+              .select("public_id")
+              .eq("id", shareholderData.user_id)
+              .single();
+            shareholderPublicId = shareholderProfile?.public_id;
+          }
 
           return {
             ...relation,
@@ -465,7 +476,10 @@ export default function PlatformShareholderEarnings() {
               user_id: tenantData?.user_id,
               profiles: ownerProfile
             },
-            shareholders: shareholderData
+            shareholders: {
+              ...shareholderData,
+              public_id: shareholderPublicId
+            }
           };
         })
       );
@@ -508,7 +522,7 @@ export default function PlatformShareholderEarnings() {
           owner_name: (relation.tenants as any).profiles?.full_name || "N/A",
           shareholder_id: relation.shareholder_id,
           shareholder_name: (relation.shareholders as any)?.full_name || "N/A",
-          shareholder_public_id: relation.shareholder_id,
+          shareholder_public_id: (relation.shareholders as any)?.public_id || "N/A",
           total_transfer_amount: totalTransferAmount,
           shareholder_commission_rate: relation.commission_rate,
           shareholder_commission_amount: shareholderCommission,
@@ -992,14 +1006,15 @@ export default function PlatformShareholderEarnings() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Shareholder</TableHead>
+                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
+                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ Shareholder</TableHead>
                         <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                           ยอด MDR
                         </TableHead>
                         <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
                           <div className="flex items-center justify-end gap-1">
                             <Percent className="h-3 w-3" />
-                            Shareholder
+                            อัตราคอมมิชชั่น
                           </div>
                         </TableHead>
                         <TableHead className="text-right bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
@@ -1010,6 +1025,11 @@ export default function PlatformShareholderEarnings() {
                     <TableBody>
                       {paginatedMdrData.map((row, idx) => (
                         <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
+                          <TableCell className="border-r">
+                            <Badge variant="outline" className="font-mono">
+                              {row.shareholder_public_id}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="border-r font-semibold">
                             {row.shareholder_name}
                           </TableCell>
