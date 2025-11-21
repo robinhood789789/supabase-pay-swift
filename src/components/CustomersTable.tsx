@@ -13,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, Mail, Phone, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
@@ -25,6 +28,8 @@ export const CustomersTable = () => {
   const { activeTenantId } = useTenantSwitcher();
   const { t } = useI18n();
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const { isOpen, setIsOpen, checkAndChallenge, onSuccess } = use2FAChallenge(); // H-9: MFA
 
   // H-9: PII Masking helper
@@ -83,6 +88,14 @@ export const CustomersTable = () => {
       getPhone(customer).toLowerCase().includes(term)
     );
   });
+
+  // Pagination
+  const totalCount = filteredCustomers?.length || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginatedCustomers = filteredCustomers?.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   // H-9: Bulk export with MFA
   const handleExportCSV = async () => {
@@ -146,62 +159,147 @@ export const CustomersTable = () => {
         </Button>
       </div>
 
-      {!filteredCustomers || filteredCustomers.length === 0 ? (
+      {!paginatedCustomers || paginatedCustomers.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
           <p className="text-muted-foreground mb-4">{t('customers.noCustomers')}</p>
           <p className="text-sm text-muted-foreground">{t('customers.noCustomersDesc')}</p>
         </div>
       ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('customers.name')}</TableHead>
-                <TableHead>{t('customers.email')}</TableHead>
-                <TableHead>{t('customers.phone')}</TableHead>
-                <TableHead>{t('customers.totalPayments')}</TableHead>
-                <TableHead>{t('customers.joinedDate')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCustomers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">
-                    {customer.name || "-"}
-                  </TableCell>
-                  <TableCell>
-                    {customer.email ? (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="max-w-xs truncate" title={customer.email}>
-                          {maskEmail(customer.email)}
-                        </span>
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {getPhone(customer) ? (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{maskPhone(getPhone(customer))}</span>
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {(customer.payments as any)?.[0]?.count || 0}
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(customer.created_at), "PPp")}
-                  </TableCell>
+        <>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('customers.name')}</TableHead>
+                  <TableHead>{t('customers.email')}</TableHead>
+                  <TableHead>{t('customers.phone')}</TableHead>
+                  <TableHead>{t('customers.totalPayments')}</TableHead>
+                  <TableHead>{t('customers.joinedDate')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {paginatedCustomers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell className="font-medium">
+                      {customer.name || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {customer.email ? (
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="max-w-xs truncate" title={customer.email}>
+                            {maskEmail(customer.email)}
+                          </span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {getPhone(customer) ? (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{maskPhone(getPhone(customer))}</span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {(customer.payments as any)?.[0]?.count || 0}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(customer.created_at), "PPp")}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <Card className="border border-border shadow-soft bg-card">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                  {/* Items per page selector - Left */}
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
+                    <span className="text-sm text-muted-foreground">แสดง</span>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setPage(1);
+                    }}>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">รายการ</span>
+                  </div>
+
+                  {/* Pagination - Center */}
+                  <Pagination className="justify-center">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setPage(pageNum)}
+                              isActive={page === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && page < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                          className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+
+                  {/* Page info - Right */}
+                  <div className="text-sm text-muted-foreground text-center sm:text-right">
+                    หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       <TwoFactorChallenge open={isOpen} onOpenChange={setIsOpen} onSuccess={onSuccess} />

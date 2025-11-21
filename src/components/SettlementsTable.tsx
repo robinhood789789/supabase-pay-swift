@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Download, Search, Calendar, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +22,8 @@ export const SettlementsTable = () => {
   const { activeTenantId } = useTenantSwitcher();
   const [selectedSettlement, setSelectedSettlement] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -221,18 +225,29 @@ export const SettlementsTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {settlements.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={14} className="h-32 text-center">
-                  <div className="flex flex-col items-center justify-center text-muted-foreground">
-                    <Wallet className="h-8 w-8 mb-2 opacity-50" />
-                    <p className="font-medium">{t('settlements.noData')}</p>
-                    <p className="text-xs">{t('settlements.noDataDesc')}</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              settlements.map((settlement: any) => {
+            {(() => {
+              const totalCount = settlements.length;
+              const totalPages = Math.ceil(totalCount / itemsPerPage);
+              const paginatedSettlements = settlements.slice(
+                (page - 1) * itemsPerPage,
+                page * itemsPerPage
+              );
+
+              if (paginatedSettlements.length === 0) {
+                return (
+                  <TableRow>
+                    <TableCell colSpan={14} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Wallet className="h-8 w-8 mb-2 opacity-50" />
+                        <p className="font-medium">{t('settlements.noData')}</p>
+                        <p className="text-xs">{t('settlements.noDataDesc')}</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return paginatedSettlements.map((settlement: any) => {
                 return (
                   <TableRow
                     key={settlement.id}
@@ -281,11 +296,99 @@ export const SettlementsTable = () => {
                     </TableCell>
                   </TableRow>
                 );
-              })
-            )}
+              });
+            })()}
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {settlements.length > 0 && (() => {
+        const totalCount = settlements.length;
+        const totalPages = Math.ceil(totalCount / itemsPerPage);
+        
+        return totalPages > 1 ? (
+          <Card className="border border-border shadow-soft bg-card">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                {/* Items per page selector - Left */}
+                <div className="flex items-center gap-2 justify-center sm:justify-start">
+                  <span className="text-sm text-muted-foreground">แสดง</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">รายการ</span>
+                </div>
+
+                {/* Pagination - Center */}
+                <Pagination className="justify-center">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (page <= 3) {
+                        pageNum = i + 1;
+                      } else if (page >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setPage(pageNum)}
+                            isActive={page === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    {totalPages > 5 && page < totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+
+                {/* Page info - Right */}
+                <div className="text-sm text-muted-foreground text-center sm:text-right">
+                  หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null;
+      })()}
 
       <SettlementDetailsDrawer
         settlement={selectedSettlement}
