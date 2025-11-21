@@ -54,34 +54,31 @@ export default function PlatformSuperAdminEarnings() {
   const start = startDate.toISOString();
   const end = endDate.toISOString();
 
-  // Fetch shareholder earnings data from deposit_transfers
+  // Fetch shareholder earnings data from multiple transfer sources
   const { data: shareholderEarningsData, isLoading: earningsLoading } = useQuery({
     queryKey: ["super-admin-shareholder-earnings", start, end, startDate, endDate],
     queryFn: async () => {
-      // Fetch deposit transfers with tenant info
-      const { data: transfersData, error: transfersError } = await supabase
+      // Fetch deposit transfers
+      const { data: depositsData, error: depositsError } = await supabase
         .from("deposit_transfers")
-        .select(`
-          id,
-          amountpaid,
-          tenant_id,
-          created_at,
-          status
-        `)
+        .select("amountpaid, tenant_id, created_at, status")
         .gte("created_at", start)
         .lte("created_at", end)
         .not("status", "is", null);
 
-      if (transfersError) throw transfersError;
+      if (depositsError) throw depositsError;
 
-      // Get unique tenant_ids
-      const tenantIds = [...new Set(transfersData?.map(t => t.tenant_id).filter(Boolean) || [])];
-      
-      // Fetch tenants data with shareholder info
-      const { data: tenantsData } = await supabase
-        .from("tenants")
-        .select("id, name, public_id")
-        .in("id", tenantIds);
+      // Fetch settlement transfers
+      const { data: settlementsData } = await supabase
+        .from("settlement_transfers")
+        .select("amount, merchant_code, created_at, status")
+        .gte("created_at", start)
+        .lte("created_at", end);
+
+      // Get unique tenant_ids from all sources
+      const depositTenantIds = depositsData?.map(t => t.tenant_id).filter(Boolean) || [];
+      const settlementTenantIds = settlementsData?.map(t => t.merchant_code).filter(Boolean) || [];
+      const allTenantIds = [...new Set([...depositTenantIds, ...settlementTenantIds])];
 
       // Fetch shareholder_clients to find which shareholder owns each tenant
       const { data: clientsData } = await supabase
@@ -95,7 +92,7 @@ export default function PlatformSuperAdminEarnings() {
             user_id
           )
         `)
-        .in("tenant_id", tenantIds)
+        .in("tenant_id", allTenantIds)
         .eq("status", "active");
 
       // Fetch shareholder profiles for public_id
@@ -106,43 +103,88 @@ export default function PlatformSuperAdminEarnings() {
         .in("id", shareholderUserIds);
 
       // Create maps for easy lookup
-      const tenantMap = new Map(tenantsData?.map(t => [t.id, t]) || []);
       const clientMap = new Map(clientsData?.map(c => [c.tenant_id, c]) || []);
       const profileMap = new Map(profilesData?.map(p => [p.id, p.public_id]) || []);
 
-      // Group by shareholder and calculate commissions
+      // Group by shareholder and calculate totals
       const grouped = new Map();
-      transfersData?.forEach(transfer => {
+      
+      // Process deposits
+      depositsData?.forEach(transfer => {
         if (!transfer.tenant_id) return;
         
         const clientInfo = clientMap.get(transfer.tenant_id);
-        if (!clientInfo) return; // Skip if no shareholder assigned
+        if (!clientInfo) return;
         
         const shareholderId = clientInfo.shareholder_id;
         const userId = clientInfo.shareholders.user_id;
         const shareholderPublicId = profileMap.get(userId) || "N/A";
-        const baseAmount = Number(transfer.amountpaid || 0);
-        const mdrRate = 1.5; // 1.5% MDR total
-        const commission = baseAmount * (mdrRate / 100);
+        const amount = Number(transfer.amountpaid || 0);
         
-        if (grouped.has(shareholderId)) {
-          const existing = grouped.get(shareholderId);
-          existing.total_base_amount += baseAmount;
-          existing.total_commission += commission;
-          existing.transfer_count += 1;
-        } else {
+        if (!grouped.has(shareholderId)) {
           grouped.set(shareholderId, {
             shareholder_id: shareholderId,
             shareholder_public_id: shareholderPublicId,
-            total_base_amount: baseAmount,
-            total_commission: commission,
-            commission_rate: mdrRate,
-            transfer_count: 1,
+            total_deposit: 0,
+            total_topup: 0,
+            total_payout: 0,
+            total_settlement: 0,
+            transfer_count: 0,
           });
         }
+        
+        const existing = grouped.get(shareholderId);
+        existing.total_deposit += amount;
+        existing.transfer_count += 1;
       });
 
-      return Array.from(grouped.values());
+      // Process settlements
+      settlementsData?.forEach(transfer => {
+        if (!transfer.merchant_code) return;
+        
+        const clientInfo = clientMap.get(transfer.merchant_code);
+        if (!clientInfo) return;
+        
+        const shareholderId = clientInfo.shareholder_id;
+        const userId = clientInfo.shareholders.user_id;
+        const shareholderPublicId = profileMap.get(userId) || "N/A";
+        const amount = Number(transfer.amount || 0);
+        
+        if (!grouped.has(shareholderId)) {
+          grouped.set(shareholderId, {
+            shareholder_id: shareholderId,
+            shareholder_public_id: shareholderPublicId,
+            total_deposit: 0,
+            total_topup: 0,
+            total_payout: 0,
+            total_settlement: 0,
+            transfer_count: 0,
+          });
+        }
+        
+        const existing = grouped.get(shareholderId);
+        existing.total_settlement += amount;
+        existing.transfer_count += 1;
+      });
+
+      // Calculate final values with fixed rates
+      const mdrRate = 1.5; // 1.5% total MDR
+      const shareholderRate = 0.5; // 0.5% for shareholder
+      const superAdminRate = 1.0; // 1% for super admin
+
+      return Array.from(grouped.values()).map(item => {
+        const totalTransferAmount = item.total_deposit + item.total_topup + item.total_payout + item.total_settlement;
+        const totalCommission = totalTransferAmount * (mdrRate / 100);
+        
+        return {
+          shareholder_id: item.shareholder_id,
+          shareholder_public_id: item.shareholder_public_id,
+          total_base_amount: totalTransferAmount,
+          total_commission: totalCommission,
+          commission_rate: mdrRate,
+          transfer_count: item.transfer_count,
+        };
+      });
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
