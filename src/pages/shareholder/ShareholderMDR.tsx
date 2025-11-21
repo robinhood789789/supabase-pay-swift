@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, TrendingUp, DollarSign, Percent, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { cn } from "@/lib/utils";
 import { EditCommissionDialog } from "@/components/shareholder/EditCommissionDialog";
 
@@ -54,8 +55,10 @@ export default function ShareholderMDR() {
     queryFn: async () => {
       if (!shareholder?.id) return [];
 
-      const startDateStr = format(startDate, "yyyy-MM-dd");
-      const endDateStr = format(endDate, "yyyy-MM-dd");
+      // Use Bangkok timezone (UTC+7) for date queries
+      const timezone = "Asia/Bangkok";
+      const startDateStr = formatInTimeZone(startDate, timezone, "yyyy-MM-dd");
+      const endDateStr = formatInTimeZone(endDate, timezone, "yyyy-MM-dd");
 
       // Get shareholder's clients
       const { data: clients, error: clientsError } = await supabase
