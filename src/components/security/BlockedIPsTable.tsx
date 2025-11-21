@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Shield, Trash2, AlertCircle } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -44,6 +46,8 @@ export function BlockedIPsTable({ blocks, onRefresh }: BlockedIPsTableProps) {
   const { toast } = useToast();
   const [selectedIP, setSelectedIP] = useState<string | null>(null);
   const [isUnblocking, setIsUnblocking] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const handleUnblock = async () => {
     if (!selectedIP) return;
@@ -82,10 +86,17 @@ export function BlockedIPsTable({ blocks, onRefresh }: BlockedIPsTableProps) {
     return new Date(blockedUntil) < new Date();
   };
 
+  // Pagination
+  const totalPages = Math.ceil(blocks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBlocks = blocks.slice(startIndex, endIndex);
+
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
+      <div className="space-y-4">
+        <div className="rounded-md border">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>IP Address</TableHead>
@@ -96,18 +107,18 @@ export function BlockedIPsTable({ blocks, onRefresh }: BlockedIPsTableProps) {
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {blocks.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <Shield className="h-12 w-12 mb-2 opacity-50" />
-                    <p>No blocked IPs</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              blocks.map((block) => (
+            <TableBody>
+              {paginatedBlocks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <Shield className="h-12 w-12 mb-2 opacity-50" />
+                      <p>No blocked IPs</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedBlocks.map((block) => (
                 <TableRow key={block.id}>
                   <TableCell className="font-mono">{block.ip_address}</TableCell>
                   <TableCell>{block.reason}</TableCell>
@@ -145,6 +156,62 @@ export function BlockedIPsTable({ blocks, onRefresh }: BlockedIPsTableProps) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {blocks.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm whitespace-nowrap">แสดง</Label>
+            <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">รายการ</span>
+          </div>
+
+          <div className="flex justify-center">
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ก่อนหน้า
+                </Button>
+                <div className="flex items-center gap-1 px-2">
+                  <span className="text-sm">
+                    {currentPage} / {totalPages}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  ถัดไป
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="text-sm text-muted-foreground text-right">
+            แสดง {startIndex + 1}-{Math.min(endIndex, blocks.length)} จาก {blocks.length}
+          </div>
+        </div>
+      )}
       </div>
 
       <AlertDialog open={!!selectedIP} onOpenChange={() => setSelectedIP(null)}>
