@@ -395,9 +395,9 @@ export default function PlatformSuperAdminEarnings() {
               <TableRow>
                 <TableHead>Date to Date</TableHead>
                 <TableHead>Shareholder ID</TableHead>
-                <TableHead>Total Deposits</TableHead>
+                <TableHead>Total MDR</TableHead>
                 <TableHead>MDR (%)</TableHead>
-                <TableHead>Shareholder man share</TableHead>
+                <TableHead>Shareholder Share</TableHead>
                 <TableHead>Super Admin Share ({superAdminPercentage}%)</TableHead>
                 <TableHead>Transfer Count</TableHead>
               </TableRow>
@@ -411,11 +411,12 @@ export default function PlatformSuperAdminEarnings() {
                 </TableRow>
               ) : paginatedTransfers && paginatedTransfers.length > 0 ? (
                 paginatedTransfers.map((group, index) => {
-                  const superAdminShare = group.totalAmount * (superAdminPercentage / 100); // 1%
-                  const shareholderManShare = group.totalCommission; // Already calculated commission from MDR
-                  const mdrAmount = group.totalCommission; // Total commission from earnings
-                  const mdrRate = group.commissionRate || 1.5; // Use actual commission rate
-                  const shareholderShare = shareholderPercentage;
+                  // Calculate from total_transfer_amount
+                  const totalTransferAmount = group.totalAmount; // This is total_transfer_amount (deposits + topups + settlements)
+                  const mdrRate = 1.5; // 1.5% MDR
+                  const totalMDR = totalTransferAmount * (mdrRate / 100);
+                  const shareholderShare = totalTransferAmount * (shareholderPercentage / 100); // 0.5%
+                  const superAdminShare = totalTransferAmount * (superAdminPercentage / 100); // 1%
 
                   return (
                     <TableRow key={`${group.shareholderId}-${index}`}>
@@ -426,18 +427,21 @@ export default function PlatformSuperAdminEarnings() {
                         {group.shareholderId}
                       </TableCell>
                       <TableCell className="font-bold text-green-600">
-                        {formatCurrency(group.totalAmount)}
+                        {formatCurrency(totalMDR)}
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (จาก {formatCurrency(totalTransferAmount)})
+                        </span>
                       </TableCell>
                       <TableCell className="font-semibold text-blue-600">
-                        {formatCurrency(mdrAmount)}
+                        {mdrRate.toFixed(1)}%
                         <span className="text-xs text-muted-foreground ml-2">
-                          ({mdrRate.toFixed(1)}%)
+                          ของยอดโอนรวม
                         </span>
                       </TableCell>
                       <TableCell className="font-bold text-muted-foreground">
-                        {formatCurrency(shareholderManShare)}
+                        {formatCurrency(shareholderShare)}
                         <span className="text-xs text-muted-foreground ml-2">
-                          ({shareholderShare.toFixed(1)}%)
+                          ({shareholderPercentage.toFixed(1)}%)
                         </span>
                       </TableCell>
                       <TableCell className="font-bold text-primary">
