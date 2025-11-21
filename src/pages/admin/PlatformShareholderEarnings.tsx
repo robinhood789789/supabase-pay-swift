@@ -26,6 +26,7 @@ interface ClientMDRData {
   owner_name: string;
   shareholder_id: string;
   shareholder_name: string;
+  shareholder_public_id: string;
   total_transfer_amount: number;
   shareholder_commission_rate: number;
   shareholder_commission_amount: number;
@@ -514,6 +515,7 @@ export default function PlatformShareholderEarnings() {
           owner_name: (relation.tenants as any).profiles?.full_name || "N/A",
           shareholder_id: relation.shareholder_id,
           shareholder_name: (relation.shareholders as any).profiles?.full_name || "N/A",
+          shareholder_public_id: (relation.shareholders as any).profiles?.public_id || "N/A",
           total_transfer_amount: totalTransferAmount,
           shareholder_commission_rate: relation.commission_rate,
           shareholder_commission_amount: shareholderCommission,
@@ -847,7 +849,7 @@ export default function PlatformShareholderEarnings() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  ยอดการโอนรวมทั้งหมด
+                  ยอด MDR รวมทั้งหมด
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -897,7 +899,7 @@ export default function PlatformShareholderEarnings() {
                       <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
                       <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
                       <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
-                        ยอดการโอน
+                        ยอด MDR
                       </TableHead>
                       <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
                         <div className="flex items-center justify-end gap-1">
@@ -914,8 +916,11 @@ export default function PlatformShareholderEarnings() {
                     {mdrData.map((row, idx) => (
                       <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
                         <TableCell className="border-r font-medium">
-                          <div className="flex flex-col">
-                            <span className="font-semibold">{row.shareholder_name}</span>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant="outline" className="font-mono w-fit">
+                              {row.shareholder_public_id}
+                            </Badge>
+                            <span className="font-semibold text-sm">{row.shareholder_name}</span>
                           </div>
                         </TableCell>
                         <TableCell className="border-r font-medium">
