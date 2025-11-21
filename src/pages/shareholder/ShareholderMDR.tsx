@@ -115,7 +115,7 @@ export default function ShareholderMDR() {
         
         // Use fixed rates
         const mdrRate = 1.5; // 1.5% total MDR
-        const shareholderRate = 0.5; // 0.5% for shareholder
+        const shareholderRate = 1.5; // 1.5% for shareholder
         const superAdminRate = 1.0; // 1% for super admin
         
         // Calculate commissions from total transfer amount
