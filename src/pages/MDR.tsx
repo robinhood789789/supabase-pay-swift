@@ -166,8 +166,8 @@ const MDR = () => {
         // Calculate based on status (3 = completed)
         if (item.status === "3" && amount > 0) {
           dayData.totalDeposit += amount;
-          // Calculate MDR (1.6% for deposits)
-          dayData.mdrDeposit += amount * 0.016;
+          // Calculate MDR (1.5% for deposits)
+          dayData.mdrDeposit += amount * 0.015;
         }
       });
 
@@ -197,8 +197,8 @@ const MDR = () => {
         // Calculate based on status (completed)
         if (item.status === "completed" && amount > 0) {
           dayData.totalTopup += amount;
-          // Calculate MDR (1.6% for topups)
-          dayData.mdrTopup += amount * 0.016;
+          // Calculate MDR (1.5% for topups)
+          dayData.mdrTopup += amount * 0.015;
         }
       });
 
@@ -228,12 +228,12 @@ const MDR = () => {
         // Calculate based on status (completed/approved)
         if ((item.status === "completed" || item.status === "approved") && amount > 0) {
           dayData.totalPayout += amount;
-          // Calculate MDR (1.6% for payouts)
-          dayData.mdrPayout += amount * 0.016;
+          // Calculate MDR (1.5% for payouts)
+          dayData.mdrPayout += amount * 0.015;
           
           dayData.totalSettlement += amount;
-          // Calculate MDR for settlements (0.5%)
-          dayData.mdrSettlement += amount * 0.005;
+          // Calculate MDR for settlements (1.5%)
+          dayData.mdrSettlement += amount * 0.015;
         }
       });
 
