@@ -258,7 +258,7 @@ const DashboardSidebar = () => {
                         end
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
@@ -286,7 +286,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
@@ -306,7 +306,7 @@ const DashboardSidebar = () => {
                   to="/system-deposit"
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                      ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                       : "bg-muted/50 hover:bg-muted border-l-2 border-border font-medium text-foreground transition-smooth"
                   }
                 >
@@ -327,7 +327,7 @@ const DashboardSidebar = () => {
                   to="/system-withdrawal"
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                      ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                       : "bg-muted/50 hover:bg-muted border-l-2 border-border font-medium text-foreground transition-smooth"
                   }
                 >
@@ -361,7 +361,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
@@ -389,7 +389,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
@@ -417,7 +417,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
@@ -445,7 +445,7 @@ const DashboardSidebar = () => {
                           to={item.url}
                           className={({ isActive }) =>
                             isActive
-                              ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                              ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                               : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                           }
                         >
@@ -476,7 +476,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >
@@ -504,7 +504,7 @@ const DashboardSidebar = () => {
                         to={item.url}
                         className={({ isActive }) =>
                           isActive
-                            ? "bg-muted text-foreground font-semibold border-l-2 border-foreground"
+                            ? "bg-primary/10 text-primary font-semibold border-l-4 border-primary"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-smooth"
                         }
                       >

@@ -146,11 +146,11 @@ function ShareholderSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
-                    className="group hover:bg-muted/50 data-[active=true]:bg-muted data-[active=true]:border-l-2 data-[active=true]:border-foreground"
+                    className="group hover:bg-muted/50 data-[active=true]:bg-primary/10 data-[active=true]:border-l-4 data-[active=true]:border-primary"
                   >
                     <NavLink to={item.path}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.path) ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
-                      <span className={`font-medium ${isActive(item.path) ? 'text-foreground font-semibold' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                      <item.icon className={`h-4 w-4 ${isActive(item.path) ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
+                      <span className={`font-medium ${isActive(item.path) ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'}`}>
                         {item.label}
                       </span>
                     </NavLink>
@@ -174,11 +174,11 @@ function ShareholderSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive(item.path)}
-                    className="group hover:bg-muted/50 data-[active=true]:bg-muted data-[active=true]:border-l-2 data-[active=true]:border-foreground"
+                    className="group hover:bg-muted/50 data-[active=true]:bg-primary/10 data-[active=true]:border-l-4 data-[active=true]:border-primary"
                   >
                     <NavLink to={item.path}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.path) ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
-                      <span className={`font-medium ${isActive(item.path) ? 'text-foreground font-semibold' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                      <item.icon className={`h-4 w-4 ${isActive(item.path) ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
+                      <span className={`font-medium ${isActive(item.path) ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'}`}>
                         {item.label}
                       </span>
                     </NavLink>
