@@ -1022,7 +1022,6 @@ export default function PlatformShareholderEarnings() {
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
                         <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Shareholder</TableHead>
                         <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
-                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
                         <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
                           ยอด MDR
                         </TableHead>
@@ -1040,19 +1039,11 @@ export default function PlatformShareholderEarnings() {
                     <TableBody>
                       {paginatedMdrData.map((row, idx) => (
                         <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
-                          <TableCell className="border-r font-medium">
-                            <div className="flex flex-col gap-1">
-                              <Badge variant="outline" className="font-mono w-fit">
-                                {row.shareholder_public_id}
-                              </Badge>
-                              <span className="font-semibold text-sm">{row.shareholder_name}</span>
-                            </div>
+                          <TableCell className="border-r font-semibold">
+                            {row.shareholder_name}
                           </TableCell>
                           <TableCell className="border-r font-medium">
                             {row.tenant_name}
-                          </TableCell>
-                          <TableCell className="border-r text-muted-foreground">
-                            {row.owner_name}
                           </TableCell>
                           <TableCell className="text-right border-r font-semibold bg-emerald-50 dark:bg-emerald-950/10">
                             {formatCurrency(row.total_transfer_amount)}
