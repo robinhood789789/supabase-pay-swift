@@ -6,14 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatCurrency, cn } from "@/lib/utils";
-import { Search, TrendingUp, Wallet, Clock, Users, Download, ChevronRight, CalendarIcon, X, ChevronDown, DollarSign, Percent, TestTube } from "lucide-react";
+import { Search, TrendingUp, Wallet, Users, Download, ChevronRight, CalendarIcon, ChevronDown, DollarSign, Percent, TestTube, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { th } from "date-fns/locale";
@@ -38,7 +37,6 @@ export default function PlatformShareholderEarnings() {
   const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "custom">("month");
   const [customStartDate, setCustomStartDate] = useState<Date>();
   const [customEndDate, setCustomEndDate] = useState<Date>();
-  const [selectedShareholders, setSelectedShareholders] = useState<Set<string>>(new Set());
   const [useMockMDR, setUseMockMDR] = useState(false);
   const [useMockShareholders, setUseMockShareholders] = useState(false);
 
@@ -80,7 +78,6 @@ export default function PlatformShareholderEarnings() {
     setDateRange("month");
     setCustomStartDate(undefined);
     setCustomEndDate(undefined);
-    setSelectedShareholders(new Set());
   };
 
   // Check if any filter is active
@@ -106,10 +103,9 @@ export default function PlatformShareholderEarnings() {
       `"วันที่ส่งออก:","${exportDate}"`,
       `"ช่วงเวลา:","${dateRangeText}"`,
       `"สถานะ:","${statusFilterText}"`,
-      `"จำนวนรายการ:","${totalRecords}"`,
-      `"รายได้รวม:","${formatCurrency(platformSummary.totalEarnings)}"`,
-      `"รายได้รอจ่าย:","${formatCurrency(platformSummary.pendingEarnings)}"`,
-      `"รายได้ที่จ่ายแล้ว:","${formatCurrency(platformSummary.paidEarnings)}"`,
+      `"รายการทั้งหมด:","${totalRecords}"`,
+      `"ยอดเงินคงเหลือรวม:","${formatCurrency(platformSummary.totalEarnings)}"`,
+      `"เบิกแล้ว:","${formatCurrency(platformSummary.paidEarnings)}"`,
       "", // Empty line separator
     ];
 
@@ -120,9 +116,8 @@ export default function PlatformShareholderEarnings() {
       "Public ID",
       "สถานะ",
       "จำนวนลูกค้า",
-      "รายได้ทั้งหมด (บาท)",
-      "รอจ่าย (บาท)",
-      "จ่ายแล้ว (บาท)",
+      "ยอดเงินคงเหลือ (บาท)",
+      "เบิกแล้ว (บาท)",
     ];
 
     // Prepare CSV rows
@@ -133,7 +128,6 @@ export default function PlatformShareholderEarnings() {
       sh.status === "active" ? "Active" : "Inactive",
       sh.active_clients_count || 0,
       (sh.total_earnings / 100).toFixed(2),
-      (sh.pending_earnings / 100).toFixed(2),
       (sh.paid_earnings / 100).toFixed(2),
     ]);
 
@@ -168,7 +162,7 @@ export default function PlatformShareholderEarnings() {
 
   // Export detailed CSV with transactions
   const handleExportDetailedCSV = async () => {
-    const shareholdersToExport = filteredShareholders?.filter(sh => selectedShareholders.has(sh.id));
+    const shareholdersToExport = filteredShareholders;
     
     if (!shareholdersToExport || shareholdersToExport.length === 0) {
       return;
@@ -186,11 +180,11 @@ export default function PlatformShareholderEarnings() {
       `"วันที่ส่งออก:","${exportDate}"`,
       `"ช่วงเวลา:","${dateRangeText}"`,
       `"จำนวนรายการที่เลือก:","${shareholdersToExport.length}"`,
-      `"รายได้รวมที่เลือก:","${formatCurrency(shareholdersToExport.reduce((sum, sh) => sum + sh.total_earnings, 0))}"`,
+      `"ยอดเงินคงเหลือรวมที่เลือก:","${formatCurrency(shareholdersToExport.reduce((sum, sh) => sum + sh.total_earnings, 0))}"`,
       "",
     ];
 
-    const summaryHeaders = ["ชื่อ Shareholder", "Email", "Public ID", "สถานะ", "จำนวนลูกค้า", "รายได้ทั้งหมด (บาท)", "รอจ่าย (บาท)", "จ่ายแล้ว (บาท)"];
+    const summaryHeaders = ["ชื่อ Shareholder", "Email", "Public ID", "สถานะ", "จำนวนลูกค้า", "ยอดเงินคงเหลือ (บาท)", "เบิกแล้ว (บาท)"];
     const summaryRows = shareholdersToExport.map((sh) => [
       sh.full_name || "-",
       sh.email || "-",
@@ -198,7 +192,6 @@ export default function PlatformShareholderEarnings() {
       sh.status === "active" ? "Active" : "Inactive",
       sh.active_clients_count || 0,
       (sh.total_earnings / 100).toFixed(2),
-      (sh.pending_earnings / 100).toFixed(2),
       (sh.paid_earnings / 100).toFixed(2),
     ]);
 
@@ -246,7 +239,7 @@ export default function PlatformShareholderEarnings() {
             `"วันที่ส่งออก:","${exportDate}"`,
             `"ช่วงเวลา:","${dateRangeText}"`,
             `"จำนวนธุรกรรม:","${earningsData.length}"`,
-            `"รายได้รวม:","${formatCurrency(shareholder.total_earnings)}"`,
+            `"ยอดเงินคงเหลือรวม:","${formatCurrency(shareholder.total_earnings)}"`,
             "",
           ];
 
@@ -267,7 +260,7 @@ export default function PlatformShareholderEarnings() {
             (earning.base_amount / 100).toFixed(2),
             earning.commission_rate,
             (earning.amount / 100).toFixed(2),
-            earning.status === "paid" ? "จ่ายแล้ว" : earning.status === "pending" ? "รอจ่าย" : "ยกเลิก",
+            earning.status === "paid" ? "เบิกแล้ว" : earning.status === "pending" ? "รอจ่าย" : "ยกเลิก",
           ]);
 
           const detailContent = [
@@ -415,32 +408,6 @@ export default function PlatformShareholderEarnings() {
 
     return matchesSearch && matchesTab;
   });
-
-  // Handle select/deselect all shareholders
-  const handleSelectAll = () => {
-    if (filteredShareholders) {
-      setSelectedShareholders(new Set(filteredShareholders.map(sh => sh.id)));
-    }
-  };
-
-  const handleDeselectAll = () => {
-    setSelectedShareholders(new Set());
-  };
-
-  // Toggle individual shareholder selection
-  const toggleShareholderSelection = (shareholderId: string) => {
-    const newSelection = new Set(selectedShareholders);
-    if (newSelection.has(shareholderId)) {
-      newSelection.delete(shareholderId);
-    } else {
-      newSelection.add(shareholderId);
-    }
-    setSelectedShareholders(newSelection);
-  };
-
-  // Check if all filtered shareholders are selected
-  const allSelected = filteredShareholders && filteredShareholders.length > 0 && 
-    filteredShareholders.every(sh => selectedShareholders.has(sh.id));
 
   // Fetch MDR data for all shareholders and their clients
   const { data: mdrData, isLoading: mdrLoading } = useQuery({
@@ -602,20 +569,19 @@ export default function PlatformShareholderEarnings() {
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={handleExportDetailedCSV}
-              disabled={selectedShareholders.size === 0}
             >
               <Download className="w-4 h-4 mr-2" />
-              ส่งออกแบบละเอียด ({selectedShareholders.size} ที่เลือก)
+              ส่งออกแบบละเอียด (ทั้งหมด)
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
       {/* Platform Summary */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">รายได้ทั้งหมด</CardTitle>
+            <CardTitle className="text-sm font-medium">ยอดเงินคงเหลือ</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -629,21 +595,7 @@ export default function PlatformShareholderEarnings() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">รายได้รอจ่าย</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <div className="text-2xl font-bold text-orange-600">{formatCurrency(platformSummary.pendingEarnings)}</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">รายได้ที่จ่ายแล้ว</CardTitle>
+            <CardTitle className="text-sm font-medium">รายได้ที่เบิกแล้ว</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -778,7 +730,7 @@ export default function PlatformShareholderEarnings() {
                 onClick={handleResetFilters}
                 className="gap-2"
               >
-                <X className="h-4 w-4" />
+                <RotateCcw className="h-4 w-4" />
                 รีเซ็ตตัวกรอง
               </Button>
             )}
@@ -792,36 +744,6 @@ export default function PlatformShareholderEarnings() {
             </TabsList>
           </Tabs>
 
-          {/* Selection controls */}
-          {filteredShareholders && filteredShareholders.length > 0 && (
-            <div className="flex items-center gap-2 mb-4 p-3 bg-muted/50 rounded-lg">
-              <Checkbox
-                checked={allSelected}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    handleSelectAll();
-                  } else {
-                    handleDeselectAll();
-                  }
-                }}
-              />
-              <span className="text-sm font-medium">
-                เลือกทั้งหมด ({selectedShareholders.size} / {filteredShareholders.length})
-              </span>
-              {selectedShareholders.size > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDeselectAll}
-                  className="ml-auto"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  ยกเลิกการเลือก
-                </Button>
-              )}
-            </div>
-          )}
-
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -832,37 +754,18 @@ export default function PlatformShareholderEarnings() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={allSelected}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          handleSelectAll();
-                        } else {
-                          handleDeselectAll();
-                        }
-                      }}
-                    />
-                  </TableHead>
                   <TableHead>Shareholder</TableHead>
                   <TableHead>Public ID</TableHead>
                   <TableHead>สถานะ</TableHead>
                   <TableHead>ลูกค้า</TableHead>
-                  <TableHead>รายได้ทั้งหมด</TableHead>
-                  <TableHead>รอจ่าย</TableHead>
-                  <TableHead>จ่ายแล้ว</TableHead>
+                  <TableHead>ยอดเงินคงเหลือ</TableHead>
+                  <TableHead>เบิกแล้ว</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredShareholders.map((shareholder) => (
                   <TableRow key={shareholder.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedShareholders.has(shareholder.id)}
-                        onCheckedChange={() => toggleShareholderSelection(shareholder.id)}
-                      />
-                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{shareholder.full_name}</div>
@@ -886,9 +789,6 @@ export default function PlatformShareholderEarnings() {
                     </TableCell>
                     <TableCell className="font-bold">
                       {formatCurrency(shareholder.total_earnings)}
-                    </TableCell>
-                    <TableCell className="font-semibold text-orange-600">
-                      {formatCurrency(shareholder.pending_earnings)}
                     </TableCell>
                     <TableCell className="font-semibold text-green-600">
                       {formatCurrency(shareholder.paid_earnings)}
