@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Search, TrendingUp, Wallet, Users, Download, ChevronRight, CalendarIcon, ChevronDown, DollarSign, Percent, TestTube, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,6 +41,12 @@ export default function PlatformShareholderEarnings() {
   const [customEndDate, setCustomEndDate] = useState<Date>();
   const [useMockMDR, setUseMockMDR] = useState(false);
   const [useMockShareholders, setUseMockShareholders] = useState(false);
+  
+  // Pagination states
+  const [shareholderPage, setShareholderPage] = useState(1);
+  const [shareholderItemsPerPage, setShareholderItemsPerPage] = useState(20);
+  const [mdrPage, setMdrPage] = useState(1);
+  const [mdrItemsPerPage, setMdrItemsPerPage] = useState(20);
 
   // Calculate date range based on selection
   const getDateRange = () => {
@@ -79,6 +86,8 @@ export default function PlatformShareholderEarnings() {
     setDateRange("month");
     setCustomStartDate(undefined);
     setCustomEndDate(undefined);
+    setShareholderPage(1);
+    setMdrPage(1);
   };
 
   // Check if any filter is active
@@ -410,6 +419,12 @@ export default function PlatformShareholderEarnings() {
     return matchesSearch && matchesTab;
   });
 
+  // Pagination for shareholders
+  const shareholderTotalPages = Math.ceil((filteredShareholders?.length || 0) / shareholderItemsPerPage);
+  const shareholderStartIndex = (shareholderPage - 1) * shareholderItemsPerPage;
+  const shareholderEndIndex = shareholderStartIndex + shareholderItemsPerPage;
+  const paginatedShareholders = filteredShareholders?.slice(shareholderStartIndex, shareholderEndIndex);
+
   // Fetch MDR data for all shareholders and their clients
   const { data: mdrData, isLoading: mdrLoading } = useQuery({
     queryKey: ["platform-mdr-data", startDate, endDate, useMockMDR],
@@ -538,6 +553,12 @@ export default function PlatformShareholderEarnings() {
     }),
     { totalTransferAmount: 0, totalCommission: 0 }
   );
+
+  // Pagination for MDR
+  const mdrTotalPages = Math.ceil((mdrData?.length || 0) / mdrItemsPerPage);
+  const mdrStartIndex = (mdrPage - 1) * mdrItemsPerPage;
+  const mdrEndIndex = mdrStartIndex + mdrItemsPerPage;
+  const paginatedMdrData = mdrData?.slice(mdrStartIndex, mdrEndIndex);
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -746,68 +767,142 @@ export default function PlatformShareholderEarnings() {
             </TabsList>
           </Tabs>
 
+          {/* Items per page selector */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">แสดง</span>
+              <Select
+                value={shareholderItemsPerPage.toString()}
+                onValueChange={(value) => {
+                  setShareholderItemsPerPage(Number(value));
+                  setShareholderPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
+            </div>
+            {filteredShareholders && filteredShareholders.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                แสดง {shareholderStartIndex + 1}-{Math.min(shareholderEndIndex, filteredShareholders.length)} จาก {filteredShareholders.length} รายการ
+              </span>
+            )}
+          </div>
+
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-20 w-full" />
               ))}
             </div>
-          ) : filteredShareholders && filteredShareholders.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Shareholder</TableHead>
-                  <TableHead>Public ID</TableHead>
-                  <TableHead>สถานะ</TableHead>
-                  <TableHead>ลูกค้า</TableHead>
-                  <TableHead>ยอดเงินคงเหลือ</TableHead>
-                  <TableHead>เบิกแล้ว</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredShareholders.map((shareholder) => (
-                  <TableRow key={shareholder.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{shareholder.full_name}</div>
-                        <div className="text-sm text-muted-foreground">{shareholder.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono">
-                        {shareholder.profile?.public_id || "N/A"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={shareholder.status === "active" ? "default" : "secondary"}>
-                        {shareholder.status === "active" ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {shareholder.active_clients_count || 0} ลูกค้า
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-bold">
-                      {formatCurrency(shareholder.total_earnings)}
-                    </TableCell>
-                    <TableCell className="font-semibold text-green-600">
-                      {formatCurrency(shareholder.paid_earnings)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.location.href = `/platform/partners/${shareholder.id}`}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+          ) : paginatedShareholders && paginatedShareholders.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Shareholder</TableHead>
+                    <TableHead>Public ID</TableHead>
+                    <TableHead>สถานะ</TableHead>
+                    <TableHead>ลูกค้า</TableHead>
+                    <TableHead>ยอดเงินคงเหลือ</TableHead>
+                    <TableHead>เบิกแล้ว</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedShareholders.map((shareholder) => (
+                    <TableRow key={shareholder.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{shareholder.full_name}</div>
+                          <div className="text-sm text-muted-foreground">{shareholder.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono">
+                          {shareholder.profile?.public_id || "N/A"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={shareholder.status === "active" ? "default" : "secondary"}>
+                          {shareholder.status === "active" ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {shareholder.active_clients_count || 0} ลูกค้า
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-bold">
+                        {formatCurrency(shareholder.total_earnings)}
+                      </TableCell>
+                      <TableCell className="font-semibold text-green-600">
+                        {formatCurrency(shareholder.paid_earnings)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.location.href = `/platform/partners/${shareholder.id}`}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {/* Pagination */}
+              <div className="mt-4 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setShareholderPage(Math.max(1, shareholderPage - 1))}
+                        className={shareholderPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: shareholderTotalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      if (
+                        page === 1 ||
+                        page === shareholderTotalPages ||
+                        (page >= shareholderPage - 1 && page <= shareholderPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setShareholderPage(page)}
+                              isActive={page === shareholderPage}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (page === shareholderPage - 2 || page === shareholderPage + 2) {
+                        return <PaginationEllipsis key={page} />;
+                      }
+                      return null;
+                    })}
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setShareholderPage(Math.min(shareholderTotalPages, shareholderPage + 1))}
+                        className={shareholderPage === shareholderTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               ไม่พบข้อมูล Shareholder
@@ -882,6 +977,35 @@ export default function PlatformShareholderEarnings() {
             </Card>
           </div>
 
+          {/* Items per page selector for MDR */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">แสดง</span>
+              <Select
+                value={mdrItemsPerPage.toString()}
+                onValueChange={(value) => {
+                  setMdrItemsPerPage(Number(value));
+                  setMdrPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
+            </div>
+            {mdrData && mdrData.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                แสดง {mdrStartIndex + 1}-{Math.min(mdrEndIndex, mdrData.length)} จาก {mdrData.length} รายการ
+              </span>
+            )}
+          </div>
+
           {/* MDR Detail Table */}
           <div className="rounded-lg border border-border overflow-hidden">
             <div className="overflow-x-auto">
@@ -891,57 +1015,101 @@ export default function PlatformShareholderEarnings() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : mdrData && mdrData.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Shareholder</TableHead>
-                      <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
-                      <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
-                      <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
-                        ยอด MDR
-                      </TableHead>
-                      <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
-                        <div className="flex items-center justify-end gap-1">
-                          <Percent className="h-3 w-3" />
-                          Shareholder
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
-                        ส่วนแบ่ง Shareholder
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mdrData.map((row, idx) => (
-                      <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
-                        <TableCell className="border-r font-medium">
-                          <div className="flex flex-col gap-1">
-                            <Badge variant="outline" className="font-mono w-fit">
-                              {row.shareholder_public_id}
-                            </Badge>
-                            <span className="font-semibold text-sm">{row.shareholder_name}</span>
+              ) : paginatedMdrData && paginatedMdrData.length > 0 ? (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Shareholder</TableHead>
+                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ลูกค้า</TableHead>
+                        <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Owner</TableHead>
+                        <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
+                          ยอด MDR
+                        </TableHead>
+                        <TableHead className="text-right border-r bg-blue-100 dark:bg-blue-950/20 text-foreground dark:text-blue-400 font-semibold">
+                          <div className="flex items-center justify-end gap-1">
+                            <Percent className="h-3 w-3" />
+                            Shareholder
                           </div>
-                        </TableCell>
-                        <TableCell className="border-r font-medium">
-                          {row.tenant_name}
-                        </TableCell>
-                        <TableCell className="border-r text-muted-foreground">
-                          {row.owner_name}
-                        </TableCell>
-                        <TableCell className="text-right border-r font-semibold bg-emerald-50 dark:bg-emerald-950/10">
-                          {formatCurrency(row.total_transfer_amount)}
-                        </TableCell>
-                        <TableCell className="text-right border-r font-medium bg-blue-50 dark:bg-blue-950/10">
-                          {row.shareholder_commission_rate.toFixed(2)}%
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/10">
-                          {formatCurrency(row.shareholder_commission_amount)}
-                        </TableCell>
+                        </TableHead>
+                        <TableHead className="text-right bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
+                          ส่วนแบ่ง Shareholder
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedMdrData.map((row, idx) => (
+                        <TableRow key={`${row.shareholder_id}-${row.tenant_id}-${idx}`}>
+                          <TableCell className="border-r font-medium">
+                            <div className="flex flex-col gap-1">
+                              <Badge variant="outline" className="font-mono w-fit">
+                                {row.shareholder_public_id}
+                              </Badge>
+                              <span className="font-semibold text-sm">{row.shareholder_name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="border-r font-medium">
+                            {row.tenant_name}
+                          </TableCell>
+                          <TableCell className="border-r text-muted-foreground">
+                            {row.owner_name}
+                          </TableCell>
+                          <TableCell className="text-right border-r font-semibold bg-emerald-50 dark:bg-emerald-950/10">
+                            {formatCurrency(row.total_transfer_amount)}
+                          </TableCell>
+                          <TableCell className="text-right border-r font-medium bg-blue-50 dark:bg-blue-950/10">
+                            {row.shareholder_commission_rate.toFixed(2)}%
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/10">
+                            {formatCurrency(row.shareholder_commission_amount)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {/* MDR Pagination */}
+                  <div className="p-4 flex justify-center border-t border-border">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setMdrPage(Math.max(1, mdrPage - 1))}
+                            className={mdrPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: mdrTotalPages }, (_, i) => i + 1).map((page) => {
+                          if (
+                            page === 1 ||
+                            page === mdrTotalPages ||
+                            (page >= mdrPage - 1 && page <= mdrPage + 1)
+                          ) {
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setMdrPage(page)}
+                                  isActive={page === mdrPage}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          } else if (page === mdrPage - 2 || page === mdrPage + 2) {
+                            return <PaginationEllipsis key={page} />;
+                          }
+                          return null;
+                        })}
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setMdrPage(Math.min(mdrTotalPages, mdrPage + 1))}
+                            className={mdrPage === mdrTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   ไม่พบข้อมูล MDR ในช่วงเวลาที่เลือก
