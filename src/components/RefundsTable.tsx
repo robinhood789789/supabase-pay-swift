@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card, CardContent } from "@/components/ui/card";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
@@ -25,6 +27,8 @@ import { useI18n } from "@/lib/i18n";
 export const RefundsTable = () => {
   const { activeTenantId } = useTenantSwitcher();
   const { t } = useI18n();
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   const [filters, setFilters] = useState({
     status: "all",
@@ -101,6 +105,14 @@ export const RefundsTable = () => {
     );
   });
 
+  // Pagination
+  const totalCount = filteredRefunds?.length || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginatedRefunds = filteredRefunds?.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -159,64 +171,149 @@ export const RefundsTable = () => {
         />
       </div>
 
-      {!filteredRefunds || filteredRefunds.length === 0 ? (
+      {!paginatedRefunds || paginatedRefunds.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
           <p className="text-muted-foreground mb-4">{t('refunds.noRefunds')}</p>
           <p className="text-sm text-muted-foreground">{t('refunds.noRefundsDesc')}</p>
         </div>
       ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('common.amount')}</TableHead>
-                <TableHead>{t('common.status')}</TableHead>
-                <TableHead>{t('refunds.reason')}</TableHead>
-                <TableHead>{t('refunds.providerId')}</TableHead>
-                <TableHead>{t('common.date')}</TableHead>
-                <TableHead>{t('common.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRefunds.map((refund) => (
-                <TableRow key={refund.id}>
-                  <TableCell className="font-medium">
-                    {(refund.amount / 100).toLocaleString()} {(refund.payments as any)?.currency?.toUpperCase()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusColor(refund.status)}>{refund.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs truncate" title={refund.reason || "-"}>
-                      {refund.reason || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs truncate" title={refund.provider_refund_id || "-"}>
-                      {refund.provider_refund_id || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell>{format(new Date(refund.created_at), "PPp")}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      asChild
-                    >
-                      <a 
-                        href={`/payments?highlight=${refund.payment_id}`}
-                        className="gap-2"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        {t('refunds.viewPayment')}
-                      </a>
-                    </Button>
-                  </TableCell>
+        <>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('common.amount')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
+                  <TableHead>{t('refunds.reason')}</TableHead>
+                  <TableHead>{t('refunds.providerId')}</TableHead>
+                  <TableHead>{t('common.date')}</TableHead>
+                  <TableHead>{t('common.actions')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {paginatedRefunds.map((refund) => (
+                  <TableRow key={refund.id}>
+                    <TableCell className="font-medium">
+                      {(refund.amount / 100).toLocaleString()} {(refund.payments as any)?.currency?.toUpperCase()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusColor(refund.status)}>{refund.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={refund.reason || "-"}>
+                        {refund.reason || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={refund.provider_refund_id || "-"}>
+                        {refund.provider_refund_id || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>{format(new Date(refund.created_at), "PPp")}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                      >
+                        <a 
+                          href={`/payments?highlight=${refund.payment_id}`}
+                          className="gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          {t('refunds.viewPayment')}
+                        </a>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <Card className="border border-border shadow-soft bg-card">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                  {/* Items per page selector - Left */}
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
+                    <span className="text-sm text-muted-foreground">แสดง</span>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setPage(1);
+                    }}>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">รายการ</span>
+                  </div>
+
+                  {/* Pagination - Center */}
+                  <Pagination className="justify-center">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              onClick={() => setPage(pageNum)}
+                              isActive={page === pageNum}
+                              className="cursor-pointer"
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && page < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                          className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+
+                  {/* Page info - Right */}
+                  <div className="text-sm text-muted-foreground text-center sm:text-right">
+                    หน้า {page} จาก {totalPages} ({totalCount} รายการทั้งหมด)
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
