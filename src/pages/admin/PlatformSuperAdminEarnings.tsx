@@ -54,57 +54,76 @@ export default function PlatformSuperAdminEarnings() {
   const start = startDate.toISOString();
   const end = endDate.toISOString();
 
-  // Fetch shareholder earnings data from incoming_transfers
+  // Fetch shareholder earnings data from deposit_transfers
   const { data: shareholderEarningsData, isLoading: earningsLoading } = useQuery({
     queryKey: ["super-admin-shareholder-earnings", start, end, startDate, endDate],
     queryFn: async () => {
-      // Fetch incoming transfers with shareholder info
+      // Fetch deposit transfers with tenant info
       const { data: transfersData, error: transfersError } = await supabase
-        .from("incoming_transfers")
+        .from("deposit_transfers")
         .select(`
           id,
-          amount,
-          share_id,
+          amountpaid,
+          tenant_id,
           created_at,
           status
         `)
         .gte("created_at", start)
         .lte("created_at", end)
-        .eq("status", "completed");
+        .not("status", "is", null);
 
       if (transfersError) throw transfersError;
 
-      // Get unique share_ids
-      const shareIds = [...new Set(transfersData?.map(t => t.share_id).filter(Boolean) || [])];
+      // Get unique tenant_ids
+      const tenantIds = [...new Set(transfersData?.map(t => t.tenant_id).filter(Boolean) || [])];
       
-      // Fetch shareholders data
-      const { data: shareholdersData } = await supabase
-        .from("shareholders")
-        .select("id, user_id")
-        .in("id", shareIds);
+      // Fetch tenants data with shareholder info
+      const { data: tenantsData } = await supabase
+        .from("tenants")
+        .select("id, name, public_id")
+        .in("id", tenantIds);
 
-      // Fetch profiles for public_id
-      const userIds = shareholdersData?.map(s => s.user_id).filter(Boolean) || [];
+      // Fetch shareholder_clients to find which shareholder owns each tenant
+      const { data: clientsData } = await supabase
+        .from("shareholder_clients")
+        .select(`
+          tenant_id,
+          shareholder_id,
+          commission_rate,
+          shareholders!inner (
+            id,
+            user_id
+          )
+        `)
+        .in("tenant_id", tenantIds)
+        .eq("status", "active");
+
+      // Fetch shareholder profiles for public_id
+      const shareholderUserIds = [...new Set(clientsData?.map(c => c.shareholders.user_id).filter(Boolean) || [])];
       const { data: profilesData } = await supabase
         .from("profiles")
         .select("id, public_id")
-        .in("id", userIds);
+        .in("id", shareholderUserIds);
 
       // Create maps for easy lookup
-      const shareholderMap = new Map(shareholdersData?.map(s => [s.id, s.user_id]) || []);
+      const tenantMap = new Map(tenantsData?.map(t => [t.id, t]) || []);
+      const clientMap = new Map(clientsData?.map(c => [c.tenant_id, c]) || []);
       const profileMap = new Map(profilesData?.map(p => [p.id, p.public_id]) || []);
 
       // Group by shareholder and calculate commissions
       const grouped = new Map();
       transfersData?.forEach(transfer => {
-        if (!transfer.share_id) return;
+        if (!transfer.tenant_id) return;
         
-        const shareholderId = transfer.share_id;
-        const userId = shareholderMap.get(shareholderId);
-        const shareholderPublicId = userId ? (profileMap.get(userId) || "N/A") : "N/A";
-        const baseAmount = Number(transfer.amount || 0);
-        const mdrRate = 1.5; // 1.5% MDR
-        const commission = baseAmount * (mdrRate / 100); // 1.5% of base
+        const clientInfo = clientMap.get(transfer.tenant_id);
+        if (!clientInfo) return; // Skip if no shareholder assigned
+        
+        const shareholderId = clientInfo.shareholder_id;
+        const userId = clientInfo.shareholders.user_id;
+        const shareholderPublicId = profileMap.get(userId) || "N/A";
+        const baseAmount = Number(transfer.amountpaid || 0);
+        const mdrRate = 1.5; // 1.5% MDR total
+        const commission = baseAmount * (mdrRate / 100);
         
         if (grouped.has(shareholderId)) {
           const existing = grouped.get(shareholderId);
