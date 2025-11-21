@@ -72,12 +72,17 @@ const MDR = () => {
       console.log("Fetching MDR data with filters:", { startDateStr, endDateStr, timezone });
       
       // 1. Query deposit_transfers data (เติมเงิน)
-      const depositQuery = (supabase as any)
+      let depositQuery = (supabase as any)
         .from("deposit_transfers")
         .select("*")
         .gte("depositdate", startDateStr)
-        .lte("depositdate", endDateStr)
-        .order("depositdate", { ascending: true });
+        .lte("depositdate", endDateStr);
+      
+      if (activeTenantId) {
+        depositQuery = depositQuery.eq("tenant_id", activeTenantId);
+      }
+      
+      depositQuery = depositQuery.order("depositdate", { ascending: true });
 
       const { data: depositData, error: depositError } = await depositQuery;
       
@@ -87,12 +92,17 @@ const MDR = () => {
       }
 
       // 2. Query topup_transfers data (เติมเงินเข้าระบบ owner)
-      const topupQuery = (supabase as any)
+      let topupQuery = (supabase as any)
         .from("topup_transfers")
         .select("*")
         .gte("transfer_date", startDateStr)
-        .lte("transfer_date", endDateStr)
-        .order("transfer_date", { ascending: true });
+        .lte("transfer_date", endDateStr);
+      
+      if (activeTenantId) {
+        topupQuery = topupQuery.eq("tenant_id", activeTenantId);
+      }
+      
+      topupQuery = topupQuery.order("transfer_date", { ascending: true });
 
       const { data: topupData, error: topupError } = await topupQuery;
       
@@ -102,12 +112,17 @@ const MDR = () => {
       }
 
       // 3. Query settlement_transfers data (ถอนเงิน และ ถอนเงินระบบ owner)
-      const settlementQuery = (supabase as any)
+      let settlementQuery = (supabase as any)
         .from("settlement_transfers")
         .select("*")
         .gte("created_at", startDateStr)
-        .lte("created_at", endDateStr)
-        .order("created_at", { ascending: true });
+        .lte("created_at", endDateStr);
+      
+      if (activeTenantId) {
+        settlementQuery = settlementQuery.eq("tenant_id", activeTenantId);
+      }
+      
+      settlementQuery = settlementQuery.order("created_at", { ascending: true });
 
       const { data: settlementData, error: settlementError } = await settlementQuery;
       
