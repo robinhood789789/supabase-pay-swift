@@ -37,8 +37,6 @@ interface ClientMDRData {
 export default function PlatformShareholderEarnings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTab, setSelectedTab] = useState("all");
-  const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
-  const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()));
   const [useMockMDR, setUseMockMDR] = useState(false);
   const [useMockShareholders, setUseMockShareholders] = useState(false);
   
@@ -48,39 +46,16 @@ export default function PlatformShareholderEarnings() {
   const [mdrPage, setMdrPage] = useState(1);
   const [mdrItemsPerPage, setMdrItemsPerPage] = useState(20);
 
-  // Quick filter functions
-  const setToday = () => {
-    const now = new Date();
-    setStartDate(startOfDay(now));
-    setEndDate(endOfDay(now));
-  };
-
-  const setThisWeek = () => {
-    const now = new Date();
-    setStartDate(startOfWeek(now, { weekStartsOn: 0 }));
-    setEndDate(endOfWeek(now, { weekStartsOn: 0 }));
-  };
-
-  const setThisMonth = () => {
-    const now = new Date();
-    setStartDate(startOfMonth(now));
-    setEndDate(endOfMonth(now));
-  };
-
   // Reset all filters
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedTab("all");
-    setThisMonth();
     setShareholderPage(1);
     setMdrPage(1);
   };
 
   // Check if any filter is active
-  const isDefaultDateRange = 
-    startDate?.getTime() === startOfMonth(new Date()).getTime() &&
-    endDate?.getTime() === endOfMonth(new Date()).getTime();
-  const hasActiveFilters = searchTerm !== "" || selectedTab !== "all" || !isDefaultDateRange;
+  const hasActiveFilters = searchTerm !== "" || selectedTab !== "all";
 
   // Export to CSV function
   const handleExportCSV = () => {
@@ -90,9 +65,6 @@ export default function PlatformShareholderEarnings() {
 
     // Prepare metadata
     const exportDate = format(new Date(), "d MMMM yyyy HH:mm:ss", { locale: th });
-    const dateRangeText = startDate && endDate
-      ? `${format(startDate, "d MMM yyyy", { locale: th })} - ${format(endDate, "d MMM yyyy", { locale: th })}`
-      : "ทั้งหมด";
     const statusFilterText = selectedTab === "all" ? "ทั้งหมด" : selectedTab === "active" ? "Active" : "Inactive";
     const totalRecords = filteredShareholders.length;
 
@@ -100,7 +72,6 @@ export default function PlatformShareholderEarnings() {
     const metadata = [
       `"รายงานรายได้ Shareholder"`,
       `"วันที่ส่งออก:","${exportDate}"`,
-      `"ช่วงเวลา:","${dateRangeText}"`,
       `"สถานะ:","${statusFilterText}"`,
       `"รายการทั้งหมด:","${totalRecords}"`,
       `"ยอดเงินคงเหลือรวม:","${formatCurrency(platformSummary.totalEarnings)}"`,
@@ -146,11 +117,9 @@ export default function PlatformShareholderEarnings() {
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
     
-    // Generate filename with date range
-    const dateRangeStr = startDate && endDate
-      ? `_${format(startDate, "yyyyMMdd")}-${format(endDate, "yyyyMMdd")}`
-      : `_${format(new Date(), "yyyyMMdd")}`;
-    link.setAttribute("download", `shareholder_earnings${dateRangeStr}.csv`);
+    // Generate filename with current date
+    const dateStr = format(new Date(), "yyyyMMdd");
+    link.setAttribute("download", `shareholder_earnings_${dateStr}.csv`);
     
     // Trigger download
     document.body.appendChild(link);
@@ -169,15 +138,11 @@ export default function PlatformShareholderEarnings() {
 
     const zip = new JSZip();
     const exportDate = format(new Date(), "d MMMM yyyy HH:mm:ss", { locale: th });
-    const dateRangeText = startDate && endDate
-      ? `${format(startDate, "d MMM yyyy", { locale: th })} - ${format(endDate, "d MMM yyyy", { locale: th })}`
-      : "ทั้งหมด";
 
     // Create summary file for selected shareholders only
     const summaryMetadata = [
       `"รายงานรายได้ Shareholder (สรุป)"`,
       `"วันที่ส่งออก:","${exportDate}"`,
-      `"ช่วงเวลา:","${dateRangeText}"`,
       `"จำนวนรายการที่เลือก:","${shareholdersToExport.length}"`,
       `"ยอดเงินคงเหลือรวมที่เลือก:","${formatCurrency(shareholdersToExport.reduce((sum, sh) => sum + sh.total_earnings, 0))}"`,
       "",
@@ -221,13 +186,6 @@ export default function PlatformShareholderEarnings() {
           .eq("shareholder_id", shareholder.id)
           .order("created_at", { ascending: false });
 
-        if (startDate) {
-          query = query.gte("created_at", startDate.toISOString());
-        }
-        if (endDate) {
-          query = query.lte("created_at", endDate.toISOString());
-        }
-
         const { data: earningsData } = await query;
 
         if (earningsData && earningsData.length > 0) {
@@ -236,7 +194,6 @@ export default function PlatformShareholderEarnings() {
             `"Public ID:","${shareholder.profile?.public_id || "-"}"`,
             `"Email:","${shareholder.email}"`,
             `"วันที่ส่งออก:","${exportDate}"`,
-            `"ช่วงเวลา:","${dateRangeText}"`,
             `"จำนวนธุรกรรม:","${earningsData.length}"`,
             `"ยอดเงินคงเหลือรวม:","${formatCurrency(shareholder.total_earnings)}"`,
             "",
@@ -282,10 +239,8 @@ export default function PlatformShareholderEarnings() {
     const url = URL.createObjectURL(zipBlob);
     link.setAttribute("href", url);
     
-    const dateRangeStr = startDate && endDate
-      ? `_${format(startDate, "yyyyMMdd")}-${format(endDate, "yyyyMMdd")}`
-      : `_${format(new Date(), "yyyyMMdd")}`;
-    link.setAttribute("download", `shareholder_earnings_detailed${dateRangeStr}.zip`);
+    const dateStr = format(new Date(), "yyyyMMdd");
+    link.setAttribute("download", `shareholder_earnings_detailed_${dateStr}.zip`);
     
     document.body.appendChild(link);
     link.click();
@@ -330,9 +285,9 @@ export default function PlatformShareholderEarnings() {
     },
   });
 
-  // Fetch earnings summary with date filter
+  // Fetch earnings summary
   const { data: earnings } = useQuery({
-    queryKey: ["platform-earnings-summary", startDate, endDate, useMockShareholders],
+    queryKey: ["platform-earnings-summary", useMockShareholders],
     queryFn: async () => {
       if (useMockShareholders) {
         // Return mock earnings data derived from shareholders list
@@ -352,19 +307,9 @@ export default function PlatformShareholderEarnings() {
         ]);
       }
 
-      let query = supabase
+      const { data, error } = await supabase
         .from("shareholder_earnings")
         .select("shareholder_id, amount, status, created_at");
-
-      // Apply date filter if available
-      if (startDate) {
-        query = query.gte("created_at", startDate.toISOString());
-      }
-      if (endDate) {
-        query = query.lte("created_at", endDate.toISOString());
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       return data;
@@ -416,15 +361,15 @@ export default function PlatformShareholderEarnings() {
 
   // Fetch MDR data for all shareholders and their clients
   const { data: mdrData, isLoading: mdrLoading } = useQuery({
-    queryKey: ["platform-mdr-data", startDate, endDate, useMockMDR],
+    queryKey: ["platform-mdr-data", useMockMDR],
     queryFn: async () => {
       // Use mock data if enabled
       if (useMockMDR) {
         return mockPlatformMDRData as ClientMDRData[];
       }
 
-      const startDateStr = startDate ? format(startDate, "yyyy-MM-dd") : format(startOfMonth(new Date()), "yyyy-MM-dd");
-      const endDateStr = endDate ? format(endDate, "yyyy-MM-dd") : format(endOfMonth(new Date()), "yyyy-MM-dd");
+      const startDateStr = format(startOfMonth(new Date()), "yyyy-MM-dd");
+      const endDateStr = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
       // Get all shareholder-client relationships
       const { data: clientRelations, error: relationsError } = await supabase
@@ -585,11 +530,6 @@ export default function PlatformShareholderEarnings() {
           <h1 className="text-3xl font-bold">รายงานรายได้ Shareholder</h1>
           <p className="text-muted-foreground mt-2">
             ภาพรวมรายได้ของ Shareholder ทั้งหมดในระบบ
-            {startDate && endDate && (
-              <span className="ml-2 text-foreground font-medium">
-                ({format(startDate, "d MMM", { locale: th })} - {format(endDate, "d MMM yyyy", { locale: th })})
-              </span>
-            )}
           </p>
         </div>
         <DropdownMenu>
@@ -695,86 +635,6 @@ export default function PlatformShareholderEarnings() {
                   className="pl-10"
                 />
               </div>
-            </div>
-
-            {/* Quick Date Filters */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={setToday}
-                className="gap-2"
-              >
-                วันนี้
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={setThisWeek}
-                className="gap-2"
-              >
-                สัปดาห์นี้
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={setThisMonth}
-                className="gap-2"
-              >
-                เดือนนี้
-              </Button>
-            </div>
-
-            {/* Date Range Picker */}
-            <div className="flex items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[140px] justify-start text-left font-normal"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "d MMM yy", { locale: th }) : "เริ่มต้น"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => date && setStartDate(date)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <span className="text-muted-foreground">-</span>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[140px] justify-start text-left font-normal"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "d MMM yy", { locale: th }) : "สิ้นสุด"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => date && setEndDate(date)}
-                    disabled={(date) => startDate ? date < startDate : false}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
             </div>
 
             {/* Reset Filters Button */}
@@ -960,11 +820,6 @@ export default function PlatformShareholderEarnings() {
               <CardTitle>รายละเอียดการคำนวณ MDR และค่าคอมมิชชั่น</CardTitle>
               <CardDescription>
                 แสดงการคำนวณ MDR และค่าคอมมิชชั่นของทุก Shareholder
-                {startDate && endDate && (
-                  <span className="ml-2 font-medium text-foreground">
-                    ({format(startDate, "d MMM", { locale: th })} - {format(endDate, "d MMM yyyy", { locale: th })})
-                  </span>
-                )}
               </CardDescription>
             </div>
             <Button
