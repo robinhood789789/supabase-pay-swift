@@ -280,12 +280,12 @@ export default function ShareholderMDR() {
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">Public ID</TableHead>
                     <TableHead className="border-r bg-white dark:bg-slate-950 font-semibold">ชื่อ Shareholder</TableHead>
                     <TableHead className="text-center border-r bg-blue-50 dark:bg-blue-950/20 font-semibold">จำนวน Clients</TableHead>
-                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอด MDR</TableHead>
+                    <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">ยอดเงินฝากทั้งหมด</TableHead>
                     <TableHead className="text-center border-r bg-blue-100 dark:bg-blue-950/20 text-blue-900 dark:text-blue-400 font-semibold">
                       % อัตราคอมมิชชั่น
                     </TableHead>
                     <TableHead className="text-right border-r bg-emerald-100 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-400 font-semibold">
-                      ส่วนแบ่ง Shareholder
+                      ส่วนแบ่งทีม
                     </TableHead>
                   </TableRow>
                 </TableHeader>
